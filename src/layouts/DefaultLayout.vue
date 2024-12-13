@@ -1,7 +1,7 @@
 <template>
   <div class="u-flex u-flex-col u-min-h-screen">
     <header
-      class="u-h64px u-bg-primary u-text-white u-text-center u-flex u-items-center u-justify-start"
+      class="u-bg-white u-text-white u-text-center u-flex u-items-center u-justify-start u-flex-gap-x-2rem u-py-1rem u-px-2rem"
     >
       <div class="u-flex u-items-center u-justify-center u-h-full">
         <img
@@ -10,6 +10,12 @@
           class="u-w-16 u-h-16"
         />
       </div>
+      <p class="u-c-blue u-font-bold u-flex u-flex-col u-items-start">
+        <span class="u-text-1.5rem u-font-bold">Lorem ipsum</span>
+        <span class="u-text-1rem u-font-bold">
+          Taiwan Nazarene Thological College LMS
+        </span>
+      </p>
     </header>
 
     <main
@@ -19,8 +25,13 @@
       <router-view />
     </main>
 
-    <footer class="u-h70px u-bg-primary u-text-white u-text-center">
-      <p>© lorem ipsum dolor sit amet.</p>
+    <footer
+      class="u-p1rem u-bg-primary u-text-white u-text-center u-text-xs u-flex u-flex-col u-items-center u-justify-center"
+    >
+      <p>
+        建議瀏覽器版本：最新版本-chrome．Firefox．Safari．Edge © Taiwan Nazarene
+        Theological College LMS
+      </p>
     </footer>
   </div>
 </template>

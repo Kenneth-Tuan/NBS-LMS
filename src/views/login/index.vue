@@ -55,7 +55,7 @@
           </a-form-item>
         </a-form>
 
-        <div class="u-text-center u-text-gray-600 u-text-sm u-mb-4">
+        <!-- <div class="u-text-center u-text-gray-600 u-text-sm u-mb-4">
           <a class="u-c-blue u-hover:u-text-primary-dark u-transition-colors">
             公平待客原則
           </a>
@@ -67,12 +67,7 @@
           <a class="u-c-gray-600 u-hover:u-text-primary u-transition-colors">
             相關連結
           </a>
-        </div>
-
-        <div class="u-text-center u-text-gray-400 u-text-xs">
-          建議瀏覽器版本：最新版本-chrome．Firefox．Safari．Edge © Fubon Life
-          Insurance Co.Ltd. All Rights Reserved
-        </div>
+        </div> -->
       </a-card>
     </Transition>
   </div>
@@ -80,7 +75,10 @@
 
 <script lang="ts" setup>
 import { reactive } from "vue";
+import { message } from "ant-design-vue";
 import { UserOutlined, LockOutlined } from "@ant-design/icons-vue";
+
+import { sha256 } from "@/utils/misc";
 
 interface FormState {
   username: string;
@@ -92,8 +90,17 @@ const formState = reactive<FormState>({
   password: "",
 });
 
-const handleFinish = (values: FormState) => {
-  console.log("Success:", values);
+const handleFinish = async (values: FormState) => {
+  const hashedAccountInfo = await sha256(JSON.stringify(values));
+
+  if (hashedAccountInfo === import.meta.env.VITE_HASHED) {
+    message.loading({ content: "Loading...", key: "login" });
+    setTimeout(() => {
+      message.success({ content: "Loaded!", key: "login", duration: 2 });
+    }, 1000);
+  } else {
+    message.error("This is an error message");
+  }
 };
 </script>
 
