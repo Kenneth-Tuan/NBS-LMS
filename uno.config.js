@@ -35,7 +35,7 @@ export default defineConfig({
         500: "#6b7280",
       },
       blue: {
-        DEFAULT: "#264073",
+        DEFAULT: "#08396C",
         light: "#0000FF",
       },
       accent: {

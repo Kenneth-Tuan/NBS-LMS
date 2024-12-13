@@ -1,7 +1,15 @@
 <template>
   <div class="u-flex u-flex-col u-min-h-screen">
-    <header class="u-h64px u-bg-primary u-text-white u-text-center">
-      lorem ipsum dolor sit amet more Lorem ipsum dolor sit amet consectetur
+    <header
+      class="u-h64px u-bg-primary u-text-white u-text-center u-flex u-items-center u-justify-start"
+    >
+      <div class="u-flex u-items-center u-justify-center u-h-full">
+        <img
+          src="/src/assets/icon/logo2.jpeg"
+          alt="Logo"
+          class="u-w-16 u-h-16"
+        />
+      </div>
     </header>
 
     <main
