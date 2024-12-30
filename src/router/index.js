@@ -7,7 +7,7 @@ const routes = [
     name: "Login",
     component: () => import("@/views/login/index.vue"),
     meta: {
-      title: "登入 - 客服知識庫系統",
+      title: "登入 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
     },
   },
@@ -33,7 +33,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   // 更新頁面標題
-  document.title = "客服知識庫系統";
+  document.title = "拿撒勒人會神學院 選課系統";
   next();
 });
 
