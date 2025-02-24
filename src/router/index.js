@@ -1,10 +1,19 @@
 import { createWebHistory, createRouter } from "vue-router";
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
-
+import { RouterName } from "@/enums/appEnums";
 const routes = [
   {
+    path: "/landing-page",
+    name: RouterName.LandingPage,
+    component: () => import("@/views/Landing/Index.vue"),
+    meta: {
+      title: "登入頁 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
     path: "/login",
-    name: "Login",
+    name: RouterName.Login,
     component: () => import("@/views/login/index.vue"),
     meta: {
       title: "登入 - 拿撒勒人會神學院 選課系統",
@@ -13,7 +22,7 @@ const routes = [
   },
   {
     path: "/",
-    redirect: "/login",
+    redirect: "/landing_page",
   },
 ];
 
