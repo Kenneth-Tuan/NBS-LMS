@@ -19,10 +19,12 @@
     </header>
 
     <main
-      class="u-relative u-flex-grow u-flex u-items-center u-h100% u-bg-cover u-bg-center u-bg-opacity-10 u-bg-[url('/src/assets/image/loginPoster.jpg')]"
+      class="u-relative u-flex-grow u-flex u-flex-col u-justify-start u-h100% u-w100% u-bg-cover u-bg-center u-bg-opacity-10 u-bg-[url('/src/assets/image/loginPoster.jpg')]"
     >
-      <div class="u-absolute u-inset-0 u-bg-white u-opacity-40"></div>
-      <router-view />
+      <div class="u-absolute u-inset-0 u-bg-white u-opacity-40 u-h100%"></div>
+      <div class="u-w100% u-h100% u-z-9 u-flex-1">
+        <router-view />
+      </div>
     </main>
 
     <footer

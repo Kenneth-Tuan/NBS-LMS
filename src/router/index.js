@@ -22,7 +22,7 @@ const routes = [
   },
   {
     path: "/",
-    redirect: "/landing_page",
+    redirect: "/landing-page",
   },
 ];
 
