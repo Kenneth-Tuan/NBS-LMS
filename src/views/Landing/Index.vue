@@ -62,10 +62,16 @@ const notice = [
 
 <template>
   <div
-    class="u-grid u-grid-cols-11 u-auto-rows-auto u-w100% u-h100% u-gap-36px u-p36px u-items-start"
+    class="u-grid u-w100% u-h100% u-gap-36px u-p36px u-items-start"
+    data-masonry='{
+      "columnWidth": 100,
+      "itemSelector": ".u-grid-item",
+      "gutter": 10,
+      "fitWidth": true
+    }'
   >
     <div
-      class="u-p16px u-col-span-5 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
+      class="u-p16px u-col-span-1 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
       <p class="u-pl16px! u-text-24px u-font-bold u-text-left u-c-blue">
         {{ "課程公告" }}
@@ -73,7 +79,7 @@ const notice = [
       <Divider class="u-my8px" />
     </div>
     <div
-      class="u-p16px u-col-span-6 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
+      class="u-p16px u-col-span-1 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
       <p class="u-pl16px! u-text-24px u-font-bold u-c-blue">
         {{ "最新消息" }}
@@ -95,7 +101,7 @@ const notice = [
     </div>
 
     <div
-      class="u-p16px u-col-span-5 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
+      class="u-p16px u-col-span-1 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
       <p class="u-pl16px! u-text-24px u-font-bold u-text-left u-c-blue">
         {{ "注意事項" }}
