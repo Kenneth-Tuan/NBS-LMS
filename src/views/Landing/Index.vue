@@ -62,7 +62,7 @@ const notice = [
 
 <template>
   <div
-    class="u-grid u-w100% u-h100% u-gap-36px u-p36px u-items-start"
+    class="u-grid u-h100% u-gap-36px u-p36px u-items-start"
     data-masonry='{
       "columnWidth": 100,
       "itemSelector": ".u-grid-item",
