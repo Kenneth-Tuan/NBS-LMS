@@ -1,22 +1,24 @@
 import { createWebHistory, createRouter } from "vue-router";
+
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
 import { RouterName } from "@/enums/appEnums";
+
 const routes = [
   {
     path: "/landing-page",
     name: RouterName.LandingPage,
     component: () => import("@/views/Landing/Index.vue"),
     meta: {
-      title: "登入頁 - 拿撒勒人會神學院 選課系統",
+      title: "首頁 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
     },
   },
   {
-    path: "/login",
-    name: RouterName.Login,
-    component: () => import("@/views/login/index.vue"),
+    path: "/dashboard",
+    name: RouterName.Dashboard,
+    component: () => import("@/views/Dashboard/Index.vue"),
     meta: {
-      title: "登入 - 拿撒勒人會神學院 選課系統",
+      title: "儀表板 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
     },
   },

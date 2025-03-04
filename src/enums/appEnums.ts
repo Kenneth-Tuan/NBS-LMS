@@ -1,5 +1,14 @@
 // router name enums
 export enum RouterName {
   LandingPage = "LandingPage",
-  Login = "Login",
+  Dashboard = "Dashboard",
+}
+
+// user role enums
+export enum UserRole {
+  Admin = "admin",
+  Guest = "guest",
+  Student = "student",
+  Teacher = "teacher",
+  Staff = "staff",
 }

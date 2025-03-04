@@ -1,6 +1,8 @@
 import { createApp, markRaw } from "vue";
 import { createPinia } from "pinia";
 import { createPersistedState } from "pinia-plugin-persistedstate";
+import { QuillEditor } from "@vueup/vue-quill";
+import "@vueup/vue-quill/dist/vue-quill.snow.css";
 import Antd from "ant-design-vue";
 import "ant-design-vue/dist/reset.css";
 import "./style.css";
@@ -26,5 +28,7 @@ pinia.use(
 app.use(pinia);
 
 app.use(router);
+
+app.component("QuillEditor", QuillEditor);
 
 app.mount("#NBS-LMS");

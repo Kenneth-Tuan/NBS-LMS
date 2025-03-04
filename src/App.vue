@@ -1,4 +1,6 @@
-<script setup></script>
+<script setup>
+import LoginDialog from "@/components/LoginDialog.vue";
+</script>
 
 <template>
   <a-config-provider
@@ -12,6 +14,7 @@
       <router-view />
     </component>
   </a-config-provider>
+  <LoginDialog />
 </template>
 
 <style scoped></style>

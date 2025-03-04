@@ -1,6 +1,5 @@
 <script setup>
 import { Divider } from "ant-design-vue";
-
 const columns = [
   {
     title: "日期",

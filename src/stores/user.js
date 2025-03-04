@@ -1,12 +1,24 @@
 import { defineStore } from "pinia";
 import dayjs from "dayjs";
 import { ref, reactive, computed } from "vue";
-import * as R from "ramda";
+
+import { UserRole } from "../enums/appEnums";
 
 export const useUserStore = defineStore(
   "user",
   () => {
-    const userProfile = reactive({});
+    const userProfile = reactive({
+      role: "",
+      userID: "",
+      userName: "",
+      userEmail: "",
+      userPhone: "",
+    });
+
+    const isLoggedIn = computed(() =>
+      Object.values(UserRole).includes(userProfile.role)
+    );
+    const loginDialogOpen = ref(false);
 
     function getToken() {
       return $cookies.get("ApiToken");
@@ -68,8 +80,28 @@ export const useUserStore = defineStore(
         userProfile.userID = $cookies.get("userID").toUpperCase();
     }
 
+    function updateLoginDialogOpen(payload) {
+      loginDialogOpen.value = payload;
+    }
+
+    function logout() {
+      // $cookies.remove("ApiToken");
+      // $cookies.remove("RefreshToken");
+      // $cookies.remove("ApiTokenExpiryTime");
+      // $cookies.remove("userID");
+      // $cookies.remove("companyID");
+
+      userProfile.role = "";
+      userProfile.userID = "";
+      userProfile.userName = "";
+      userProfile.userEmail = "";
+      userProfile.userPhone = "";
+    }
+
     return {
       userProfile,
+      loginDialogOpen,
+      isLoggedIn,
 
       // methods
       getToken,
@@ -77,6 +109,8 @@ export const useUserStore = defineStore(
       fetchUserProfile,
       setUserProfile,
       getUserAndCompanyID,
+      updateLoginDialogOpen,
+      logout,
     };
   },
   {
