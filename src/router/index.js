@@ -23,6 +23,16 @@ const routes = [
     },
   },
   {
+    path: "/course/:operation(create|edit)/:id?",
+    beforeEnter: [removeIdInCreateFlow],
+    name: RouterName.Course,
+    meta: {
+      title: "課程 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+    component: () => import("@/components/Course/Index.vue"),
+  },
+  {
     path: "/",
     redirect: "/landing-page",
   },
@@ -49,3 +59,18 @@ router.beforeEach(async (to, from, next) => {
 });
 
 export default router;
+
+function removeIdInCreateFlow(to, from, next) {
+  const { operation, id } = to.params;
+
+  // Regex pattern to validate alphanumeric ID
+  const alphanumericPattern = /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/;
+
+  if (operation === "create" && !!id) {
+    router.push({ path: "/course/create" });
+  } else if (operation === "edit" && (!id || !alphanumericPattern.test(id))) {
+    router.push({ path: "/course/create" });
+  } else {
+    next();
+  }
+}

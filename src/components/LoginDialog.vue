@@ -25,6 +25,7 @@ const onFinish = async (values) => {
     loading.value = true;
     delete values.remember;
     const hashedAccountInfo = await sha256(JSON.stringify(values));
+    console.log(hashedAccountInfo);
     message.loading({ content: "Loading...", key: "login" });
 
     setTimeout(() => {
