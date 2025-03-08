@@ -1,13 +1,20 @@
 import { createApp, markRaw } from "vue";
 import { createPinia } from "pinia";
 import { createPersistedState } from "pinia-plugin-persistedstate";
-
+import { QuillEditor } from "@vueup/vue-quill";
+import "@vueup/vue-quill/dist/vue-quill.snow.css";
+import Antd from "ant-design-vue";
+import "ant-design-vue/dist/reset.css";
 import "./style.css";
 import App from "./App.vue";
+import router from "./router";
+import "virtual:uno.css";
+import "uno.css";
+import "virtual:unocss-devtools";
 
 const app = createApp(App);
 
-app.use(i18n);
+app.use(Antd);
 
 const pinia = createPinia();
 pinia.use(({ store }) => {
@@ -21,5 +28,7 @@ pinia.use(
 app.use(pinia);
 
 app.use(router);
+
+app.component("QuillEditor", QuillEditor);
 
 app.mount("#NBS-LMS");

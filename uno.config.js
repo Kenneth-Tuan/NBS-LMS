@@ -12,98 +12,51 @@ export default defineConfig({
   ],
   theme: {
     colors: {
-      EzyBooking: {
-        green: {
-          DEFAULT: "#189068",
-          1: "#1a8242",
-          2: "#10b981",
-          3: "#76b146",
-          4: "#453154",
-          5: "#005431",
-          6: "#2ec291",
-        },
-
-        dark: {
-          green: {
-            DEFAULT: "#146c4f",
-            1: "#0f523c",
-            2: "#F2F6F6",
-          },
-          gray: {
-            DEFAULT: "#6f7c7c",
-            1: "#556565",
-            2: "#f2f6f6",
-            3: "#b2baba",
-            4: "#d5d9d9",
-          },
-        },
-
-        bright: {
-          green: "#90be20",
-        },
-
-        light: {
-          green: {
-            DEFAULT: "#9ad2c0",
-            1: "rgba(26, 130, 66, 0.05)",
-            2: "#e8f4f0",
-            3: "#f6f7f7",
-            4: "#f3f9f7",
-          },
-          blue: "#e9f1f3",
-          gray: {
-            DEFAULT: "#dde0e0",
-            1: "#eef0f0",
-            2: "#999999",
-            3: "#94a3b8",
-            4: "#a09e9e",
-            5: "#ededed",
-            6: "#f5f5f5",
-          },
-        },
-
-        blue: {
-          gray: "#64748b",
-        },
-
-        sky: {
-          blue: {
-            DEFAULT: "#00a3c5",
-            hover: "#00cdf7",
-          },
-        },
-
-        gray: {
-          DEFAULT: "#808b8b",
-          1: "#d9d9d9",
-          2: "#333737",
-        },
-
-        red: {
-          DEFAULT: "#f40e0e",
-          1: "rgba(214, 72, 48, 0.05)",
-          2: "#d64830",
-          3: "#e03426",
-          4: "#fee7e7",
-          5: "#f40e0e10",
-        },
-
-        alert: {
-          yellow: "#eebd0e",
-        },
-
-        disable: "#d5d5d9",
-
-        black: {
-          DEFAULT: "#414042",
-          2: "#0f172a",
-        },
-        white: {
-          1: "#fcf8f9",
-        },
-        pink: {
-          1: "#A3A4CF",
-        },
+      primary: {
+        DEFAULT: "#dec690",
+        light: "#e8d5a8",
+        dark: "#c7ae78",
+        50: "#faf7ed",
+        100: "#f5efdb",
+        200: "#ebdfb7",
+        300: "#dec690",
+        400: "#c7ae78",
+        500: "#b09660",
+      },
+      secondary: {
+        DEFAULT: "#6b7280",
+        light: "#9ca3af",
+        dark: "#4b5563",
+        50: "#f9fafb",
+        100: "#f3f4f6",
+        200: "#e5e7eb",
+        300: "#d1d5db",
+        400: "#9ca3af",
+        500: "#6b7280",
+      },
+      blue: {
+        DEFAULT: "#08396C",
+        light: "#0000FF",
+      },
+      accent: {
+        DEFAULT: "#8b5cf6",
+        light: "#a78bfa",
+        dark: "#7c3aed",
+      },
+      success: {
+        DEFAULT: "#10b981",
+        light: "#34d399",
+        dark: "#059669",
+      },
+      warning: {
+        DEFAULT: "#f59e0b",
+        light: "#fbbf24",
+        dark: "#d97706",
+      },
+      error: {
+        DEFAULT: "#ef4444",
+        light: "#f87171",
+        dark: "#dc2626",
       },
     },
     fontFamily: {},
