@@ -5,6 +5,10 @@ import { RouterName } from "@/enums/appEnums";
 
 const routes = [
   {
+    path: "/",
+    redirect: "/landing-page",
+  },
+  {
     path: "/landing-page",
     name: RouterName.LandingPage,
     component: () => import("@/views/Landing/Index.vue"),
@@ -31,10 +35,6 @@ const routes = [
       layout: DefaultLayout,
     },
     component: () => import("@/components/Course/Index.vue"),
-  },
-  {
-    path: "/",
-    redirect: "/landing-page",
   },
 ];
 

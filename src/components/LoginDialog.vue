@@ -29,7 +29,7 @@ const onFinish = async (values) => {
     message.loading({ content: "Loading...", key: "login" });
 
     setTimeout(() => {
-      if (hashedAccountInfo === import.meta.env.VITE_HASHED) {
+      if (hashedAccountInfo === import.meta.env.VITE_ADMIN_PASSWORD_HASH) {
         message.success({
           content: "Login Success!",
           key: "login",
