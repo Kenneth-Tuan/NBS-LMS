@@ -5,11 +5,10 @@ import UnoCSS from "unocss/vite";
 
 export default ({ mode }) => {
   process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
-  console.log(process.env.VITE_BASE_URL, "mode: ", mode);
-  const { VITE_BASE_URL } = process.env;
+  const { VITE_LMS_BASE_URL } = process.env;
 
   return defineConfig({
-    base: VITE_BASE_URL,
+    base: VITE_LMS_BASE_URL,
     server: {
       port: 7001,
       cors: true,
