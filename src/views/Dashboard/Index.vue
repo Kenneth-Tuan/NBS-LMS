@@ -72,21 +72,23 @@ const getMonthData = (value) => {
 </script>
 
 <template>
-  <a-calendar v-model:value="value">
-    <template #dateCellRender="{ current }">
-      <ul class="events">
-        <li v-for="item in getListData(current)" :key="item.content">
-          <a-badge :status="item.type" :text="item.content" />
-        </li>
-      </ul>
-    </template>
-    <template #monthCellRender="{ current }">
-      <div v-if="getMonthData(current)" class="notes-month">
-        <section>{{ getMonthData(current) }}</section>
-        <span>Backlog number</span>
-      </div>
-    </template>
-  </a-calendar>
+  <div class="u-p36px">
+    <a-calendar v-model:value="value" class="u-p36px u-rounded-16px u-shadow">
+      <template #dateCellRender="{ current }">
+        <ul class="events">
+          <li v-for="item in getListData(current)" :key="item.content">
+            <a-badge :status="item.type" :text="item.content" />
+          </li>
+        </ul>
+      </template>
+      <template #monthCellRender="{ current }">
+        <div v-if="getMonthData(current)" class="notes-month">
+          <section>{{ getMonthData(current) }}</section>
+          <span>Backlog number</span>
+        </div>
+      </template>
+    </a-calendar>
+  </div>
 </template>
 
 <style scoped>

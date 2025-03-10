@@ -4,11 +4,8 @@ import vue from "@vitejs/plugin-vue";
 import UnoCSS from "unocss/vite";
 
 export default ({ mode }) => {
-  // process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
-  // const { VITE_LMS_BASE_URL } = process.env;
-
   return defineConfig({
-    base: "/NBS-LMS",
+    base: "/",
     server: {
       port: 7001,
       cors: true,

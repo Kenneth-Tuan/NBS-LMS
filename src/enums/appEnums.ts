@@ -3,6 +3,7 @@ export enum RouterName {
   LandingPage = "LandingPage",
   Dashboard = "Dashboard",
   Course = "Course",
+  NewCourse = "NewCourse",
 }
 
 // user role enums

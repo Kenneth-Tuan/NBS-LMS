@@ -27,14 +27,36 @@ const routes = [
     },
   },
   {
-    path: "/course/:operation(create|edit)/:id?",
-    beforeEnter: [removeIdInCreateFlow],
-    name: RouterName.Course,
+    path: "/new-course",
+    name: RouterName.NewCourse,
+    component: () => import("@/views/Courses/Index.vue"),
     meta: {
-      title: "課程 - 拿撒勒人會神學院 選課系統",
+      title: "新課程 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
     },
-    component: () => import("@/components/Course/Index.vue"),
+  },
+  {
+    path: "/course",
+    redirect: () => {
+      return {
+        name: RouterName.Course,
+        params: {
+          operation: "create",
+        },
+      };
+    },
+    children: [
+      {
+        path: ":operation(create|edit)/:id?",
+        beforeEnter: [removeIdInCreateFlow],
+        name: RouterName.Course,
+        meta: {
+          title: "課程 - 拿撒勒人會神學院 選課系統",
+          layout: DefaultLayout,
+        },
+        component: () => import("@/components/Course/Index.vue"),
+      },
+    ],
   },
 ];
 

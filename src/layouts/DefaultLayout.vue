@@ -49,76 +49,76 @@ const items = reactive([
     icon: () => h(InboxOutlined),
     label: "My Course",
     title: "Option 3",
-    path: "/my-course",
+    path: "/",
   },
-  {
-    key: "sub1",
-    icon: () => h(MailOutlined),
-    label: "Site Administration",
-    title: "Navigation One",
-    children: [
-      {
-        key: "5",
-        label: "General",
-        title: "Option 5",
-      },
-      {
-        key: "6",
-        label: "Users",
-        title: "Option 6",
-      },
-      {
-        key: "7",
-        label: "Courses",
-        title: "Option 7",
-      },
-      {
-        key: "8",
-        label: "Grades",
-        title: "Option 8",
-      },
-      {
-        key: "9",
-        label: "Appearance",
-        title: "Option 9",
-      },
-    ],
-  },
-  {
-    key: "sub2",
-    icon: () => h(AppstoreOutlined),
-    label: "",
-    title: "Navigation Two",
-    children: [
-      {
-        key: "9",
-        label: "Option 9",
-        title: "Option 9",
-      },
-      {
-        key: "10",
-        label: "Option 10",
-        title: "Option 10",
-      },
-      {
-        key: "sub3",
-        label: "Submenu",
-        title: "Submenu",
-        children: [
-          {
-            key: "11",
-            label: "Option 11",
-            title: "Option 11",
-          },
-          {
-            key: "12",
-            label: "Option 12",
-            title: "Option 12",
-          },
-        ],
-      },
-    ],
-  },
+  // {
+  //   key: "sub1",
+  //   icon: () => h(MailOutlined),
+  //   label: "Site Administration",
+  //   title: "Navigation One",
+  //   children: [
+  //     {
+  //       key: "5",
+  //       label: "General",
+  //       title: "Option 5",
+  //     },
+  //     {
+  //       key: "6",
+  //       label: "Users",
+  //       title: "Option 6",
+  //     },
+  //     {
+  //       key: "7",
+  //       label: "Courses",
+  //       title: "Option 7",
+  //     },
+  //     {
+  //       key: "8",
+  //       label: "Grades",
+  //       title: "Option 8",
+  //     },
+  //     {
+  //       key: "9",
+  //       label: "Appearance",
+  //       title: "Option 9",
+  //     },
+  //   ],
+  // },
+  // {
+  //   key: "sub2",
+  //   icon: () => h(AppstoreOutlined),
+  //   label: "",
+  //   title: "Navigation Two",
+  //   children: [
+  //     {
+  //       key: "9",
+  //       label: "Option 9",
+  //       title: "Option 9",
+  //     },
+  //     {
+  //       key: "10",
+  //       label: "Option 10",
+  //       title: "Option 10",
+  //     },
+  //     {
+  //       key: "sub3",
+  //       label: "Submenu",
+  //       title: "Submenu",
+  //       children: [
+  //         {
+  //           key: "11",
+  //           label: "Option 11",
+  //           title: "Option 11",
+  //         },
+  //         {
+  //           key: "12",
+  //           label: "Option 12",
+  //           title: "Option 12",
+  //         },
+  //       ],
+  //     },
+  //   ],
+  // },
 ]);
 
 const visible = ref(false);
@@ -129,10 +129,6 @@ const handleMenuClick = (e) => {
   }
 };
 const handleMenuSelect = ({ item, key, selectedKeys }) => {
-  console.log("test item: ", item);
-  console.log("test key: ", key);
-  console.log("test selectedKeys: ", selectedKeys);
-
   if (item.hasOwnProperty("path")) router.push(item.path);
 };
 watch(
