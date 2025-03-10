@@ -5,7 +5,7 @@ import { RouterName } from "@/enums/appEnums";
 
 const routes = [
   {
-    path: "/landing-page",
+    path: "/NBS-LMS",
     name: RouterName.LandingPage,
     component: () => import("@/views/Landing/Index.vue"),
     meta: {
@@ -14,7 +14,7 @@ const routes = [
     },
   },
   {
-    path: "/dashboard",
+    path: "/NBS-LMS/dashboard",
     name: RouterName.Dashboard,
     component: () => import("@/views/Dashboard/Index.vue"),
     meta: {
@@ -23,8 +23,8 @@ const routes = [
     },
   },
   {
-    path: "/",
-    redirect: "/landing-page",
+    path: "/NBS-LMS",
+    redirect: "/NBS-LMS",
   },
 ];
 
