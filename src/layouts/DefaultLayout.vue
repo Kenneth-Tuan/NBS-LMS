@@ -12,11 +12,13 @@ import {
   BellOutlined,
   CaretDownOutlined,
 } from "@ant-design/icons-vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 import { useUserStore } from "@/stores/user";
+import { RouterName } from "@/enums/appEnums";
 
 const router = useRouter();
+const route = useRoute();
 
 const userStore = useUserStore();
 const { isLoggedIn } = storeToRefs(userStore);
@@ -24,66 +26,46 @@ const { updateLoginDialogOpen, logout } = userStore;
 
 const state = reactive({
   collapsed: false,
-  selectedKeys: ["1"],
+  selectedKeys: [route.name],
   openKeys: ["sub1"],
   preOpenKeys: ["sub1"],
 });
 
 const items = reactive([
   {
-    key: "1",
+    key: RouterName.LandingPage,
     icon: () => h(PieChartOutlined),
-    label: "Home",
-    title: "Option 1",
-    path: "/landing-page",
+    label: "首頁",
   },
   {
-    key: "2",
+    key: RouterName.Dashboard,
     icon: () => h(DesktopOutlined),
-    label: "Dashboard",
-    title: "Option 2",
-    path: "/dashboard",
-  },
-  {
-    key: "3",
-    icon: () => h(InboxOutlined),
-    label: "My Course",
-    title: "Option 3",
-    path: "/",
+    label: "儀表板",
   },
   // {
-  //   key: "sub1",
-  //   icon: () => h(MailOutlined),
-  //   label: "Site Administration",
-  //   title: "Navigation One",
-  //   children: [
-  //     {
-  //       key: "5",
-  //       label: "General",
-  //       title: "Option 5",
-  //     },
-  //     {
-  //       key: "6",
-  //       label: "Users",
-  //       title: "Option 6",
-  //     },
-  //     {
-  //       key: "7",
-  //       label: "Courses",
-  //       title: "Option 7",
-  //     },
-  //     {
-  //       key: "8",
-  //       label: "Grades",
-  //       title: "Option 8",
-  //     },
-  //     {
-  //       key: "9",
-  //       label: "Appearance",
-  //       title: "Option 9",
-  //     },
-  //   ],
+  //   key: RouterName.NewCourse,
+  //   icon: () => h(InboxOutlined),
+  //   label: "新課程",
   // },
+  {
+    icon: () => h(MailOutlined),
+    label: "課程",
+    children: [
+      {
+        key: RouterName.NewCourse,
+        label: "最新課程",
+      },
+      {
+        key: RouterName.Course,
+        label: "新增/編輯課程",
+      },
+      {
+        key: "7",
+        label: "課程列表",
+        disabled: true,
+      },
+    ],
+  },
   // {
   //   key: "sub2",
   //   icon: () => h(AppstoreOutlined),
@@ -125,11 +107,12 @@ const visible = ref(false);
 const handleMenuClick = (e) => {
   if (e.key === "3") {
     logout();
-    router.push("/login");
+    router.push("/landing-page");
   }
 };
 const handleMenuSelect = ({ item, key, selectedKeys }) => {
-  if (item.hasOwnProperty("path")) router.push(item.path);
+  console.log(item, key, selectedKeys);
+  router.push({ name: key });
 };
 watch(
   () => state.openKeys,
@@ -240,7 +223,7 @@ function onClickLoginBtn() {
           <a-menu
             v-if="isLoggedIn"
             @select="handleMenuSelect"
-            class="u-w-256px"
+            class="u-wmin u-px0.5rem"
             v-model:openKeys="state.openKeys"
             v-model:selectedKeys="state.selectedKeys"
             mode="inline"

@@ -28,11 +28,11 @@ const columns = [
 <template>
   <div class="u-grid u-grid-cols-2 u-h100% u-gap-36px u-p36px u-items-start">
     <div
-      class="u-p16px u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
+      class="u-p24px u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
-      <p class="u-pl16px! u-text-24px u-font-bold u-c-blue">
+      <h1 class="u-text-24px u-font-bold u-c-blue">
         {{ "最新消息" }}
-      </p>
+      </h1>
       <Divider class="u-my8px" />
       <a-table
         :columns="columns"
@@ -54,11 +54,11 @@ const columns = [
     </div>
 
     <div
-      class="u-p16px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
+      class="u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
     >
-      <p class="u-pl16px! u-text-24px u-font-bold u-text-left u-c-blue">
+      <h1 class="u-text-24px u-font-bold u-c-blue">
         {{ "課程公告" }}
-      </p>
+      </h1>
       <Divider class="u-my8px" />
       <a-list item-layout="vertical" :data-source="dummyAnnouncementData">
         <template #renderItem="{ item }">
@@ -81,11 +81,11 @@ const columns = [
     </div>
 
     <div
-      class="u-p16px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
+      class="u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
     >
-      <p class="u-pl16px! u-text-24px u-font-bold u-text-left u-c-blue">
+      <h1 class="u-text-24px u-font-bold u-c-blue">
         {{ "注意事項" }}
-      </p>
+      </h1>
       <Divider class="u-my8px" />
       <a-list item-layout="vertical" :data-source="dummyNoticeData">
         <template #renderItem="{ item }">
