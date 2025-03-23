@@ -5,6 +5,7 @@ export enum RouterName {
   Course = "Course",
   NewCourse = "NewCourse",
   UpdateCourse = "UpdateCourse",
+  CourseDetail = "CourseDetail",
 }
 
 // user role enums

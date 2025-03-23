@@ -55,8 +55,17 @@ const routes = [
           title: "課程 - 拿撒勒人會神學院 選課系統",
           layout: DefaultLayout,
         },
-        component: () => import("@/components/Course/Index.vue"),
+        component: () => import("@/views/UpdateCourse/Index.vue"),
       },
+      {
+        path:"detail/:id",
+        name: RouterName.CourseDetail,
+        component: () => import("@/views/CourseDetail/Index.vue"),
+        meta: {
+          title: "課程 - 拿撒勒人會神學院 選課系統",
+          layout: DefaultLayout,
+        },
+      }
     ],
   },
 ];
