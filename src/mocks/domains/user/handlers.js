@@ -1,38 +1,41 @@
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
+import dayjs from "dayjs";
 
-import { useMockStore } from "@/stores/mock";
+// import { useMockStore } from "@/stores/mock";
 import { defaultApiError500 } from "@/mocks/handlers";
 import { generateUserprofile } from "../user/model";
 
 export const handlers = [
-  rest.get(
-    "https://uat-apigateway.ezbiz.com/dev-glsshoppingapi/v1/parameters/userprofile",
-    async (req, res, ctx) => {
-      const result = generateUserprofile();
+  http.get("/userprofile", async ({ request, params, cookies }) => {
+    const result = generateUserprofile(cookies.ApiToken);
 
-      const {
-        apiErr: { glsUserProfile },
-      } = useMockStore();
-      if (glsUserProfile.value) {
-        return res(ctx.status(500), ctx.json(defaultApiError500));
-      }
-
-      return res(ctx.json(result));
+    if (result === false) {
+      return new HttpResponse(
+        JSON.stringify({
+          message: "登入失敗，請確認帳號密碼",
+          code: "AUTH_FAILED",
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
     }
-  ),
-  rest.post(
-    "https://uat-apigateway.ezbiz.com/dev-ezycargoapi/ezycargo/userprofile",
-    async (req, res, ctx) => {
-      const result = {};
 
-      const {
-        apiErr: { ezycargoUserProfile },
-      } = useMockStore();
-      if (ezycargoUserProfile.value) {
-        return res(ctx.status(500), ctx.json(defaultApiError500));
-      }
+    return HttpResponse.json(result);
+  }),
 
-      return res(ctx.json(result));
-    }
-  ),
+  http.post("/token", async ({ request, params, cookies, body, variables }) => {
+    const payload = await request.json();
+
+    const result = {
+      access_token: payload.hashedValue,
+      refresh_token: payload.hashedValue,
+      expires_in: dayjs().add(1000, "s").valueOf(),
+    };
+
+    return HttpResponse.json(result);
+  }),
 ];

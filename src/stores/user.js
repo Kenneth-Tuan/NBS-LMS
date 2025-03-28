@@ -3,20 +3,23 @@ import dayjs from "dayjs";
 import { ref, reactive, computed } from "vue";
 
 import { UserRole } from "../enums/appEnums";
+import authorizationApi from "@/apis/authorizationApi";
+import userApi from "@/apis/user";
 
 export const useUserStore = defineStore(
   "user",
   () => {
     const userProfile = reactive({
-      role: "",
       userID: "",
       userName: "",
       userEmail: "",
-      userPhone: "",
+      userTel: "",
+      userType: 0,
+      userStatus: "",
     });
 
     const isLoggedIn = computed(() =>
-      Object.values(UserRole).includes(userProfile.role)
+      Object.values(UserRole).includes(userProfile.userType)
     );
     const loginDialogOpen = ref(false);
 
@@ -24,45 +27,41 @@ export const useUserStore = defineStore(
       return $cookies.get("ApiToken");
     }
 
-    async function signIn() {
-      const userID = import.meta.env.VITE_USER_ID;
-      const companyID = import.meta.env.VITE_COMPANY_ID;
+    async function signIn(hashedValue) {
+      // 清除所有 localStorage 資料
+      localStorage.clear();
+
+      // 清除所有 sessionStorage 資料
+      sessionStorage.clear();
 
       try {
-        const { data } = await authorizationApi.signIn({
-          client_id: `${userID}@${companyID}`,
-          client_secret: import.meta.env.VITE_CLIENT_SECRET,
-        });
+        const { data } = await authorizationApi.signIn(hashedValue);
         const tokenPair = {
           ApiToken: data.access_token,
           RefreshToken: data.refresh_token,
           ApiTokenExpiryTime: dayjs().add(data.expires_in, "s").valueOf(),
-          userID,
-          companyID,
         };
 
         for (const key in tokenPair) {
           $cookies.set(key, tokenPair[key]);
         }
+
+        await fetchUserProfile();
+
+        return !!data.access_token;
       } catch (error) {
-        console.log(error);
+        throw new Error("signIn failed");
       }
     }
 
     async function fetchUserProfile() {
       try {
-        const params = { token: $cookies.get("ApiToken") };
         const {
-          data: { objects: userProfileResponse },
-        } = await ezyCargoAPI.userProfile(params);
-        setUserProfile(userProfileResponse);
+          data: { userProfile },
+        } = await userApi.getUserProfile();
+        setUserProfile(userProfile);
       } catch (error) {
-        glsDialogCreateHandler({
-          isCancelBtnDisplayed: false,
-          title: apiErrorMessage.type.UNAVAILABLE_SERVICE,
-          description: apiErrorMessage.description.GENERAL,
-          okBtnLabel: apiErrorMessage.action.OK,
-        });
+        throw new Error("fetchUserProfile failed");
       }
     }
 
@@ -85,17 +84,24 @@ export const useUserStore = defineStore(
     }
 
     function logout() {
-      // $cookies.remove("ApiToken");
-      // $cookies.remove("RefreshToken");
-      // $cookies.remove("ApiTokenExpiryTime");
-      // $cookies.remove("userID");
-      // $cookies.remove("companyID");
+      // 移除 cookies
+      $cookies.remove("ApiToken");
+      $cookies.remove("RefreshToken");
+      $cookies.remove("ApiTokenExpiryTime");
 
-      userProfile.role = "";
+      // 清空 userProfile
       userProfile.userID = "";
       userProfile.userName = "";
       userProfile.userEmail = "";
-      userProfile.userPhone = "";
+      userProfile.userTel = "";
+      userProfile.userType = "";
+      userProfile.userStatus = "";
+
+      // 清除所有 localStorage 資料
+      localStorage.clear();
+
+      // 清除所有 sessionStorage 資料
+      sessionStorage.clear();
     }
 
     return {
@@ -114,8 +120,6 @@ export const useUserStore = defineStore(
     };
   },
   {
-    persist: {
-      paths: ["userRegion"],
-    },
+    persist: false,
   }
 );

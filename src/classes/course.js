@@ -1,18 +1,18 @@
 class Course {
   constructor({
-    id, // 課程編號
-    name, // 課程名稱
-    teacherId, // 教師ID
-    teacherName, // 教師姓名
-    semester, // 學期 (例: 2024-1)
-    credits, // 學分數
-    category, // 課程類別
+    id = "", // 課程編號
+    name = "", // 課程名稱
+    teacherId = "", // 教師ID
+    teacherName = "", // 教師姓名
+    semester = "", // 學期 (例: 2024-1)
+    credits = 0, // 學分數
+    category = "", // 課程類別
     tags = [], // 課程標籤
-    maxStudents, // 人數上限
+    maxStudents = 0, // 人數上限
     currentStudents = 0, // 目前選課人數
     description = "", // 課程描述
     prerequisites = [], // 先修科目列表
-    location, // 上課地點
+    location = "", // 上課地點
     schedule = [], // 上課時間 [{day: 1, period: 1}, ...]
     thumbnail = "", // 課程縮圖URL
     visible = true, // 是否可見

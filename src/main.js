@@ -11,6 +11,13 @@ import router from "./router";
 import "virtual:uno.css";
 import "uno.css";
 import "virtual:unocss-devtools";
+import VueCookies from "vue-cookies";
+
+if (import.meta.env.MODE === "dev") {
+  const { worker } = await import("./mocks/browser");
+
+  worker.start();
+}
 
 const app = createApp(App);
 
@@ -28,6 +35,8 @@ pinia.use(
 app.use(pinia);
 
 app.use(router);
+
+app.use(VueCookies);
 
 app.component("QuillEditor", QuillEditor);
 

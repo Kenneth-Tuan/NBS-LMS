@@ -6,7 +6,12 @@ const content = ref("");
 
 <template>
   <div class="u-w-full u-h-full">
-    <QuillEditor v-model:content="content" theme="snow" toolbar="full" />
+    <QuillEditor
+      v-model:content="content"
+      theme="snow"
+      toolbar="full"
+      class="u-h280px u-rounded-4px"
+    />
   </div>
 </template>
 

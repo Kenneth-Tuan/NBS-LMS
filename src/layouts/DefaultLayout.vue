@@ -5,135 +5,106 @@ import {
   PieChartOutlined,
   MailOutlined,
   DesktopOutlined,
-  InboxOutlined,
-  AppstoreOutlined,
   LoginOutlined,
   UserOutlined,
   BellOutlined,
   CaretDownOutlined,
+  FormOutlined,
 } from "@ant-design/icons-vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 
 import { useUserStore } from "@/stores/user";
+import { RouterName } from "@/enums/appEnums";
+import userApi from "@/apis/user";
 
 const router = useRouter();
+const route = useRoute();
 
 const userStore = useUserStore();
 const { isLoggedIn } = storeToRefs(userStore);
-const { updateLoginDialogOpen, logout } = userStore;
+const { updateLoginDialogOpen, logout, userProfile } = userStore;
 
 const state = reactive({
   collapsed: false,
-  selectedKeys: ["1"],
+  selectedKeys: [route.name],
   openKeys: ["sub1"],
   preOpenKeys: ["sub1"],
 });
 
 const items = reactive([
   {
-    key: "1",
+    key: RouterName.LandingPage,
     icon: () => h(PieChartOutlined),
-    label: "Home",
-    title: "Option 1",
-    path: "/landing-page",
+    label: "首頁",
   },
+  // {
+  //   key: RouterName.Dashboard,
+  //   icon: () => h(DesktopOutlined),
+  //   label: "儀表板",
+  //   disabled: true,
+  // },
   {
-    key: "2",
-    icon: () => h(DesktopOutlined),
-    label: "Dashboard",
-    title: "Option 2",
-    path: "/dashboard",
-  },
-  {
-    key: "3",
-    icon: () => h(InboxOutlined),
-    label: "My Course",
-    title: "Option 3",
-    path: "/my-course",
-  },
-  {
-    key: "sub1",
+    key: "courses",
+    label: "課程管理",
     icon: () => h(MailOutlined),
-    label: "Site Administration",
-    title: "Navigation One",
     children: [
       {
-        key: "5",
-        label: "General",
-        title: "Option 5",
+        key: RouterName.CourseList,
+        label: "課程列表",
       },
       {
-        key: "6",
-        label: "Users",
-        title: "Option 6",
+        key: RouterName.CourseCreate,
+        label: "新增課程",
+        adminOnly: true,
       },
-      {
-        key: "7",
-        label: "Courses",
-        title: "Option 7",
-      },
-      {
-        key: "8",
-        label: "Grades",
-        title: "Option 8",
-      },
-      {
-        key: "9",
-        label: "Appearance",
-        title: "Option 9",
-      },
+      // {
+      //   key: RouterName.CourseReview,
+      //   label: "課程審核",
+      //   adminOnly: true,
+      //   disabled: true,
+      // },
     ],
   },
   {
-    key: "sub2",
-    icon: () => h(AppstoreOutlined),
-    label: "",
-    title: "Navigation Two",
+    key: "applications",
+    icon: () => h(FormOutlined),
+    label: "各項申請",
     children: [
       {
-        key: "9",
-        label: "Option 9",
-        title: "Option 9",
+        key: RouterName.InternshipApplication,
+        label: "實習申請",
       },
       {
-        key: "10",
-        label: "Option 10",
-        title: "Option 10",
+        key: RouterName.LeaveApplication,
+        label: "請假申請",
       },
       {
-        key: "sub3",
-        label: "Submenu",
-        title: "Submenu",
-        children: [
-          {
-            key: "11",
-            label: "Option 11",
-            title: "Option 11",
-          },
-          {
-            key: "12",
-            label: "Option 12",
-            title: "Option 12",
-          },
-        ],
+        key: RouterName.SubsidyApplication,
+        label: "補助申請",
+      },
+      {
+        key: RouterName.ApplicationRecord,
+        label: "申請紀錄",
       },
     ],
   },
+  // {
+  //   key: "sub2",
+  //   icon: () => h(AppstoreOutlined),
+  //   label: "",
+  //   title: "Navigation Two",
+  // },
 ]);
 
 const visible = ref(false);
 const handleMenuClick = (e) => {
   if (e.key === "3") {
     logout();
-    router.push("/login");
+    router.push("/landing-page");
   }
 };
 const handleMenuSelect = ({ item, key, selectedKeys }) => {
-  console.log("test item: ", item);
-  console.log("test key: ", key);
-  console.log("test selectedKeys: ", selectedKeys);
-
-  if (item.hasOwnProperty("path")) router.push(item.path);
+  router.push({ name: key });
 };
 watch(
   () => state.openKeys,
@@ -211,7 +182,7 @@ function onClickLoginBtn() {
             >
               <UserOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
               <span class="u-text-1rem u-font-bold u-c-blue">
-                A1234 王小明
+                {{ userProfile.userID }} {{ userProfile.userName }}
               </span>
 
               <CaretDownOutlined
@@ -244,7 +215,7 @@ function onClickLoginBtn() {
           <a-menu
             v-if="isLoggedIn"
             @select="handleMenuSelect"
-            class="u-w-256px"
+            class="u-wmin u-px0.5rem"
             v-model:openKeys="state.openKeys"
             v-model:selectedKeys="state.selectedKeys"
             mode="inline"
