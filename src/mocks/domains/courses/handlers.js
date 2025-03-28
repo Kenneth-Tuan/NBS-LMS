@@ -3,7 +3,7 @@ import { getCourseList, updateCourse, saveCourse } from "./model";
 
 export const handlers = [
   // 獲取課程列表
-  http.get("/api/courseList", async ({ request, params, cookies }) => {
+  http.get("/courseList", async ({ request, params, cookies }) => {
     try {
       // 獲取課程列表
       const courses = getCourseList();
@@ -36,7 +36,7 @@ export const handlers = [
   }),
 
   // 更新課程狀態
-  http.post("/api/updateCourseStatus", async ({ request }) => {
+  http.post("/updateCourseStatus", async ({ request }) => {
     try {
       // 解析請求數據
       const requestBody = await request.json();
@@ -86,7 +86,7 @@ export const handlers = [
   }),
 
   // 創建新課程
-  http.post("/api/createCourse", async ({ request }) => {
+  http.post("/createCourse", async ({ request }) => {
     try {
       // 解析請求數據
       const courseData = await request.json();

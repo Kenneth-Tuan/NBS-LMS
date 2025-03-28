@@ -2,7 +2,7 @@ import { http, HttpResponse } from "msw";
 import { getApplicationList, updateApplication } from "./model";
 
 export const handlers = [
-  http.get("/api/applicationList", async ({ request, params, cookies }) => {
+  http.get("/applicationList", async ({ request, params, cookies }) => {
     try {
       // Get the list of applications
       const applications = getApplicationList();
@@ -32,7 +32,7 @@ export const handlers = [
     }
   }),
 
-  http.post("/api/updateApplicationStatus", async ({ request }) => {
+  http.post("/updateApplicationStatus", async ({ request }) => {
     try {
       // Parse request body
       const requestBody = await request.json();
