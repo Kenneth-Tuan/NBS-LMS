@@ -6,12 +6,12 @@ import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
 
 const routes = [
-  // {
-  //   path: "/",
-  //   redirect: "/landing-page",
-  // },
   {
     path: "/",
+    redirect: "/NBS-LMS",
+  },
+  {
+    path: "/NBS-LMS",
     name: RouterName.LandingPage,
     component: () => import("@/views/Landing/Index.vue"),
     meta: {
@@ -20,7 +20,7 @@ const routes = [
     },
   },
   {
-    path: "/dashboard",
+    path: "/NBS-LMS/dashboard",
     name: RouterName.Dashboard,
     component: () => import("@/views/Dashboard/Index.vue"),
     meta: {
@@ -29,7 +29,7 @@ const routes = [
     },
   },
   {
-    path: "/courses",
+    path: "/NBS-LMS/courses",
     name: RouterName.CourseList,
     component: () => import("@/views/Courses/CourseList.vue"),
     meta: {
@@ -38,7 +38,7 @@ const routes = [
     },
   },
   {
-    path: "/courses/create",
+    path: "/NBS-LMS/courses/create",
     name: RouterName.CourseCreate,
     component: () => import("@/views/Courses/CourseForm.vue"),
     meta: {
@@ -48,7 +48,7 @@ const routes = [
     },
   },
   {
-    path: "/courses/:id",
+    path: "/NBS-LMS/courses/:id",
     name: RouterName.CourseDetail,
     component: () => import("@/views/CourseDetail/Index.vue"),
     meta: {
@@ -57,7 +57,7 @@ const routes = [
     },
   },
   {
-    path: "/courses/:id/review",
+    path: "/NBS-LMS/courses/:id/review",
     name: RouterName.CourseReview,
     component: () => import("@/views/Courses/components/CourseReview.vue"),
     meta: {
@@ -67,7 +67,7 @@ const routes = [
     },
   },
   {
-    path: "/internship-application",
+    path: "/NBS-LMS/internship-application",
     name: RouterName.InternshipApplication,
     component: () => import("@/views/Applications/InternshipApplication.vue"),
     meta: {
@@ -76,7 +76,7 @@ const routes = [
     },
   },
   {
-    path: "/leave-application",
+    path: "/NBS-LMS/leave-application",
     name: RouterName.LeaveApplication,
     component: () => import("@/views/Applications/LeaveApplication.vue"),
     meta: {
@@ -85,7 +85,7 @@ const routes = [
     },
   },
   {
-    path: "/subsidy-application",
+    path: "/NBS-LMS/subsidy-application",
     name: RouterName.SubsidyApplication,
     component: () => import("@/views/Applications/SubsidyApplication.vue"),
     meta: {
@@ -94,7 +94,7 @@ const routes = [
     },
   },
   {
-    path: "/application-record",
+    path: "/NBS-LMS/application-record",
     name: RouterName.ApplicationRecord,
     component: () => import("@/views/Applications/ApplicationRecord.vue"),
     meta: {
@@ -105,7 +105,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory("/"),
+  history: createWebHistory("/NBS-LMS"),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (to.hash)
