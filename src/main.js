@@ -12,10 +12,9 @@ import "virtual:uno.css";
 import "uno.css";
 import "virtual:unocss-devtools";
 import VueCookies from "vue-cookies";
+import { worker } from "./mocks/browser";
 
 if (import.meta.env.MODE === "dev") {
-  const { worker } = await import("./mocks/browser");
-
   worker.start();
 }
 
