@@ -14,7 +14,7 @@ const course = computed(() =>
 </script>
 
 <template>
-  <div class="u-p36px u-h100% u-w100% u-flex u-flex-col u-gap-36px">
+  <div class="u-p4 u-h100% u-w100% u-flex u-flex-col u-gap-4">
     <div
       class="u-p24px u-rounded-16px u-shadow u-bg-white u-h100% u-flex u-flex-nowrap u-flex-gap-2rem"
     >

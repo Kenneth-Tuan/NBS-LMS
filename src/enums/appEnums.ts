@@ -6,15 +6,21 @@ export enum RouterName {
   NewCourse = "NewCourse",
   UpdateCourse = "UpdateCourse",
   CourseDetail = "CourseDetail",
+  CourseList = "CourseList",
+  CourseCreate = "CourseCreate",
+  CourseReview = "CourseReview",
+  InternshipApplication = "InternshipApplication",
+  LeaveApplication = "LeaveApplication",
+  SubsidyApplication = "SubsidyApplication",
+  ApplicationRecord = "ApplicationRecord",
 }
 
 // user role enums
 export enum UserRole {
-  Admin = "admin",
-  Guest = "guest",
-  Student = "student",
-  Teacher = "teacher",
-  Staff = "staff",
+  Admin = 1,
+  Manager = 2,
+  Student = 4,
+  Teacher = 3,
 }
 
 export enum CourseStatus {

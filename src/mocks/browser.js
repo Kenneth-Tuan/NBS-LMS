@@ -1,10 +1,4 @@
-import { setupWorker } from "msw";
+import { setupWorker } from "msw/browser";
 import { handlers } from "@/mocks/handlers";
 
-const worker = setupWorker(...handlers);
-
-export function loadMockService() {
-  worker.start({
-    onUnhandledRequest: "bypass",
-  });
-}
+export const worker = setupWorker(...handlers);

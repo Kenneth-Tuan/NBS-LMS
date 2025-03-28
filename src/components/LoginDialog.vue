@@ -6,11 +6,10 @@ import { UserOutlined, LockOutlined } from "@ant-design/icons-vue";
 import { sha256 } from "@/utils/misc";
 import { useUserStore } from "../stores/user";
 import { storeToRefs } from "pinia";
-import { UserRole } from "../enums/appEnums";
 
 const userStore = useUserStore();
 const { loginDialogOpen } = storeToRefs(userStore);
-const { updateLoginDialogOpen, setUserProfile } = userStore;
+const { updateLoginDialogOpen, signIn } = userStore;
 
 const formState = reactive({
   username: "",
@@ -25,34 +24,28 @@ const onFinish = async (values) => {
     loading.value = true;
     delete values.remember;
     const hashedAccountInfo = await sha256(JSON.stringify(values));
-    console.log(hashedAccountInfo);
+
     message.loading({ content: "Loading...", key: "login" });
 
-    setTimeout(() => {
-      if (hashedAccountInfo === import.meta.env.VITE_ADMIN_PASSWORD_HASH) {
-        message.success({
-          content: "Login Success!",
-          key: "login",
-          duration: 2,
-        });
-        updateLoginDialogOpen(false);
-        setUserProfile({
-          role: UserRole.Admin,
-          userID: values.username,
-          userName: values.username,
-          userEmail: values.username,
-          userPhone: values.username,
-        });
-      } else
-        message.error({
-          content: "Login Failed!",
-          key: "login",
-          duration: 2,
-        });
-      loading.value = false;
-    }, 1000);
+    const isLoginSuccess = await signIn(hashedAccountInfo);
+
+    if (isLoginSuccess) {
+      message.success({
+        content: "Login Success!",
+        key: "login",
+        duration: 2,
+      });
+      updateLoginDialogOpen(false);
+    }
+    loading.value = false;
   } catch (error) {
-    console.log(error);
+    message.error({
+      content: "Login Failed!",
+      key: "login",
+      duration: 2,
+    });
+    loading.value = false;
+    throw error;
   } finally {
   }
 };

@@ -5,24 +5,24 @@ import {
   PieChartOutlined,
   MailOutlined,
   DesktopOutlined,
-  InboxOutlined,
-  AppstoreOutlined,
   LoginOutlined,
   UserOutlined,
   BellOutlined,
   CaretDownOutlined,
+  FormOutlined,
 } from "@ant-design/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 
 import { useUserStore } from "@/stores/user";
 import { RouterName } from "@/enums/appEnums";
+import userApi from "@/apis/user";
 
 const router = useRouter();
 const route = useRoute();
 
 const userStore = useUserStore();
 const { isLoggedIn } = storeToRefs(userStore);
-const { updateLoginDialogOpen, logout } = userStore;
+const { updateLoginDialogOpen, logout, userProfile } = userStore;
 
 const state = reactive({
   collapsed: false,
@@ -37,32 +37,54 @@ const items = reactive([
     icon: () => h(PieChartOutlined),
     label: "首頁",
   },
-  {
-    key: RouterName.Dashboard,
-    icon: () => h(DesktopOutlined),
-    label: "儀表板",
-  },
   // {
-  //   key: RouterName.NewCourse,
-  //   icon: () => h(InboxOutlined),
-  //   label: "新課程",
+  //   key: RouterName.Dashboard,
+  //   icon: () => h(DesktopOutlined),
+  //   label: "儀表板",
+  //   disabled: true,
   // },
   {
+    key: "courses",
+    label: "課程管理",
     icon: () => h(MailOutlined),
-    label: "課程",
     children: [
       {
-        key: RouterName.NewCourse,
-        label: "最新課程",
-      },
-      {
-        key: RouterName.Course,
-        label: "新增/編輯課程",
-      },
-      {
-        key: "7",
+        key: RouterName.CourseList,
         label: "課程列表",
-        disabled: true,
+      },
+      {
+        key: RouterName.CourseCreate,
+        label: "新增課程",
+        adminOnly: true,
+      },
+      // {
+      //   key: RouterName.CourseReview,
+      //   label: "課程審核",
+      //   adminOnly: true,
+      //   disabled: true,
+      // },
+    ],
+  },
+  {
+    key: "applications",
+    icon: () => h(FormOutlined),
+    label: "各項申請",
+    children: [
+      {
+        key: RouterName.InternshipApplication,
+        label: "實習申請",
+      },
+      {
+        key: RouterName.LeaveApplication,
+        label: "請假申請",
+      },
+      {
+        key: RouterName.SubsidyApplication,
+        label: "補助申請",
+      },
+      {
+        key: RouterName.ApplicationRecord,
+        label: "申請紀錄",
       },
     ],
   },
@@ -71,35 +93,6 @@ const items = reactive([
   //   icon: () => h(AppstoreOutlined),
   //   label: "",
   //   title: "Navigation Two",
-  //   children: [
-  //     {
-  //       key: "9",
-  //       label: "Option 9",
-  //       title: "Option 9",
-  //     },
-  //     {
-  //       key: "10",
-  //       label: "Option 10",
-  //       title: "Option 10",
-  //     },
-  //     {
-  //       key: "sub3",
-  //       label: "Submenu",
-  //       title: "Submenu",
-  //       children: [
-  //         {
-  //           key: "11",
-  //           label: "Option 11",
-  //           title: "Option 11",
-  //         },
-  //         {
-  //           key: "12",
-  //           label: "Option 12",
-  //           title: "Option 12",
-  //         },
-  //       ],
-  //     },
-  //   ],
   // },
 ]);
 
@@ -111,7 +104,6 @@ const handleMenuClick = (e) => {
   }
 };
 const handleMenuSelect = ({ item, key, selectedKeys }) => {
-  console.log(item, key, selectedKeys);
   router.push({ name: key });
 };
 watch(
@@ -190,7 +182,7 @@ function onClickLoginBtn() {
             >
               <UserOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
               <span class="u-text-1rem u-font-bold u-c-blue">
-                A1234 王小明
+                {{ userProfile.userID }} {{ userProfile.userName }}
               </span>
 
               <CaretDownOutlined

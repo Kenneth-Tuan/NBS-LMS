@@ -20,7 +20,6 @@ apiHelper.interceptors.request.use(
 
     const token = getToken();
     config.headers.Authorization = `Bearer ${token}`;
-    config.headers["gls-connection-id"] = glsConnectionId.value;
 
     return config;
   },

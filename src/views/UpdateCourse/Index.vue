@@ -57,9 +57,7 @@ const onFinishFailed = (errorInfo) => {
 </script>
 
 <template>
-  <div
-    class="u-h100% u-w100% u-bg-white u-m36px u-p24px u-shadow u-rounded-16px"
-  >
+  <div class="u-h100% u-w100% u-bg-white u-m4 u-p4 u-shadow u-rounded-16px">
     <h1 class="u-text-24px u-font-bold u-mb24px u-c-blue u-text-left">
       {{ title[currentOperation] }}
     </h1>

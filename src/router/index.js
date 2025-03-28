@@ -2,6 +2,8 @@ import { createWebHistory, createRouter } from "vue-router";
 
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
 import { RouterName } from "@/enums/appEnums";
+import { useUserStore } from "@/stores/user";
+import { UserRole } from "@/enums/appEnums";
 
 const routes = [
   {
@@ -27,46 +29,78 @@ const routes = [
     },
   },
   {
-    path: "/new-course",
-    name: RouterName.NewCourse,
-    component: () => import("@/views/Courses/Index.vue"),
+    path: "/courses",
+    name: RouterName.CourseList,
+    component: () => import("@/views/Courses/CourseList.vue"),
     meta: {
-      title: "最新課程 - 拿撒勒人會神學院 選課系統",
+      title: "課程列表 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
     },
   },
   {
-    path: "/course",
-    name: RouterName.Course,
-    redirect: () => {
-      return {
-        name: RouterName.UpdateCourse,
-        params: {
-          operation: "create",
-        },
-      };
+    path: "/courses/create",
+    name: RouterName.CourseCreate,
+    component: () => import("@/views/Courses/CourseForm.vue"),
+    meta: {
+      title: "新增課程 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+      requiresAdmin: true,
     },
-    children: [
-      {
-        path: ":operation(create|edit)/:id?",
-        beforeEnter: [removeIdInCreateFlow],
-        name: RouterName.UpdateCourse,
-        meta: {
-          title: "課程 - 拿撒勒人會神學院 選課系統",
-          layout: DefaultLayout,
-        },
-        component: () => import("@/views/UpdateCourse/Index.vue"),
-      },
-      {
-        path:"detail/:id",
-        name: RouterName.CourseDetail,
-        component: () => import("@/views/CourseDetail/Index.vue"),
-        meta: {
-          title: "課程 - 拿撒勒人會神學院 選課系統",
-          layout: DefaultLayout,
-        },
-      }
-    ],
+  },
+  {
+    path: "/courses/:id",
+    name: RouterName.CourseDetail,
+    component: () => import("@/views/CourseDetail/Index.vue"),
+    meta: {
+      title: "課程詳情 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
+    path: "/courses/:id/review",
+    name: RouterName.CourseReview,
+    component: () => import("@/views/Courses/components/CourseReview.vue"),
+    meta: {
+      title: "課程審核 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+      requiresAdmin: true,
+    },
+  },
+  {
+    path: "/internship-application",
+    name: RouterName.InternshipApplication,
+    component: () => import("@/views/Applications/InternshipApplication.vue"),
+    meta: {
+      title: "實習申請 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
+    path: "/leave-application",
+    name: RouterName.LeaveApplication,
+    component: () => import("@/views/Applications/LeaveApplication.vue"),
+    meta: {
+      title: "請假申請 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
+    path: "/subsidy-application",
+    name: RouterName.SubsidyApplication,
+    component: () => import("@/views/Applications/SubsidyApplication.vue"),
+    meta: {
+      title: "補助申請 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
+    path: "/application-record",
+    name: RouterName.ApplicationRecord,
+    component: () => import("@/views/Applications/ApplicationRecord.vue"),
+    meta: {
+      title: "申請記錄 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
   },
 ];
 
@@ -86,24 +120,18 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   // 更新頁面標題
-  document.title = "拿撒勒人會神學院 選課系統";
+  document.title = to.meta.title || "拿撒勒人會神學院 選課系統";
+
+  // 檢查是否需要管理員權限
+  if (to.meta.requiresAdmin) {
+    const { userProfile } = useUserStore();
+    if (userProfile.userType !== UserRole.ADMIN) {
+      next({ name: RouterName.CourseList });
+      return;
+    }
+  }
+
   next();
 });
 
 export default router;
-
-function removeIdInCreateFlow(to, from, next) {
-  const { operation, id } = to.params;
-
-  // Regex pattern to validate alphanumeric ID
-  const alphanumericPattern = /^(?=.*[a-zA-Z])(?=.*[0-9])[a-zA-Z0-9]+$/;
-
-  if (
-    (operation === "create" && !!id) ||
-    (operation === "edit" && (!id || !alphanumericPattern.test(id)))
-  ) {
-    router.push({ path: "/course/create" });
-  } else {
-    next();
-  }
-}

@@ -1,33 +1,26 @@
-import { handlers as userHandlers } from "@/mocks/domains/user/handlers";
-import { handlers as validateHandlers } from "@/mocks/domains/submit/handlers";
-import { handlers as fwbHandlers } from "@/mocks/domains/fwb/handlers";
-import { handlers as otherHandlers } from "./domains/other/handlers";
-import { handlers as customerHandlers } from "./domains/customer/handlers";
-import { handlers as templateHandlers } from "./domains/template/handlers";
-import { handlers as shcHandlers } from "./domains/shc/handlers";
+import { handlers as userHandlers } from "./domains/user/handlers";
+import { handlers as applicationHandlers } from "./domains/applications/handlers";
+import { handlers as courseHandlers } from "./domains/courses/handlers";
+// import { handlers as validateHandlers } from "@/mocks/domains/submit/handlers";
+// import { handlers as fwbHandlers } from "@/mocks/domains/fwb/handlers";
+// import { handlers as otherHandlers } from "./domains/other/handlers";
+// import { handlers as customerHandlers } from "./domains/customer/handlers";
+// import { handlers as templateHandlers } from "./domains/template/handlers";
+// import { handlers as shcHandlers } from "./domains/shc/handlers";
 
 export const defaultApiError500 = {
-  title: "System Not Available",
-  details: [
-    {
-      message: "Server Busy",
-      resource:
-        "https://uat-apigateway-ezyonerecord.ezbiz.com/dev-onerecordapi/swagger/index.html",
-      id: "30029-02",
-      language: "en",
-    },
-  ],
-  id: "500",
-  type: "",
-  language: "en",
+  code: "API_ERROR_500",
+  message: "Something went wrong.",
 };
 
 export const handlers = [
   ...userHandlers,
-  ...validateHandlers,
-  ...fwbHandlers,
-  ...otherHandlers,
-  ...customerHandlers,
-  ...templateHandlers,
-  ...shcHandlers,
+  ...applicationHandlers,
+  ...courseHandlers,
+  // ...validateHandlers,
+  // ...fwbHandlers,
+  // ...otherHandlers,
+  // ...customerHandlers,
+  // ...templateHandlers,
+  // ...shcHandlers,
 ];

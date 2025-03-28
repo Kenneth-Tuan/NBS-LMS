@@ -13,8 +13,8 @@ function onSearch(value) {
 </script>
 
 <template>
-  <div class="u-p36px u-h100% u-w100% u-flex u-flex-col u-gap-36px">
-    <div class="u-p24px u-rounded-16px u-shadow u-bg-white u-h100%">
+  <div class="u-p4 u-h100% u-w100% u-flex u-flex-col u-gap-4">
+    <div class="u-p4 u-rounded-16px u-shadow u-bg-white u-h100%">
       <h1 class="u-text-24px u-font-bold u-c-blue u-mb1.5rem">最新課程</h1>
 
       <a-input-search

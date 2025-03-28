@@ -26,7 +26,7 @@ const columns = [
 </script>
 
 <template>
-  <div class="u-grid u-grid-cols-2 u-h100% u-gap-36px u-p36px u-items-start">
+  <div class="u-grid u-grid-cols-2 u-h100% u-gap-4 u-p4 u-items-start">
     <div
       class="u-p24px u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
