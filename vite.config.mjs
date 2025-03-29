@@ -21,6 +21,7 @@ export default ({ mode }) => {
       ],
     },
     build: {
+      assetsInlineLimit: 0,
       outDir: "output",
       rollupOptions: {
         output: {

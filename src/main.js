@@ -17,7 +17,11 @@ import { worker } from "./mocks/browser";
 // if (import.meta.env.MODE === "dev") {
 // }
 
-worker.start();
+worker.start({
+  serviceWorker: {
+    url: "/mockServiceWorker.js",
+  },
+});
 
 const app = createApp(App);
 
