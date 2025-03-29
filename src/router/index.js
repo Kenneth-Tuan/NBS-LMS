@@ -6,12 +6,12 @@ import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
 
 const routes = [
-  // {
-  //   path: "/",
-  //   redirect: "/landing-page",
-  // },
   {
     path: "/",
+    redirect: "/landing-page",
+  },
+  {
+    path: "/landing-page",
     name: RouterName.LandingPage,
     component: () => import("@/views/Landing/Index.vue"),
     meta: {
