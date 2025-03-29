@@ -117,7 +117,8 @@ const toggleCollapsed = () => {
 };
 
 async function onClickLoginBtn() {
-  await user.logout();
+	console.log('test: ', user.current)
+	if(user.current) await user.logout();
   if (!unref(isLoggedIn)) {
     updateLoginDialogOpen(true);
   } else {
