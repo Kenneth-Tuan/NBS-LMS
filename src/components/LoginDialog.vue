@@ -28,6 +28,8 @@ const onFinish = async (values) => {
 
     message.loading({ content: "Loading...", key: "login" });
 
+    if (user.current) await user.logout();
+
     // const isLoginSuccess = await signIn(hashedAccountInfo);
 
     const isLoginSuccess = await user.login(values.userEmail, values.password);
