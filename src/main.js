@@ -14,9 +14,10 @@ import "virtual:unocss-devtools";
 import VueCookies from "vue-cookies";
 import { worker } from "./mocks/browser";
 
-if (import.meta.env.MODE === "dev") {
-  worker.start();
-}
+// if (import.meta.env.MODE === "dev") {
+// }
+
+worker.start();
 
 const app = createApp(App);
 

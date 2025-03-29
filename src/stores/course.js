@@ -204,7 +204,7 @@ export const useCourseStore = defineStore(
       error.value = null;
 
       try {
-        const response = await fetch("/api/courseList");
+        const response = await fetch("/courseList");
         const data = await response.json();
 
         if (data.success) {
@@ -237,7 +237,7 @@ export const useCourseStore = defineStore(
         loading.value = true;
         error.value = null;
 
-        const response = await fetch("/api/updateCourseStatus", {
+        const response = await fetch("/updateCourseStatus", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -333,7 +333,7 @@ export const useApplicationStore = defineStore(
 
       try {
         // 從 API 獲取應用數據
-        const response = await fetch("/api/applicationList");
+        const response = await fetch("/applicationList");
         const data = await response.json();
 
         if (data.success) {
