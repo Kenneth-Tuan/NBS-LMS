@@ -5,7 +5,7 @@ import UnoCSS from "unocss/vite";
 
 export default ({ mode }) => {
   return defineConfig({
-    base: "/NBS-LMS",
+    base: "/",
     server: {
       port: 7001,
       cors: true,
