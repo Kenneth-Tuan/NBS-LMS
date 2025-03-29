@@ -13,9 +13,8 @@ import {
 } from "@ant-design/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 
-import { useUserStore } from "@/stores/user";
+import { useUserStore, user } from "@/stores/user";
 import { RouterName } from "@/enums/appEnums";
-import userApi from "@/apis/user";
 
 const router = useRouter();
 const route = useRoute();
@@ -117,7 +116,8 @@ const toggleCollapsed = () => {
   state.openKeys = state.collapsed ? [] : state.preOpenKeys;
 };
 
-function onClickLoginBtn() {
+async function onClickLoginBtn() {
+  await user.logout();
   if (!unref(isLoggedIn)) {
     updateLoginDialogOpen(true);
   } else {

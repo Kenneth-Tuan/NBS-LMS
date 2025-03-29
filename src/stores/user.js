@@ -146,6 +146,8 @@ export const user = reactive({
     try {
       await account.createEmailPasswordSession(email, password);
       this.setUserProfile();
+
+      return true;
     } catch (e) {
       throw new Error("login failed");
     }
