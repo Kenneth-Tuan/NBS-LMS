@@ -143,6 +143,7 @@ export const user = reactive({
     await this.login(email, password);
   },
   async login(email, password) {
+    this.logout();
     await account.createEmailPasswordSession(email, password);
     this.setUserProfile();
     window.location.href = "/"; // Redirect to home page
