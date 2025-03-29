@@ -1,3 +1,5 @@
+import { ID } from "appwrite";
+import { account } from "@/appwrite";
 import { defineStore } from "pinia";
 import dayjs from "dayjs";
 import { ref, reactive, computed } from "vue";
@@ -102,6 +104,8 @@ export const useUserStore = defineStore(
 
       // 清除所有 sessionStorage 資料
       sessionStorage.clear();
+
+      user.logout();
     }
 
     return {
@@ -123,3 +127,36 @@ export const useUserStore = defineStore(
     persist: false,
   }
 );
+
+export const user = reactive({
+  current: null,
+  async init() {
+    try {
+      this.current = await account.get();
+      if (!!this.current) this.setUserProfile();
+    } catch (e) {
+      this.current = null;
+    }
+  },
+  async register(email, password) {
+    await account.create(ID.unique(), email, password);
+    await this.login(email, password);
+  },
+  async login(email, password) {
+    await account.createEmailPasswordSession(email, password);
+    this.setUserProfile();
+    window.location.href = "/"; // Redirect to home page
+  },
+  async logout() {
+    await account.deleteSession("current");
+    this.current = null;
+  },
+
+  setUserProfile() {
+    useUserStore().userProfile.userType = Number(this.current.prefs.userType);
+    useUserStore().userProfile.userID = this.current.$id;
+    useUserStore().userProfile.userName = this.current.name;
+    useUserStore().userProfile.userEmail = this.current.email;
+    useUserStore().userProfile.userTel = this.current.phone;
+  },
+});

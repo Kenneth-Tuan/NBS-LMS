@@ -1618,6 +1618,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"appwrite@npm:^17.0.1":
+  version: 17.0.1
+  resolution: "appwrite@npm:17.0.1"
+  checksum: 10c0/6fbf00681145394fbeda118cf9cca87603a5c26b346c8582a54d88e0a26d2b209e0b038287095c4f1e3816ec3925dd3940ec667c7b1f866713494428ecbdc4f9
+  languageName: node
+  linkType: hard
+
 "array-tree-filter@npm:^2.1.0":
   version: 2.1.0
   resolution: "array-tree-filter@npm:2.1.0"
@@ -3492,6 +3499,7 @@ __metadata:
     "@vitejs/plugin-vue": "npm:^5.2.1"
     "@vueup/vue-quill": "npm:^1.2.0"
     ant-design-vue: "npm:4.x"
+    appwrite: "npm:^17.0.1"
     axios: "npm:^1.7.8"
     dayjs: "npm:^1.11.13"
     masonry-layout: "npm:^4.2.2"

@@ -1,10 +1,10 @@
 <script setup>
 import { reactive, ref, computed } from "vue";
 import { message } from "ant-design-vue";
-import { UserOutlined, LockOutlined } from "@ant-design/icons-vue";
+import { MailOutlined, LockOutlined } from "@ant-design/icons-vue";
 
 import { sha256 } from "@/utils/misc";
-import { useUserStore } from "../stores/user";
+import { useUserStore, user } from "../stores/user";
 import { storeToRefs } from "pinia";
 
 const userStore = useUserStore();
@@ -13,6 +13,7 @@ const { updateLoginDialogOpen, signIn } = userStore;
 
 const formState = reactive({
   username: "",
+  userEmail: "",
   password: "",
   remember: true,
 });
@@ -27,7 +28,9 @@ const onFinish = async (values) => {
 
     message.loading({ content: "Loading...", key: "login" });
 
-    const isLoginSuccess = await signIn(hashedAccountInfo);
+    // const isLoginSuccess = await signIn(hashedAccountInfo);
+
+    const isLoginSuccess = await user.login(values.userEmail, values.password);
 
     if (isLoginSuccess) {
       message.success({
@@ -55,7 +58,7 @@ const onFinishFailed = (errorInfo) => {
 };
 
 const disabled = computed(() => {
-  return !(formState.username && formState.password);
+  return !(formState.userEmail && formState.password);
 });
 </script>
 
@@ -75,7 +78,7 @@ const disabled = computed(() => {
         @finish="onFinish"
         @finishFailed="onFinishFailed"
       >
-        <a-form-item
+        <!-- <a-form-item
           label="Username"
           name="username"
           :rules="[{ required: true, message: 'Please input your username!' }]"
@@ -83,6 +86,18 @@ const disabled = computed(() => {
           <a-input v-model:value="formState.username">
             <template #prefix>
               <UserOutlined class="site-form-item-icon" />
+            </template>
+          </a-input>
+        </a-form-item> -->
+
+        <a-form-item
+          label="Email"
+          name="userEmail"
+          :rules="[{ required: true, message: 'Please input your email!' }]"
+        >
+          <a-input v-model:value="formState.userEmail">
+            <template #prefix>
+              <MailOutlined class="site-form-item-icon" />
             </template>
           </a-input>
         </a-form-item>

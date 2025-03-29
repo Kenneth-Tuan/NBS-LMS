@@ -1,10 +1,14 @@
 <script setup>
+import { onMounted } from "vue";
+
 import { Divider } from "ant-design-vue";
 import {
   dummyNewsData,
   dummyNoticeData,
   dummyAnnouncementData,
 } from "@/data/dummy";
+
+import { user } from "@/stores/user";
 
 const columns = [
   {
@@ -23,6 +27,10 @@ const columns = [
     key: "publisher",
   },
 ];
+
+onMounted(async () => {
+  await user.init();
+});
 </script>
 
 <template>
