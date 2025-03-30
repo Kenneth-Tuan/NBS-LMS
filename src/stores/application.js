@@ -3,6 +3,7 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { defineStore } from "pinia";
 import { saveApplication } from "@/mocks/domains/applications/model";
+import { dummyApplicationData } from "@/mocks/domains/applications/data";
 
 dayjs.extend(customParseFormat);
 
@@ -333,23 +334,22 @@ export const useApplicationStore = defineStore(
 
       try {
         // 從 API 獲取應用數據
-        const response = await fetch("/applicationList");
-        const data = await response.json();
+        // const response = await fetch("/applicationList");
+        // const data = await response.json();
+        // if (data.success) {
+        //   applicationList.value.length = 0; // 清空當前列表
+        //   // 合併應用數據和會話存儲數據
+        //   const applications = data.data;
+        //   // 添加所有應用數據到列表
+        //   applications.forEach((app) => {
+        //     applicationList.value.push(app);
+        //   });
+        // } else {
+        //   error.value = data.message || "獲取申請列表失敗";
+        //   throw new Error(error.value);
+        // }
 
-        if (data.success) {
-          applicationList.value.length = 0; // 清空當前列表
-
-          // 合併應用數據和會話存儲數據
-          const applications = data.data;
-
-          // 添加所有應用數據到列表
-          applications.forEach((app) => {
-            applicationList.value.push(app);
-          });
-        } else {
-          error.value = data.message || "獲取申請列表失敗";
-          throw new Error(error.value);
-        }
+        applicationList.value = dummyApplicationData;
       } catch (err) {
         error.value = err.message || "獲取申請列表時發生錯誤";
         throw err;

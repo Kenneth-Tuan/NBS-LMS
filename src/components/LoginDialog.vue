@@ -33,6 +33,7 @@ const onFinish = async (values) => {
     const isLoginSuccess = await user.login(values.userEmail, values.password);
 
     if (isLoginSuccess) {
+      user.init();
       message.success({
         content: "Login Success!",
         key: "login",

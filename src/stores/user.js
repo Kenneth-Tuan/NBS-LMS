@@ -134,6 +134,7 @@ export const user = reactive({
     try {
       this.current = await account.get();
       if (!!this.current) this.setUserProfile();
+      console.log("test current:", this.current, this.current.prefs.userType); // for debug
     } catch (e) {
       this.current = null;
     }
@@ -145,7 +146,6 @@ export const user = reactive({
   async login(email, password) {
     try {
       await account.createEmailPasswordSession(email, password);
-      this.setUserProfile();
 
       return true;
     } catch (e) {
