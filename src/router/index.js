@@ -120,6 +120,15 @@ const routes = [
       layout: DefaultLayout,
     },
   },
+  {
+    path: "/timed-course-selection",
+    name: RouterName.TimedCourseSelection,
+    component: () => import("@/views/Courses/TimedCourseSelection.vue"),
+    meta: {
+      title: "限時選課 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
 ];
 
 const router = createRouter({

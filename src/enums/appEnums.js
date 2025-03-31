@@ -1,7 +1,15 @@
+import {
+  MailOutlined,
+  DesktopOutlined,
+  FormOutlined,
+  ClockCircleFilled,
+} from "@ant-design/icons-vue";
+
 export const UserRole = {
   ADMIN: 1,
-  TEACHER: 2,
-  STUDENT: 3,
+  MANAGER: 2,
+  TEACHER: 3,
+  STUDENT: 4,
 };
 
 export const RouterName = {
@@ -20,19 +28,27 @@ export const RouterName = {
   ApplicationRecord: "application-record",
   CourseRecord: "course-record",
   GradeDetail: "grade-detail",
+  TimedCourseSelection: "timed-course-selection",
 };
 
 export const MenuItems = [
   {
     key: "dashboard",
     label: "儀表板",
-    icon: "fas fa-chart-line",
+    icon: DesktopOutlined,
     route: { name: RouterName.Dashboard },
+  },
+  {
+    key: "timed-course-selection",
+    label: "限時選課",
+    icon: ClockCircleFilled,
+    route: { name: RouterName.TimedCourseSelection },
+    highlight: true,
   },
   {
     key: "courses",
     label: "課程管理",
-    icon: "fas fa-book",
+    icon: MailOutlined,
     children: [
       {
         key: "course-list",
@@ -55,7 +71,7 @@ export const MenuItems = [
   {
     key: "applications",
     label: "申請管理",
-    icon: "fas fa-file-alt",
+    icon: FormOutlined,
     children: [
       {
         key: "internship-application",

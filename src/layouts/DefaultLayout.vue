@@ -1,20 +1,17 @@
 <script setup>
-import { reactive, watch, h, unref, ref } from "vue";
+import { reactive, watch, h, unref, ref, computed } from "vue";
 import { storeToRefs } from "pinia";
 import {
   PieChartOutlined,
-  MailOutlined,
-  DesktopOutlined,
   LoginOutlined,
   UserOutlined,
   BellOutlined,
   CaretDownOutlined,
-  FormOutlined,
 } from "@ant-design/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 
 import { useUserStore, user } from "@/stores/user";
-import { RouterName } from "@/enums/appEnums";
+import { RouterName, MenuItems } from "@/enums/appEnums";
 
 const router = useRouter();
 const route = useRoute();
@@ -30,74 +27,68 @@ const state = reactive({
   preOpenKeys: ["sub1"],
 });
 
-const items = reactive([
-  {
+// 從appEnums.js的MenuItems轉換成ant design menu需要的格式
+const menuItems = computed(() => {
+  const transformMenu = (menuItem) => {
+    // 處理子菜單項
+    if (menuItem.children) {
+      return {
+        key: menuItem.key,
+        icon: () => h(menuItem.icon),
+        label: menuItem.label,
+        children: menuItem.children.map((child) => ({
+          key: child.route ? child.route.name : child.key,
+          label: child.label,
+          adminOnly: child.adminOnly,
+          disabled: child.disabled,
+          class:
+            child.highlight && !state.selectedKeys.includes(child.route.name)
+              ? "menu-highlight"
+              : "",
+        })),
+      };
+    }
+
+    // 處理一級菜單項
+    return {
+      key: menuItem.route ? menuItem.route.name : menuItem.key,
+      icon: () => h(menuItem.icon),
+      label: menuItem.label,
+      adminOnly: menuItem.adminOnly,
+      disabled: menuItem.disabled,
+      class:
+        menuItem.highlight && !state.selectedKeys.includes(menuItem.route.name)
+          ? "menu-highlight"
+          : "",
+    };
+  };
+
+  // 添加首頁
+  const homeMenuItem = {
     key: RouterName.LandingPage,
     icon: () => h(PieChartOutlined),
     label: "首頁",
-  },
-  // {
-  //   key: RouterName.Dashboard,
-  //   icon: () => h(DesktopOutlined),
-  //   label: "儀表板",
-  //   disabled: true,
-  // },
-  {
-    key: "courses",
-    label: "課程管理",
-    icon: () => h(MailOutlined),
-    children: [
-      {
-        key: RouterName.CourseList,
-        label: "課程列表",
-      },
-      {
-        key: RouterName.CourseCreate,
-        label: "新增課程",
-        adminOnly: true,
-      },
-      {
-        key: RouterName.CourseRecord,
-        label: "修課紀錄",
-      },
-      // {
-      //   key: RouterName.CourseReview,
-      //   label: "課程審核",
-      //   adminOnly: true,
-      //   disabled: true,
-      // },
-    ],
-  },
-  {
-    key: "applications",
-    icon: () => h(FormOutlined),
-    label: "各項申請",
-    children: [
-      {
-        key: RouterName.InternshipApplication,
-        label: "實習申請",
-      },
-      {
-        key: RouterName.LeaveApplication,
-        label: "請假申請",
-      },
-      {
-        key: RouterName.SubsidyApplication,
-        label: "補助申請",
-      },
-      {
-        key: RouterName.ApplicationRecord,
-        label: "申請紀錄",
-      },
-    ],
-  },
-  // {
-  //   key: "sub2",
-  //   icon: () => h(AppstoreOutlined),
-  //   label: "",
-  //   title: "Navigation Two",
-  // },
-]);
+  };
+
+  const transformedItems = [homeMenuItem, ...MenuItems.map(transformMenu)];
+
+  // 過濾掉管理員專用項目（如果非管理員）
+  return transformedItems.filter((item) => {
+    // 如果項目需要管理員權限但用戶不是管理員
+    if (item.adminOnly && userProfile.userType !== 1) {
+      return false;
+    }
+
+    // 處理子項目
+    if (item.children) {
+      item.children = item.children.filter((child) => {
+        return !(child.adminOnly && userProfile.userType !== 1);
+      });
+    }
+
+    return true;
+  });
+});
 
 const visible = ref(false);
 const handleMenuClick = (e) => {
@@ -129,6 +120,14 @@ async function onClickLoginBtn() {
     logout();
   }
 }
+
+// 根據路由更新選中的菜單項
+watch(
+  () => route.name,
+  (newRouteName) => {
+    state.selectedKeys = [newRouteName];
+  }
+);
 </script>
 
 <template>
@@ -226,7 +225,7 @@ async function onClickLoginBtn() {
             mode="inline"
             theme="light"
             :inline-collapsed="state.collapsed && false"
-            :items="items"
+            :items="menuItems"
           ></a-menu>
         </Transition>
         <router-view />
@@ -245,5 +244,39 @@ async function onClickLoginBtn() {
 </template>
 
 <style scoped>
-/* 這裡可以添加額外的樣式 */
+:deep(.menu-highlight) {
+  position: relative;
+  color: #ffbc11;
+  font-weight: bold;
+  animation: pulse 1.5s infinite;
+}
+
+/* :deep(.menu-highlight::after) {
+  content: "";
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  height: 8px;
+  width: 8px;
+  border-radius: 50%;
+  background-color: #ffbc11;
+  animation: pulse 1.5s infinite;
+} */
+
+@keyframes pulse {
+  0% {
+    /* transform: scale(0.95); */
+    box-shadow: 0 0 0 0 rgba(255, 188, 17, 0.7);
+  }
+
+  70% {
+    /* transform: scale(1); */
+    box-shadow: 0 0 0 6px rgba(255, 188, 17, 0);
+  }
+
+  100% {
+    /* transform: scale(0.95); */
+    box-shadow: 0 0 0 0 rgba(255, 188, 17, 0);
+  }
+}
 </style>
