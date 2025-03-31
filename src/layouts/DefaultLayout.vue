@@ -56,6 +56,10 @@ const items = reactive([
         label: "新增課程",
         adminOnly: true,
       },
+      {
+        key: RouterName.CourseRecord,
+        label: "修課紀錄",
+      },
       // {
       //   key: RouterName.CourseReview,
       //   label: "課程審核",
@@ -117,8 +121,8 @@ const toggleCollapsed = () => {
 };
 
 async function onClickLoginBtn() {
-	console.log('test: ', user.current)
-	if(user.current) await user.logout();
+  console.log("test: ", user.current);
+  if (user.current) await user.logout();
   if (!unref(isLoggedIn)) {
     updateLoginDialogOpen(true);
   } else {

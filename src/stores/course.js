@@ -204,19 +204,21 @@ export const useCourseStore = defineStore(
       error.value = null;
 
       try {
-        const response = await fetch("/courseList");
-        const data = await response.json();
+        // const response = await fetch("/courseList");
+        // const data = await response.json();
 
-        if (data.success) {
-          courseList.value.length = 0;
-          const courses = data.data;
-          courses.forEach((course) => {
-            courseList.value.push(course);
-          });
-        } else {
-          error.value = data.message || "獲取課程列表失敗";
-          throw new Error(error.value);
-        }
+        // if (data.success) {
+        //   courseList.value.length = 0;
+        //   const courses = data.data;
+        //   courses.forEach((course) => {
+        //     courseList.value.push(course);
+        //   });
+        // } else {
+        //   error.value = data.message || "獲取課程列表失敗";
+        //   throw new Error(error.value);
+        // }
+
+        courseList.value = dummyCourseData;
       } catch (err) {
         error.value = err.message || "獲取課程列表時發生錯誤";
         throw err;

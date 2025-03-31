@@ -14,7 +14,7 @@ import "virtual:unocss-devtools";
 import VueCookies from "vue-cookies";
 import { worker } from "./mocks/browser";
 
-if (import.meta.env.MODE === "dev") {
+if (import.meta.env.MODE === "dev" && false) {
   worker.start({
     serviceWorker: {
       url: "/mockServiceWorker.js",

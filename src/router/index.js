@@ -102,6 +102,24 @@ const routes = [
       layout: DefaultLayout,
     },
   },
+  {
+    path: "/course-record",
+    name: RouterName.CourseRecord,
+    component: () => import("@/views/Courses/CourseRecord.vue"),
+    meta: {
+      title: "修課紀錄 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
+    path: "/grade-detail/:id",
+    name: RouterName.GradeDetail,
+    component: () => import("@/views/Courses/GradeDetail.vue"),
+    meta: {
+      title: "成績詳情 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
 ];
 
 const router = createRouter({

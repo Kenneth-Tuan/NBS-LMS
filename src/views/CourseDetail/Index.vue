@@ -1,16 +1,22 @@
 <script setup>
 import { computed } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { Divider } from "ant-design-vue";
+import { RouterName } from "@/enums/appEnums";
 
 import { dummyCourseData } from "@/data/dummy";
 
 const route = useRoute();
+const router = useRouter();
 const courseId = route.params.id;
 
 const course = computed(() =>
   dummyCourseData.find((course) => course.id === Number(courseId))
 );
+
+const goBack = () => {
+  router.push({ name: RouterName.CourseList });
+};
 </script>
 
 <template>
@@ -26,7 +32,13 @@ const course = computed(() =>
         />
       </div>
       <div class="u-flex u-flex-col u-gap-24px u-c-blue">
-        <h1 class="u-m0">{{ course.title }}</h1>
+        <div class="u-flex u-items-start u-justify-between">
+          <h1 class="u-m0">{{ course.title }}</h1>
+          <a-button @click="goBack">
+            <template #icon><i class="fas fa-arrow-left"></i></template>
+            返回課程列表
+          </a-button>
+        </div>
         <p>{{ course.description }}</p>
       </div>
     </div>

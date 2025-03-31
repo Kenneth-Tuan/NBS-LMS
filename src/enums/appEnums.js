@@ -18,6 +18,8 @@ export const RouterName = {
   LeaveApplication: "leave-application",
   SubsidyApplication: "subsidy-application",
   ApplicationRecord: "application-record",
+  CourseRecord: "course-record",
+  GradeDetail: "grade-detail",
 };
 
 export const MenuItems = [
@@ -42,6 +44,11 @@ export const MenuItems = [
         label: "新增課程",
         route: { name: RouterName.CourseCreate },
         adminOnly: true,
+      },
+      {
+        key: "course-record",
+        label: "修課紀錄",
+        route: { name: RouterName.CourseRecord },
       },
     ],
   },
