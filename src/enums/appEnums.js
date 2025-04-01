@@ -32,12 +32,12 @@ export const RouterName = {
 };
 
 export const MenuItems = [
-  {
-    key: "dashboard",
-    label: "儀表板",
-    icon: DesktopOutlined,
-    route: { name: RouterName.Dashboard },
-  },
+  // {
+  //   key: "dashboard",
+  //   label: "儀表板",
+  //   icon: DesktopOutlined,
+  //   route: { name: RouterName.Dashboard },
+  // },
   {
     key: "timed-course-selection",
     label: "限時選課",
