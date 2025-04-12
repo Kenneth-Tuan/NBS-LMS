@@ -2,8 +2,79 @@ import { defineStore } from "pinia";
 import { computed, reactive, ref, h } from "vue";
 import dayjs from "dayjs";
 import { saveCourse } from "@/mocks/domains/courses/model";
+import { message } from "ant-design-vue";
+import { UserRole } from "@/enums/appEnums";
+import { useUserStore } from "@/stores/user";
 
 import { dummyCourseData } from "@/data/dummy";
+
+// Assignment status
+export const AssignmentStatus = {
+  OPEN: "open",
+  SUBMITTED: "submitted",
+  GRADED: "graded",
+  CLOSED: "closed",
+  NOT_SUBMITTED: "not_submitted",
+};
+
+// Methods for assignment handling
+export const handleFileSubmission = async (
+  file,
+  courseId,
+  assignmentId,
+  userId
+) => {
+  try {
+    // This would be an API call in production
+    console.log(
+      `Uploading file ${file.name} for course ${courseId}, assignment ${assignmentId}`
+    );
+
+    // Mock a successful upload
+    return {
+      success: true,
+      fileUrl: URL.createObjectURL(file),
+      fileName: file.name,
+      fileType: file.type.includes("pdf") ? "pdf" : "docx",
+    };
+  } catch (error) {
+    console.error("File upload error:", error);
+    message.error("檔案上傳失敗，請稍後再試");
+    return { success: false };
+  }
+};
+
+export const getSubmissionsByAssignment = async (courseId, assignmentId) => {
+  try {
+    // This would be an API call in production
+    console.log(
+      `Fetching submissions for course ${courseId}, assignment ${assignmentId}`
+    );
+
+    // Return mock data
+    return [
+      {
+        id: "s1",
+        assignmentId,
+        courseId,
+        studentId: "ST20240001",
+        studentName: "張小明",
+        status: "submitted",
+        submitTime: "2024-04-08 14:30",
+        file: {
+          name: "作業研究.pdf",
+          url: "#",
+          type: "pdf",
+        },
+      },
+      // Additional mock submissions can be added here
+    ];
+  } catch (error) {
+    console.error("Fetch submissions error:", error);
+    message.error("獲取提交資料失敗，請稍後再試");
+    return [];
+  }
+};
 
 export const useCourseStore = defineStore(
   "course",
@@ -28,20 +99,12 @@ export const useCourseStore = defineStore(
           { label: "進階課程", value: "進階課程" },
         ],
       },
-      tags: {
-        value: [],
+      classMode: {
+        value: "",
         err: false,
         errMsg: "",
         required: true,
-        label: "課程標籤",
-        options: [
-          { label: "專題班", value: "專題班" },
-          { label: "線上遠距課程", value: "線上遠距課程" },
-          { label: "線上直播課程", value: "線上直播課程" },
-          { label: "實踐課", value: "實踐課" },
-          { label: "實習課", value: "實習課" },
-          { label: "其他", value: "其他" },
-        ],
+        label: "上課方式",
       },
       duration: {
         value: "",
@@ -66,16 +129,34 @@ export const useCourseStore = defineStore(
         rules: [(val) => !!val && dayjs(val, "YYYY.MM.DD", true)],
         label: "開課日期",
       },
-      classType: {
+      weekday: {
+        value: [],
+        err: false,
+        errMsg: "",
+        required: true,
+        label: "上課日",
+        options: [
+          { label: "週一", value: "mon" },
+          { label: "週二", value: "tue" },
+          { label: "週三", value: "wed" },
+          { label: "週四", value: "thu" },
+          { label: "週五", value: "fri" },
+          { label: "週六", value: "sat" },
+          { label: "週日", value: "sun" },
+        ],
+      },
+      classTime: {
         value: "",
         err: false,
         errMsg: "",
         required: true,
-        label: "上課方式",
-        options: [
-          { label: "六日兩日全天專題班", value: "六日兩日全天專題班" },
-          { label: "六日兩日下午專題班", value: "六日兩日下午專題班" },
-          { label: "線上遠距課程", value: "線上遠距課程" },
+        label: "上課時段",
+        rules: [
+          (val) =>
+            !val ||
+            /^([0-1][0-9]|2[0-3]):[0-5][0-9]-([0-1][0-9]|2[0-3]):[0-5][0-9]$/.test(
+              val
+            ),
         ],
       },
       description: {
@@ -85,12 +166,12 @@ export const useCourseStore = defineStore(
         required: true,
         label: "課程簡介",
       },
-      outline: {
-        value: "",
+      outlineFile: {
+        value: [],
         err: false,
         errMsg: "",
         required: true,
-        label: "課程大綱",
+        label: "課程大綱附件",
       },
       teacherInfo: {
         value: "",
@@ -103,7 +184,7 @@ export const useCourseStore = defineStore(
         value: "",
         err: false,
         errMsg: "",
-        required: true,
+        required: false,
         label: "課程封面圖片",
       },
     });
@@ -117,7 +198,11 @@ export const useCourseStore = defineStore(
      */
     const resetForm = () => {
       Object.keys(courseForm).forEach((key) => {
-        courseForm[key].value = "";
+        if (key === "outlineFile" || key === "weekday") {
+          courseForm[key].value = [];
+        } else {
+          courseForm[key].value = "";
+        }
         courseForm[key].err = false;
         courseForm[key].errMsg = "";
       });
@@ -173,10 +258,24 @@ export const useCourseStore = defineStore(
         field.errMsg = "";
 
         // Check if required and empty
-        if (field.required && !field.value) {
-          field.err = true;
-          field.errMsg = `${field.label}為必填欄位`;
-          isValid = false;
+        if (field.required) {
+          if (fieldName === "outlineFile") {
+            if (!field.value || field.value.length === 0) {
+              field.err = true;
+              field.errMsg = `${field.label}為必填欄位`;
+              isValid = false;
+            }
+          } else if (fieldName === "weekday") {
+            if (!field.value || field.value.length === 0) {
+              field.err = true;
+              field.errMsg = `${field.label}為必填欄位`;
+              isValid = false;
+            }
+          } else if (!field.value) {
+            field.err = true;
+            field.errMsg = `${field.label}為必填欄位`;
+            isValid = false;
+          }
         }
 
         // Check custom validation rules if provided
@@ -273,19 +372,10 @@ export const useCourseStore = defineStore(
         dataIndex: "image",
         key: "image",
       },
-      //   {
-      //     title: "ID",
-      //     dataIndex: "id",
-      //     display: false,
-      //     key: "id",
-      //     sorter: (a, b) => a.id - b.id,
-      //   },
       {
         title: "課程名稱",
         dataIndex: "title",
         key: "title",
-        // ellipsis: true,
-        // resizable: true
       },
       {
         title: "狀態",
@@ -320,8 +410,33 @@ export const useCourseStore = defineStore(
       },
       {
         title: "上課方式",
-        dataIndex: "classType",
-        key: "classType",
+        dataIndex: "classMode",
+        key: "classMode",
+      },
+      {
+        title: "上課日",
+        dataIndex: "weekday",
+        key: "weekday",
+        customRender: ({ value }) => {
+          if (!value || !Array.isArray(value) || value.length === 0) return "-";
+
+          const weekdayMap = {
+            mon: "週一",
+            tue: "週二",
+            wed: "週三",
+            thu: "週四",
+            fri: "週五",
+            sat: "週六",
+            sun: "週日",
+          };
+
+          return value.map((day) => weekdayMap[day] || day).join(", ");
+        },
+      },
+      {
+        title: "上課時段",
+        dataIndex: "classTime",
+        key: "classTime",
       },
     ]);
 

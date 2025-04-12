@@ -58,6 +58,15 @@ const routes = [
     },
   },
   {
+    path: "/course-assignments",
+    name: RouterName.CourseAssignments,
+    component: () => import("@/views/Courses/CourseAndAssignments.vue"),
+    meta: {
+      title: "課程與作業 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
     path: "/internship-application",
     name: RouterName.InternshipApplication,
     component: () => import("@/views/Applications/InternshipApplication.vue"),

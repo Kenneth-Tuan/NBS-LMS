@@ -22,6 +22,7 @@ export const RouterName = {
   CourseList: "course-list",
   CourseCreate: "course-create",
   CourseReview: "course-review",
+  CourseAssignments: "course-assignments",
   InternshipApplication: "internship-application",
   LeaveApplication: "leave-application",
   SubsidyApplication: "subsidy-application",
@@ -60,6 +61,11 @@ export const MenuItems = [
         label: "新增課程",
         route: { name: RouterName.CourseCreate },
         adminOnly: true,
+      },
+      {
+        key: "course-assignments",
+        label: "課程與作業",
+        route: { name: RouterName.CourseAssignments },
       },
       {
         key: "course-record",

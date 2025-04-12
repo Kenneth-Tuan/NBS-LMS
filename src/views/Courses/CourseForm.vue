@@ -31,47 +31,17 @@
             </a-col>
 
             <a-col :span="12">
-              <!-- <a-form-item
-                :validate-status="
-                  courseStore.courseForm.type.err ? 'error' : ''
-                "
-                :help="courseStore.courseForm.type.errMsg"
-                :label="courseStore.courseForm.type.label"
-              >
-                <a-select
-                  v-model:value="courseStore.courseForm.type.value"
-                  placeholder="請選擇課程類型"
-                >
-                  <a-select-option
-                    v-for="option in courseStore.courseForm.type.options"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </a-select-option>
-                </a-select>
-              </a-form-item> -->
-
               <a-form-item
                 :validate-status="
-                  courseStore.courseForm.tags.err ? 'error' : ''
+                  courseStore.courseForm.classMode.err ? 'error' : ''
                 "
-                :help="courseStore.courseForm.tags.errMsg"
-                :label="courseStore.courseForm.tags.label"
+                :help="courseStore.courseForm.classMode.errMsg"
+                :label="courseStore.courseForm.classMode.label"
               >
-                <a-select
-                  v-model:value="courseStore.courseForm.tags.value"
-                  mode="multiple"
-                  placeholder="請選擇課程標籤"
-                >
-                  <a-select-option
-                    v-for="option in courseStore.courseForm.tags.options"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </a-select-option>
-                </a-select>
+                <a-input
+                  v-model:value="courseStore.courseForm.classMode.value"
+                  placeholder="請輸入上課方式"
+                />
               </a-form-item>
             </a-col>
           </a-row>
@@ -129,17 +99,19 @@
             <a-col :span="12">
               <a-form-item
                 :validate-status="
-                  courseStore.courseForm.classType.err ? 'error' : ''
+                  courseStore.courseForm.weekday.err ? 'error' : ''
                 "
-                :help="courseStore.courseForm.classType.errMsg"
-                :label="courseStore.courseForm.classType.label"
+                :help="courseStore.courseForm.weekday.errMsg"
+                :label="courseStore.courseForm.weekday.label"
               >
                 <a-select
-                  v-model:value="courseStore.courseForm.classType.value"
-                  placeholder="請選擇上課方式"
+                  v-model:value="courseStore.courseForm.weekday.value"
+                  mode="multiple"
+                  style="width: 100%"
+                  placeholder="請選擇上課日"
                 >
                   <a-select-option
-                    v-for="option in courseStore.courseForm.classType.options"
+                    v-for="option in courseStore.courseForm.weekday.options"
                     :key="option.value"
                     :value="option.value"
                   >
@@ -150,16 +122,31 @@
             </a-col>
           </a-row>
 
+          <a-row :gutter="16">
+            <a-col :span="24">
+              <a-form-item
+                :validate-status="
+                  courseStore.courseForm.classTime.err ? 'error' : ''
+                "
+                :help="courseStore.courseForm.classTime.errMsg"
+                :label="courseStore.courseForm.classTime.label"
+              >
+                <a-time-range-picker
+                  v-model:value="classTimeRange"
+                  style="width: 100%"
+                  format="HH:mm"
+                  @change="handleTimeRangeChange"
+                  :placeholder="['開始時間', '結束時間']"
+                />
+              </a-form-item>
+            </a-col>
+          </a-row>
+
           <a-form-item
             :validate-status="courseStore.courseForm.image.err ? 'error' : ''"
             :help="courseStore.courseForm.image.errMsg"
             :label="courseStore.courseForm.image.label"
           >
-            <!-- <a-input
-              v-model:value="courseStore.courseForm.image.value"
-              placeholder="請輸入課程封面圖片URL"
-            /> -->
-
             <a-upload-dragger
               v-model:value="courseStore.courseForm.image.value"
               name="files"
@@ -169,12 +156,8 @@
               <p class="ant-upload-drag-icon">
                 <InboxOutlined />
               </p>
-              <p class="ant-upload-text">
-                Click or drag file to this area to upload
-              </p>
-              <p class="ant-upload-hint">
-                Support for a single or bulk upload.
-              </p>
+              <p class="ant-upload-text">點擊或拖曳圖片至此上傳（選填）</p>
+              <p class="ant-upload-hint">支援 JPG、PNG 等常見圖片格式</p>
             </a-upload-dragger>
           </a-form-item>
         </div>
@@ -198,11 +181,26 @@
           </a-form-item>
 
           <a-form-item
-            :validate-status="courseStore.courseForm.outline.err ? 'error' : ''"
-            :help="courseStore.courseForm.outline.errMsg"
-            :label="courseStore.courseForm.outline.label"
+            :validate-status="
+              courseStore.courseForm.outlineFile.err ? 'error' : ''
+            "
+            :help="courseStore.courseForm.outlineFile.errMsg"
+            :label="courseStore.courseForm.outlineFile.label"
           >
-            <WYSIWYG v-model:content="courseStore.courseForm.outline.value" />
+            <a-upload-dragger
+              v-model:file-list="courseStore.courseForm.outlineFile.value"
+              name="file"
+              action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+              :before-upload="beforeOutlineUpload"
+            >
+              <p class="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p class="ant-upload-text">點擊或拖曳檔案至此上傳課程大綱</p>
+              <p class="ant-upload-hint">
+                僅支援 PDF 或 Excel 檔案，單個檔案大小不超過 10MB
+              </p>
+            </a-upload-dragger>
           </a-form-item>
         </div>
 
@@ -224,8 +222,7 @@ import { useCourseStore } from "@/stores/course";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { useRouter } from "vue-router";
-
-import WYSIWYG from "@/components/WYSIWYG.vue";
+import { InboxOutlined } from "@ant-design/icons-vue";
 
 const props = defineProps({
   isEdit: {
@@ -257,9 +254,67 @@ const startDate = computed({
   },
 });
 
+// 時間範圍選擇器的值
+const classTimeRange = computed({
+  get: () => {
+    if (!courseStore.courseForm.classTime.value) return null;
+
+    // 如果時間範圍已經以 HH:mm-HH:mm 格式存儲
+    const timeMatch = courseStore.courseForm.classTime.value.match(
+      /(\d{2}:\d{2})-(\d{2}:\d{2})/
+    );
+    if (timeMatch) {
+      const [_, startTime, endTime] = timeMatch;
+      return [dayjs(`2000-01-01 ${startTime}`), dayjs(`2000-01-01 ${endTime}`)];
+    }
+
+    // 處理舊格式或單一時間值
+    return null;
+  },
+  set: (value) => {
+    courseStore.courseForm.classTime.value =
+      value && value[0] && value[1]
+        ? `${value[0].format("HH:mm")}-${value[1].format("HH:mm")}`
+        : "";
+  },
+});
+
 // 處理日期變更
 const handleDateChange = (date, dateString) => {
   courseStore.courseForm.startDate.value = dateString;
+};
+
+// 處理時間範圍變更
+const handleTimeRangeChange = (value) => {
+  if (value && value[0] && value[1]) {
+    courseStore.courseForm.classTime.value = `${value[0].format(
+      "HH:mm"
+    )}-${value[1].format("HH:mm")}`;
+  } else {
+    courseStore.courseForm.classTime.value = "";
+  }
+};
+
+// 上傳課程大綱前檢查
+const beforeOutlineUpload = (file) => {
+  const isPDF = file.type === "application/pdf";
+  const isExcel =
+    file.type === "application/vnd.ms-excel" ||
+    file.type ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+  if (!isPDF && !isExcel) {
+    message.error("只能上傳 PDF 或 Excel 檔案！");
+    return false;
+  }
+
+  const isLt10M = file.size / 1024 / 1024 < 10;
+  if (!isLt10M) {
+    message.error("檔案必須小於 10MB！");
+    return false;
+  }
+
+  return true;
 };
 
 // 提交表單
