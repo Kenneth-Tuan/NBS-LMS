@@ -91,11 +91,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, h } from "vue";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
 import { RouterName } from "@/enums/appEnums";
 import { useCourseRecordStore } from "@/stores/courseRecord";
+import { courseDetails } from "@/data/courseData";
 
 // 初始化 store
 const courseRecordStore = useCourseRecordStore();
@@ -115,6 +116,36 @@ const columns = [
     dataIndex: "courseName",
     key: "courseName",
     width: "35%",
+    customRender: ({ text, record }) => {
+      // 查找對應的課程 ID
+      let courseId = record.id;
+
+      // 嘗試將課程名稱與 courseDetails 中的課程進行匹配
+      for (const [id, details] of Object.entries(courseDetails)) {
+        if (
+          record.courseName.includes(details.courseName) ||
+          details.courseName?.includes(record.courseName)
+        ) {
+          courseId = id;
+          break;
+        }
+      }
+
+      return h(
+        "a",
+        {
+          onClick: (e) => {
+            e.stopPropagation();
+            router.push({
+              name: RouterName.CourseDetail,
+              params: { id: courseId },
+            });
+          },
+          style: "cursor: pointer; color: #1890ff;",
+        },
+        text
+      );
+    },
   },
   {
     title: "教師",

@@ -24,7 +24,7 @@
         showIcon
         class="u-mb-6"
         message="選課須知"
-        description="1. 限時選課僅開放指定時間內進行，請注意選課時間。 2. 每個學生最多可選擇5門課程。 3. 部分課程有人數上限，先選先得。 4. 確認課程無時間衝突。"
+        description="1. 限時選課僅開放指定時間內進行，請注意選課時間。 2. 選課有21學分的上限。 3. 部分課程有人數上限，先選先得。 4. 確認課程無時間衝突。"
       />
 
       <!-- 分頁標籤 -->
@@ -83,6 +83,13 @@
             </a-form>
           </div>
 
+          <div class="u-mb-4 u-flex u-justify-between u-items-center">
+            <div>
+              <!-- 移除全選功能 -->
+            </div>
+            <!-- 移除批量選課按鈕 -->
+          </div>
+
           <!-- 可選課程表格 -->
           <a-spin :spinning="loading">
             <a-table
@@ -111,23 +118,14 @@
                     @click="handleSelectCourse(record)"
                     :disabled="
                       !isSelectionPeriodActive ||
-                      selectedCourses.length >= 5 ||
                       isCourseFull(record) ||
-                      hasCourseTimeConflict(record)
+                      hasCourseTimeConflict(record) ||
+                      hasReachedCreditLimit ||
+                      willExceedCreditLimit(record)
                     "
                   >
                     選課
                   </a-button>
-                  <a-tooltip
-                    v-if="
-                      selectedCourses.length >= 5 && isSelectionPeriodActive
-                    "
-                    title="已達選課上限 (5門)"
-                  >
-                    <a-button class="u-ml-2" size="small" type="text">
-                      <i class="fas fa-info-circle"></i>
-                    </a-button>
-                  </a-tooltip>
                   <a-tooltip
                     v-if="isCourseFull(record) && isSelectionPeriodActive"
                     title="課程已額滿"
@@ -141,6 +139,18 @@
                       hasCourseTimeConflict(record) && isSelectionPeriodActive
                     "
                     title="與已選課程時間衝突"
+                  >
+                    <a-button class="u-ml-2" size="small" type="text">
+                      <i class="fas fa-info-circle"></i>
+                    </a-button>
+                  </a-tooltip>
+                  <a-tooltip
+                    v-if="
+                      (hasReachedCreditLimit ||
+                        willExceedCreditLimit(record)) &&
+                      isSelectionPeriodActive
+                    "
+                    title="選課學分已達上限 (21學分)"
                   >
                     <a-button class="u-ml-2" size="small" type="text">
                       <i class="fas fa-info-circle"></i>
@@ -166,7 +176,13 @@
                   <span class="u-text-blue-500 u-font-bold">{{
                     selectedCourses.length
                   }}</span>
-                  <span class="u-ml-1">/ 5</span>
+                  <span class="u-ml-2 u-font-bold">總學分：</span>
+                  <span
+                    class="u-text-blue-500 u-font-bold"
+                    :class="{ 'u-text-red-500': hasReachedCreditLimit }"
+                    >{{ totalSelectedCredits }}</span
+                  >
+                  <span class="u-ml-1">/ 21</span>
                 </div>
                 <a-button
                   type="primary"
@@ -245,8 +261,7 @@
                       class="course-cell"
                       :style="{ backgroundColor: getCourseColor(course.id) }"
                     >
-                      {{ course.courseName }}<br />
-                      <span class="u-text-xs">{{ course.location }}</span>
+                      {{ course.courseName }}
                     </div>
                   </td>
                 </tr>
@@ -260,8 +275,25 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, onMounted, h } from "vue";
 import { message } from "ant-design-vue";
+import { useRouter } from "vue-router";
+import { RouterName } from "@/enums/appEnums";
+import { courseDetails, formatCourseTime } from "@/data/courseData";
+
+const router = useRouter();
+
+// 定義updateParams函數 - 更新URL參數或保存狀態
+const updateParams = (key, value) => {
+  console.log(`Updating parameter: ${key}`, value);
+  // 根據需求實現:
+  // 1. 更新URL參數
+  // 2. 存儲到localStorage
+  // 3. 更新全局狀態
+};
+
+// 最大学分限制
+const CREDIT_LIMIT = 21;
 
 // 模擬資料
 const currentSemester = "2023-秋季學期";
@@ -278,7 +310,6 @@ const coursesData = reactive([
     category: "聖經研究",
     credits: 3,
     teacher: "王大明牧師",
-    location: "第一教室",
     enrollmentLimit: 30,
     currentEnrollment: 18,
     remainingSlots: 12,
@@ -286,6 +317,7 @@ const coursesData = reactive([
       { day: "monday", slot: 1 },
       { day: "monday", slot: 2 },
     ],
+    ...courseDetails["COURSE101"],
   },
   {
     id: "COURSE102",
@@ -293,7 +325,6 @@ const coursesData = reactive([
     category: "聖經研究",
     credits: 3,
     teacher: "李文清博士",
-    location: "第二教室",
     enrollmentLimit: 25,
     currentEnrollment: 20,
     remainingSlots: 5,
@@ -301,6 +332,7 @@ const coursesData = reactive([
       { day: "tuesday", slot: 3 },
       { day: "tuesday", slot: 4 },
     ],
+    ...courseDetails["COURSE102"],
   },
   {
     id: "COURSE201",
@@ -308,7 +340,6 @@ const coursesData = reactive([
     category: "教會歷史",
     credits: 3,
     teacher: "陳歷史教授",
-    location: "大禮堂",
     enrollmentLimit: 40,
     currentEnrollment: 25,
     remainingSlots: 15,
@@ -316,6 +347,7 @@ const coursesData = reactive([
       { day: "wednesday", slot: 1 },
       { day: "wednesday", slot: 2 },
     ],
+    ...courseDetails["COURSE201"],
   },
   {
     id: "COURSE301",
@@ -323,7 +355,6 @@ const coursesData = reactive([
     category: "實踐神學",
     credits: 2,
     teacher: "張牧師",
-    location: "小教堂",
     enrollmentLimit: 20,
     currentEnrollment: 12,
     remainingSlots: 8,
@@ -331,6 +362,7 @@ const coursesData = reactive([
       { day: "thursday", slot: 5 },
       { day: "thursday", slot: 6 },
     ],
+    ...courseDetails["COURSE301"],
   },
   {
     id: "COURSE401",
@@ -338,7 +370,6 @@ const coursesData = reactive([
     category: "神學研究",
     credits: 3,
     teacher: "林博士",
-    location: "第三教室",
     enrollmentLimit: 35,
     currentEnrollment: 30,
     remainingSlots: 5,
@@ -346,6 +377,7 @@ const coursesData = reactive([
       { day: "friday", slot: 3 },
       { day: "friday", slot: 4 },
     ],
+    ...courseDetails["COURSE401"],
   },
   {
     id: "COURSE501",
@@ -353,14 +385,14 @@ const coursesData = reactive([
     category: "實踐神學",
     credits: 3,
     teacher: "黃心理博士",
-    location: "輔導室",
     enrollmentLimit: 15,
     currentEnrollment: 15,
     remainingSlots: 0,
     timeSlots: [
-      { day: "monday", slot: 5 },
-      { day: "monday", slot: 6 },
+      { day: "monday", slot: 9 },
+      { day: "monday", slot: 10 },
     ],
+    ...courseDetails["COURSE501"],
   },
   {
     id: "COURSE601",
@@ -368,7 +400,6 @@ const coursesData = reactive([
     category: "聖經語言",
     credits: 3,
     teacher: "吳語言教授",
-    location: "語言教室",
     enrollmentLimit: 30,
     currentEnrollment: 25,
     remainingSlots: 5,
@@ -376,6 +407,7 @@ const coursesData = reactive([
       { day: "tuesday", slot: 1 },
       { day: "tuesday", slot: 2 },
     ],
+    ...courseDetails["COURSE601"],
   },
   {
     id: "COURSE701",
@@ -383,14 +415,14 @@ const coursesData = reactive([
     category: "教會歷史",
     credits: 3,
     teacher: "陳歷史教授",
-    location: "第三教室",
     enrollmentLimit: 25,
     currentEnrollment: 15,
     remainingSlots: 10,
     timeSlots: [
-      { day: "wednesday", slot: 3 },
-      { day: "wednesday", slot: 4 },
+      { day: "wednesday", slot: 11 },
+      { day: "wednesday", slot: 12 },
     ],
+    ...courseDetails["COURSE701"],
   },
   {
     id: "COURSE801",
@@ -398,14 +430,14 @@ const coursesData = reactive([
     category: "靈修神學",
     credits: 2,
     teacher: "謝靈修牧師",
-    location: "禱告室",
     enrollmentLimit: 40,
     currentEnrollment: 20,
     remainingSlots: 20,
     timeSlots: [
-      { day: "thursday", slot: 1 },
-      { day: "thursday", slot: 2 },
+      { day: "thursday", slot: 9 },
+      { day: "thursday", slot: 10 },
     ],
+    ...courseDetails["COURSE801"],
   },
   {
     id: "COURSE901",
@@ -413,19 +445,45 @@ const coursesData = reactive([
     category: "神學研究",
     credits: 3,
     teacher: "林博士",
-    location: "第一教室",
     enrollmentLimit: 20,
     currentEnrollment: 18,
     remainingSlots: 2,
     timeSlots: [
-      { day: "friday", slot: 1 },
-      { day: "friday", slot: 2 },
+      { day: "friday", slot: 11 },
+      { day: "friday", slot: 12 },
     ],
+    ...courseDetails["COURSE901"],
   },
 ]);
 
 // 已選課程
 const selectedCourses = ref([]);
+
+// 检查是否已达到学分上限
+const totalSelectedCredits = computed(() => {
+  return selectedCourses.value.reduce((total, course) => {
+    return total + (course.credits || 0);
+  }, 0);
+});
+
+// 检查是否已达到学分上限
+const hasReachedCreditLimit = computed(() => {
+  return totalSelectedCredits.value >= CREDIT_LIMIT;
+});
+
+// 检查是否会超出学分上限
+const willExceedCreditLimit = (course) => {
+  const currentTotalCredits = selectedCourses.value.reduce(
+    (total, selected) => total + selected.credits,
+    0
+  );
+  return currentTotalCredits + course.credits > CREDIT_LIMIT;
+};
+
+// 剩余可选学分
+const remainingCredits = computed(() => {
+  return Math.max(0, CREDIT_LIMIT - totalSelectedCredits.value);
+});
 
 // 篩選條件
 const filters = reactive({
@@ -462,6 +520,10 @@ const timeSlots = [
   { slot: 6, label: "第6節 14:10-15:00" },
   { slot: 7, label: "第7節 15:10-16:00" },
   { slot: 8, label: "第8節 16:10-17:00" },
+  { slot: 9, label: "第9節 18:00-18:50" },
+  { slot: 10, label: "第10節 19:00-19:50" },
+  { slot: 11, label: "第11節 20:00-20:50" },
+  { slot: 12, label: "第12節 21:00-21:50" },
 ];
 
 // 過濾後的可選課程
@@ -489,13 +551,29 @@ const availableCoursesColumns = [
     title: "課程名稱",
     dataIndex: "courseName",
     key: "courseName",
-    width: "20%",
+    width: "25%",
+    customRender: ({ text, record }) => {
+      return h(
+        "a",
+        {
+          onClick: (e) => {
+            e.stopPropagation();
+            router.push({
+              name: RouterName.CourseDetail,
+              params: { id: record.id },
+            });
+          },
+          style: "cursor: pointer; color: #1890ff;",
+        },
+        text
+      );
+    },
   },
   {
     title: "類別",
     dataIndex: "category",
     key: "category",
-    width: "10%",
+    width: "15%",
   },
   {
     title: "學分",
@@ -511,16 +589,10 @@ const availableCoursesColumns = [
     width: "15%",
   },
   {
-    title: "地點",
-    dataIndex: "location",
-    key: "location",
-    width: "15%",
-  },
-  {
     title: "剩餘名額",
     dataIndex: "remainingSlots",
     key: "remainingSlots",
-    width: "10%",
+    width: "15%",
     align: "center",
   },
   {
@@ -528,57 +600,6 @@ const availableCoursesColumns = [
     dataIndex: "action",
     key: "action",
     width: "15%",
-    align: "center",
-  },
-];
-
-// 已選課程表格列
-const selectedCoursesColumns = [
-  {
-    title: "課程編號",
-    dataIndex: "id",
-    key: "id",
-    width: "10%",
-  },
-  {
-    title: "課程名稱",
-    dataIndex: "courseName",
-    key: "courseName",
-    width: "25%",
-  },
-  {
-    title: "類別",
-    dataIndex: "category",
-    key: "category",
-    width: "15%",
-  },
-  {
-    title: "學分",
-    dataIndex: "credits",
-    key: "credits",
-    width: "10%",
-    align: "center",
-  },
-  {
-    title: "教師",
-    dataIndex: "teacher",
-    key: "teacher",
-    width: "15%",
-  },
-  {
-    title: "上課時間",
-    dataIndex: "timeDisplay",
-    key: "timeDisplay",
-    width: "15%",
-    customRender: ({ record }) => {
-      return formatCourseTime(record);
-    },
-  },
-  {
-    title: "操作",
-    dataIndex: "action",
-    key: "action",
-    width: "10%",
     align: "center",
   },
 ];
@@ -630,45 +651,56 @@ const hasCourseTimeConflict = (course) => {
 };
 
 // 選課
-const handleSelectCourse = (course) => {
-  // 檢查已選課程數量
-  if (selectedCourses.value.length >= 5) {
-    message.warning("已達選課上限 (5門)");
-    return;
-  }
+const handleSelectCourse = async (course) => {
+  try {
+    if (loading.value) return;
 
-  // 檢查課程是否已選
-  const isAlreadySelected = selectedCourses.value.some(
-    (c) => c.id === course.id
-  );
-  if (isAlreadySelected) {
-    message.warning("已選過此課程");
-    return;
-  }
+    // 检查是否已选择该课程
+    if (selectedCourses.value.some((item) => item.id === course.id)) {
+      message.warning("該課程已被選擇");
+      return;
+    }
 
-  // 檢查人數上限
-  if (isCourseFull(course)) {
-    message.warning("此課程已額滿");
-    return;
-  }
+    // 检查是否超出学分上限
+    if (willExceedCreditLimit(course)) {
+      message.warning(`選課失敗：總學分不能超過${CREDIT_LIMIT}學分`);
+      return;
+    }
 
-  // 檢查時間衝突
-  if (hasCourseTimeConflict(course)) {
-    message.warning("與已選課程時間衝突");
-    return;
-  }
+    loading.value = true;
 
-  // 加入已選課程，更新剩餘名額
-  selectedCourses.value.push(course);
-  const index = coursesData.findIndex((c) => c.id === course.id);
-  if (index !== -1) {
-    coursesData[index].remainingSlots--;
-    coursesData[index].currentEnrollment++;
-  }
+    // 检查是否有时间冲突
+    if (hasCourseTimeConflict(course)) {
+      message.error(
+        "This course has a time conflict with your selected courses"
+      );
+      return;
+    }
 
-  message.success(`成功選修 ${course.courseName}`);
-  // 自動切換到已選課程頁面
-  activeTabKey.value = "selected";
+    // 检查是否已经选择了该课程
+    if (selectedCourses.value.some((item) => item.id === course.id)) {
+      message.error("You have already selected this course");
+      return;
+    }
+
+    // 添加课程
+    selectedCourses.value.push(course);
+
+    // 更新剩余名额
+    const index = coursesData.findIndex((c) => c.id === course.id);
+    if (index !== -1) {
+      coursesData[index].remainingSlots--;
+      coursesData[index].currentEnrollment++;
+    }
+
+    message.success(`Course selected successfully: ${course.courseName}`);
+    // 自动切换到已选课程页面
+    activeTabKey.value = "selected";
+  } catch (error) {
+    message.error("選課時發生錯誤，請稍後再試");
+  } finally {
+    loading.value = false;
+  }
 };
 
 // 退選
@@ -708,20 +740,6 @@ const handleSubmitSelection = () => {
   }, 1500);
 };
 
-// 格式化課程時間
-const formatCourseTime = (course) => {
-  const days = {
-    monday: "週一",
-    tuesday: "週二",
-    wednesday: "週三",
-    thursday: "週四",
-    friday: "週五",
-  };
-
-  const slots = course.timeSlots.map((ts) => `${days[ts.day]}${ts.slot}`);
-  return slots.join(", ");
-};
-
 // 獲取特定時間段的課程
 const getCoursesInTimeSlot = (day, slot) => {
   return selectedCourses.value.filter((course) =>
@@ -734,6 +752,73 @@ const getCourseColor = (courseId) => {
   const index = selectedCourses.value.findIndex((c) => c.id === courseId);
   return courseColors[index % courseColors.length];
 };
+
+// 已選課程表格列
+const selectedCoursesColumns = [
+  {
+    title: "課程編號",
+    dataIndex: "id",
+    key: "id",
+    width: "10%",
+  },
+  {
+    title: "課程名稱",
+    dataIndex: "courseName",
+    key: "courseName",
+    width: "25%",
+    customRender: ({ text, record }) => {
+      return h(
+        "a",
+        {
+          onClick: (e) => {
+            e.stopPropagation();
+            router.push({
+              name: RouterName.CourseDetail,
+              params: { id: record.id },
+            });
+          },
+          style: "cursor: pointer; color: #1890ff;",
+        },
+        text
+      );
+    },
+  },
+  {
+    title: "類別",
+    dataIndex: "category",
+    key: "category",
+    width: "15%",
+  },
+  {
+    title: "學分",
+    dataIndex: "credits",
+    key: "credits",
+    width: "10%",
+    align: "center",
+  },
+  {
+    title: "教師",
+    dataIndex: "teacher",
+    key: "teacher",
+    width: "15%",
+  },
+  {
+    title: "上課時間",
+    dataIndex: "timeDisplay",
+    key: "timeDisplay",
+    width: "15%",
+    customRender: ({ record }) => {
+      return formatCourseTime(record);
+    },
+  },
+  {
+    title: "操作",
+    dataIndex: "action",
+    key: "action",
+    width: "10%",
+    align: "center",
+  },
+];
 
 // 初始化
 onMounted(() => {
@@ -868,5 +953,10 @@ onMounted(() => {
   font-size: 0.8rem;
   margin-bottom: 2px;
   word-break: break-word;
+}
+
+/* 表格行悬停效果 */
+:deep(.ant-table-tbody > tr:hover > td) {
+  background-color: #f0f7ff !important;
 }
 </style>

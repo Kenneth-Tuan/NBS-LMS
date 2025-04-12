@@ -29,15 +29,6 @@ const routes = [
     },
   },
   {
-    path: "/courses",
-    name: RouterName.CourseList,
-    component: () => import("@/views/Courses/CourseList.vue"),
-    meta: {
-      title: "課程列表 - 拿撒勒人會神學院 選課系統",
-      layout: DefaultLayout,
-    },
-  },
-  {
     path: "/courses/create",
     name: RouterName.CourseCreate,
     component: () => import("@/views/Courses/CourseForm.vue"),

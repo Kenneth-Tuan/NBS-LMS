@@ -50,11 +50,11 @@ export const MenuItems = [
     label: "課程管理",
     icon: MailOutlined,
     children: [
-      {
-        key: "course-list",
-        label: "課程列表",
-        route: { name: RouterName.CourseList },
-      },
+      // {
+      //   key: "course-list",
+      //   label: "課程列表",
+      //   route: { name: RouterName.CourseList },
+      // },
       {
         key: "course-create",
         label: "新增課程",
