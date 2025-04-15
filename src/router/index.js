@@ -1,9 +1,8 @@
 import { createWebHistory, createRouter } from "vue-router";
 
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
-import { RouterName } from "@/enums/appEnums";
+import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
-import { UserRole } from "@/enums/appEnums";
 
 const routes = [
   {
@@ -152,7 +151,7 @@ router.beforeEach(async (to, from, next) => {
   // 檢查是否需要管理員權限
   if (to.meta.requiresAdmin) {
     const { userProfile } = useUserStore();
-    if (userProfile.userType !== UserRole.ADMIN) {
+    if (userProfile.userType !== UserRole.Admin) {
       next({ name: RouterName.CourseList });
       return;
     }

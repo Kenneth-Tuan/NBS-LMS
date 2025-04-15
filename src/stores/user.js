@@ -74,6 +74,15 @@ export const useUserStore = defineStore(
       });
     }
 
+    function setUserRole(newRole) {
+      if (Object.values(UserRole).includes(newRole)) {
+        userProfile.userType = newRole;
+        console.log(`User role manually changed to: ${newRole}`); // For debugging
+      } else {
+        console.warn(`Invalid user role provided: ${newRole}`);
+      }
+    }
+
     function getUserAndCompanyID() {
       if (!userProfile.companyID)
         userProfile.companyID = $cookies.get("companyID").toUpperCase();
@@ -121,6 +130,7 @@ export const useUserStore = defineStore(
       getUserAndCompanyID,
       updateLoginDialogOpen,
       logout,
+      setUserRole,
     };
   },
   {

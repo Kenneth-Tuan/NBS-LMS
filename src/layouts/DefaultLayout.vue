@@ -11,14 +11,14 @@ import {
 import { useRouter, useRoute } from "vue-router";
 
 import { useUserStore, user } from "@/stores/user";
-import { RouterName, MenuItems } from "@/enums/appEnums";
+import { RouterName, MenuItems, UserRole } from "@/enums/appEnums";
 
 const router = useRouter();
 const route = useRoute();
 
 const userStore = useUserStore();
 const { isLoggedIn } = storeToRefs(userStore);
-const { updateLoginDialogOpen, logout, userProfile } = userStore;
+const { updateLoginDialogOpen, logout, userProfile, setUserRole } = userStore;
 
 const state = reactive({
   collapsed: false,
@@ -128,6 +128,33 @@ watch(
     state.selectedKeys = [newRouteName];
   }
 );
+
+const isDev = import.meta.env.DEV;
+
+const handleRoleChange = (newRole) => {
+  setUserRole(newRole);
+  // Optionally: refresh or trigger something to reflect role change immediately
+  // e.g., router.go(0) or re-fetch data based on role
+};
+
+const userRoleOptions = [
+  {
+    label: "Admin",
+    value: 1,
+  },
+  {
+    label: "Manager",
+    value: 2,
+  },
+  {
+    label: "Teacher",
+    value: 3,
+  },
+  {
+    label: "Student",
+    value: 4,
+  },
+];
 </script>
 
 <template>
@@ -149,6 +176,18 @@ watch(
         </span>
       </p>
       <div class="u-flex-1"></div>
+
+      <!-- DEV ONLY: Role Switcher -->
+      <div v-if="isDev" class="u-mx-2">
+        <a-select
+          :value="userProfile.userType"
+          style="width: 120px"
+          @change="handleRoleChange"
+          :options="userRoleOptions"
+        >
+        </a-select>
+      </div>
+      <!-- END DEV ONLY -->
 
       <Transition name="fade" :duration="550" mode="out-in" appear>
         <a-tooltip v-if="isLoggedIn" title="通知">
