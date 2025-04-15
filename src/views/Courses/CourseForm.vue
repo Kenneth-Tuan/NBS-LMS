@@ -98,49 +98,95 @@
 
             <a-col :span="12">
               <a-form-item
+                label="上課時間安排"
                 :validate-status="
-                  courseStore.courseForm.weekday.err ? 'error' : ''
+                  courseStore.courseForm.weekday.err ||
+                  courseStore.courseForm.classTime.err
+                    ? 'error'
+                    : ''
                 "
-                :help="courseStore.courseForm.weekday.errMsg"
-                :label="courseStore.courseForm.weekday.label"
+                :help="
+                  (courseStore.courseForm.weekday.errMsg
+                    ? courseStore.courseForm.weekday.errMsg + ' '
+                    : '') + (courseStore.courseForm.classTime.errMsg || '')
+                "
               >
-                <a-select
-                  v-model:value="courseStore.courseForm.weekday.value"
-                  mode="multiple"
-                  style="width: 100%"
-                  placeholder="請選擇上課日"
-                >
-                  <a-select-option
-                    v-for="option in courseStore.courseForm.weekday.options"
-                    :key="option.value"
-                    :value="option.value"
+                <a-input-group compact>
+                  <a-select
+                    v-model:value="courseStore.courseForm.weekday.value"
+                    style="width: 40%"
+                    placeholder="請選擇上課日"
                   >
-                    {{ option.label }}
-                  </a-select-option>
-                </a-select>
+                    <a-select-option
+                      v-for="option in courseStore.courseForm.weekday.options"
+                      :key="option.value"
+                      :value="option.value"
+                    >
+                      {{ option.label }}
+                    </a-select-option>
+                  </a-select>
+                  <a-time-range-picker
+                    v-model:value="classTimeRange"
+                    style="width: 60%"
+                    format="HH:mm"
+                    @change="handleTimeRangeChange"
+                    :placeholder="['開始時間', '結束時間']"
+                  />
+                </a-input-group>
               </a-form-item>
             </a-col>
           </a-row>
 
+          <!-- NEW: Enrollment Limit and Prerequisites -->
           <a-row :gutter="16">
-            <a-col :span="24">
+            <a-col :span="12">
               <a-form-item
+                :label="courseStore.courseForm.enrollmentLimit.label"
                 :validate-status="
-                  courseStore.courseForm.classTime.err ? 'error' : ''
+                  courseStore.courseForm.enrollmentLimit.err ? 'error' : ''
                 "
-                :help="courseStore.courseForm.classTime.errMsg"
-                :label="courseStore.courseForm.classTime.label"
+                :help="courseStore.courseForm.enrollmentLimit.errMsg"
               >
-                <a-time-range-picker
-                  v-model:value="classTimeRange"
+                <a-input-number
+                  v-model:value="courseStore.courseForm.enrollmentLimit.value"
+                  placeholder="1-999人"
+                  :min="1"
+                  :max="999"
                   style="width: 100%"
-                  format="HH:mm"
-                  @change="handleTimeRangeChange"
-                  :placeholder="['開始時間', '結束時間']"
                 />
               </a-form-item>
             </a-col>
+            <a-col :span="12">
+              <a-form-item
+                :label="courseStore.courseForm.prerequisites.label"
+                :validate-status="
+                  courseStore.courseForm.prerequisites.err ? 'error' : ''
+                "
+                :help="courseStore.courseForm.prerequisites.errMsg"
+              >
+                <a-select
+                  v-model:value="courseStore.courseForm.prerequisites.value"
+                  mode="multiple"
+                  placeholder="選擇先修課程 (可多選)"
+                  :options="courseStore.courseForm.prerequisites.options"
+                  allow-clear
+                  style="width: 100%"
+                  :filter-option="filterOption"
+                >
+                  <!-- Optional: Customize tag rendering -->
+                  <template #tagRender="{ value: label, closable, onClose }">
+                    <a-tag
+                      :closable="closable"
+                      @close="onClose"
+                      style="margin-right: 3px"
+                      >{{ label }}</a-tag
+                    >
+                  </template>
+                </a-select>
+              </a-form-item>
+            </a-col>
           </a-row>
+          <!-- END NEW -->
 
           <a-form-item
             :validate-status="courseStore.courseForm.image.err ? 'error' : ''"
@@ -217,12 +263,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useCourseStore } from "@/stores/course";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { useRouter } from "vue-router";
 import { InboxOutlined } from "@ant-design/icons-vue";
+import { InputGroup as AInputGroup } from "ant-design-vue";
+import { dummyCourseData } from "@/data/dummy"; // Import dummy data for lookup
+import { RouterName } from "../../enums/appEnums";
 
 const props = defineProps({
   isEdit: {
@@ -323,7 +372,7 @@ const handleSubmit = async () => {
     loading.value = true;
     await courseStore.submitForm();
     message.success(props.isEdit ? "課程更新成功" : "課程創建成功");
-    router.push("/courses");
+    router.push({ name: RouterName.CourseOverview });
   } catch (error) {
     message.error(error.message || "提交失敗，請重試");
   } finally {
@@ -334,6 +383,37 @@ const handleSubmit = async () => {
 // 取消
 const handleCancel = () => {
   courseStore.resetForm();
-  router.push("/courses");
+  router.go(-1);
 };
+
+// Add filterOption function for prerequisite select
+const filterOption = (input, option) => {
+  // Check if option.label exists and is a string before calling toLowerCase
+  return (
+    option.label &&
+    typeof option.label === "string" &&
+    option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+  );
+};
+
+// Fetch and populate data on mount if editing
+onMounted(() => {
+  if (props.isEdit && props.courseId) {
+    console.log("Edit mode detected, course ID:", props.courseId);
+    // Find the course data (using dummy data for now)
+    const courseToEdit = dummyCourseData.find(
+      (c) => c.id === Number(props.courseId)
+    );
+    if (courseToEdit) {
+      courseStore.populateForm(courseToEdit); // Call the store action
+    } else {
+      message.error(`找不到 ID 為 ${props.courseId} 的課程資料`);
+      // Optionally redirect back or handle error
+      router.push("/course-overview");
+    }
+  } else {
+    // If in create mode, ensure form is reset
+    courseStore.resetForm();
+  }
+});
 </script>

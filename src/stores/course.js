@@ -91,7 +91,7 @@ export const useCourseStore = defineStore(
         value: "",
         err: false,
         errMsg: "",
-        required: true,
+        required: false,
         label: "課程類型",
         options: [
           { label: "新課程", value: "新課程" },
@@ -128,6 +128,17 @@ export const useCourseStore = defineStore(
         mask: "####.##.##",
         rules: [(val) => !!val && dayjs(val, "YYYY.MM.DD", true)],
         label: "開課日期",
+      },
+      enrollmentLimit: {
+        value: null,
+        err: false,
+        errMsg: "",
+        required: true,
+        label: "選課人數上限",
+        rules: [
+          (val) =>
+            val === null || (typeof val === "number" && val >= 1 && val <= 999),
+        ],
       },
       weekday: {
         value: [],
@@ -166,18 +177,26 @@ export const useCourseStore = defineStore(
         required: true,
         label: "課程簡介",
       },
+      prerequisites: {
+        value: [],
+        err: false,
+        errMsg: "",
+        required: false,
+        label: "先修課程",
+        options: [],
+      },
       outlineFile: {
         value: [],
         err: false,
         errMsg: "",
-        required: true,
+        required: false,
         label: "課程大綱附件",
       },
       teacherInfo: {
         value: "",
         err: false,
         errMsg: "",
-        required: true,
+        required: false,
         label: "教師資訊",
       },
       image: {
@@ -193,48 +212,97 @@ export const useCourseStore = defineStore(
     const loading = ref(false);
     const error = ref(null);
 
-    /**
-     * Reset all form fields to their initial empty state
-     */
+    const populatePrerequisiteOptions = () => {
+      courseForm.prerequisites.options = dummyCourseData.map((course) => ({
+        label: course.title,
+        value: course.id,
+      }));
+    };
+
     const resetForm = () => {
       Object.keys(courseForm).forEach((key) => {
-        if (key === "outlineFile" || key === "weekday") {
-          courseForm[key].value = [];
+        const field = courseForm[key];
+        if (
+          key === "outlineFile" ||
+          key === "weekday" ||
+          key === "prerequisites"
+        ) {
+          field.value = [];
+        } else if (key === "enrollmentLimit") {
+          field.value = null;
         } else {
-          courseForm[key].value = "";
+          field.value = "";
+        }
+        field.err = false;
+        field.errMsg = "";
+      });
+      populatePrerequisiteOptions();
+    };
+
+    const populateForm = (courseData) => {
+      if (!courseData) {
+        console.error("Cannot populate form: courseData is null or undefined.");
+        message.error("無法加載課程資料進行編輯");
+        return;
+      }
+      console.log("Populating form with:", courseData);
+      populatePrerequisiteOptions();
+      courseForm.prerequisites.options =
+        courseForm.prerequisites.options.filter(
+          (option) => option.value !== courseData.id
+        );
+      Object.keys(courseForm).forEach((key) => {
+        if (courseData.hasOwnProperty(key)) {
+          if (key === "weekday" || key === "prerequisites") {
+            courseForm[key].value = Array.isArray(courseData[key])
+              ? [...courseData[key]]
+              : [];
+          } else if (key === "enrollmentLimit") {
+            courseForm[key].value =
+              typeof courseData[key] === "number" ? courseData[key] : null;
+          } else if (key === "startDate") {
+            courseForm[key].value = courseData[key] || "";
+          } else if (key === "classTime") {
+            courseForm[key].value = courseData[key] || "";
+          } else if (key === "outlineFile") {
+            courseForm[key].value = [];
+          } else if (key === "image") {
+            courseForm[key].value = courseData[key] || "";
+          } else {
+            courseForm[key].value = courseData[key];
+          }
+        } else {
+          if (
+            key !== "outlineFile" &&
+            key !== "weekday" &&
+            key !== "prerequisites"
+          ) {
+            courseForm[key].value = "";
+          }
         }
         courseForm[key].err = false;
         courseForm[key].errMsg = "";
       });
+      console.log("Form populated:", courseForm);
     };
 
-    /**
-     * Submit the course form
-     * @returns {Promise} A promise that resolves when the form is submitted
-     */
     const submitForm = async () => {
       try {
-        // Validate the form first
         const isValid = validateForm();
         if (!isValid) {
           throw new Error("表單驗證失敗");
         }
-
-        // Prepare the course data
         const formData = {};
         Object.keys(courseForm).forEach((key) => {
-          formData[key] = courseForm[key].value;
+          if (key !== "prerequisites" || !courseForm[key].options) {
+            formData[key] = courseForm[key].value;
+          } else {
+            formData[key] = courseForm[key].value;
+          }
         });
-
-        // Add default status
         formData.status = "待審核";
-
-        // Save to session storage
         const savedCourse = await saveCourse(formData);
-
-        // Reset the form after successful submission
         resetForm();
-
         return savedCourse;
       } catch (error) {
         console.error("Error submitting form:", error);
@@ -242,81 +310,63 @@ export const useCourseStore = defineStore(
       }
     };
 
-    /**
-     * Validate the form fields
-     * @returns {boolean} Whether the form is valid
-     */
     const validateForm = () => {
       let isValid = true;
-
-      // Check each required field
+      console.log("Validating form...");
       Object.keys(courseForm).forEach((fieldName) => {
         const field = courseForm[fieldName];
-
-        // Reset error status
         field.err = false;
         field.errMsg = "";
 
-        // Check if required and empty
         if (field.required) {
-          if (fieldName === "outlineFile") {
-            if (!field.value || field.value.length === 0) {
-              field.err = true;
-              field.errMsg = `${field.label}為必填欄位`;
-              isValid = false;
-            }
-          } else if (fieldName === "weekday") {
-            if (!field.value || field.value.length === 0) {
-              field.err = true;
-              field.errMsg = `${field.label}為必填欄位`;
-              isValid = false;
-            }
-          } else if (!field.value) {
+          let isEmpty = false;
+          if (Array.isArray(field.value)) {
+            isEmpty = field.value.length === 0;
+          } else if (typeof field.value === "number") {
+            isEmpty = field.value === null || field.value === undefined;
+          } else {
+            isEmpty = !field.value;
+          }
+          if (isEmpty) {
             field.err = true;
             field.errMsg = `${field.label}為必填欄位`;
+            console.error(field.errMsg);
             isValid = false;
           }
         }
 
-        // Check custom validation rules if provided
-        if (field.rules && field.value) {
+        if (
+          field.rules &&
+          field.value !== null &&
+          field.value !== undefined &&
+          (!Array.isArray(field.value) || field.value.length > 0)
+        ) {
           for (const rule of field.rules) {
-            const result = rule(field.value);
-            if (!result) {
+            if (!rule(field.value)) {
               field.err = true;
-              field.errMsg = `${field.label}格式不正確`;
+              if (fieldName === "enrollmentLimit") {
+                field.errMsg = `${field.label}必須介於 1 到 999 之間`;
+              } else {
+                field.errMsg = `${field.label}格式不正確`;
+              }
+              console.error(field.errMsg);
               isValid = false;
               break;
             }
           }
         }
       });
-
+      if (!isValid) {
+        console.error("Form validation failed.");
+      }
       return isValid;
     };
 
-    /**
-     * Fetch the course list from the API
-     */
     const getCourseList = async () => {
       loading.value = true;
       error.value = null;
 
       try {
-        // const response = await fetch("/courseList");
-        // const data = await response.json();
-
-        // if (data.success) {
-        //   courseList.value.length = 0;
-        //   const courses = data.data;
-        //   courses.forEach((course) => {
-        //     courseList.value.push(course);
-        //   });
-        // } else {
-        //   error.value = data.message || "獲取課程列表失敗";
-        //   throw new Error(error.value);
-        // }
-
         courseList.value = dummyCourseData;
       } catch (err) {
         error.value = err.message || "獲取課程列表時發生錯誤";
@@ -326,13 +376,6 @@ export const useCourseStore = defineStore(
       }
     };
 
-    /**
-     * Update a course's status
-     * @param {string} id - The course ID
-     * @param {string} status - The new status
-     * @param {Object} reviewData - Additional review data
-     * @returns {Object} The updated course
-     */
     const updateCourseStatus = async (id, status, reviewData = {}) => {
       try {
         loading.value = true;
@@ -349,7 +392,6 @@ export const useCourseStore = defineStore(
         const data = await response.json();
 
         if (data.success) {
-          // Update the course list
           await getCourseList();
           return data.data;
         } else {
@@ -451,12 +493,15 @@ export const useCourseStore = defineStore(
       total: dummyCourseData.length,
     });
 
+    populatePrerequisiteOptions();
+
     return {
       courseForm,
       courseList,
       loading,
       error,
       resetForm,
+      populateForm,
       submitForm,
       getCourseList,
       updateCourseStatus,

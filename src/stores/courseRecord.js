@@ -390,6 +390,7 @@ export const useCourseRecordStore = defineStore("courseRecord", () => {
     semesterList,
     teacherList,
     filteredCourseRecords,
+
     getCourseRecords,
     getCourseGradeById,
     resetSearch,

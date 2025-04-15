@@ -7,6 +7,9 @@ import {
   UserOutlined,
   BellOutlined,
   CaretDownOutlined,
+  ClockCircleFilled,
+  MailOutlined,
+  FormOutlined,
 } from "@ant-design/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 
@@ -27,67 +30,79 @@ const state = reactive({
   preOpenKeys: ["sub1"],
 });
 
-// 從appEnums.js的MenuItems轉換成ant design menu需要的格式
-const menuItems = computed(() => {
-  const transformMenu = (menuItem) => {
-    // 處理子菜單項
-    if (menuItem.children) {
-      return {
-        key: menuItem.key,
-        icon: () => h(menuItem.icon),
-        label: menuItem.label,
-        children: menuItem.children.map((child) => ({
-          key: child.route ? child.route.name : child.key,
-          label: child.label,
-          adminOnly: child.adminOnly,
-          disabled: child.disabled,
-          class:
-            child.highlight && !state.selectedKeys.includes(child.route.name)
-              ? "menu-highlight"
-              : "",
-        })),
-      };
-    }
+// Function to map key to icon component
+const getIconComponent = (key) => {
+  switch (key) {
+    case "timed-course-selection":
+      return ClockCircleFilled;
+    case "courses":
+      return MailOutlined;
+    case "applications":
+      return FormOutlined;
+    default:
+      return null;
+  }
+};
 
-    // 處理一級菜單項
-    return {
+// 從appEnums.ts的MenuItems轉換成ant design menu需要的格式
+const menuItems = computed(() => {
+  const currentUserRole = Number(userProfile.userType);
+  const hasRequiredRole = (itemRoles) => {
+    if (!itemRoles || !Array.isArray(itemRoles) || itemRoles.length === 0)
+      return true;
+    return itemRoles.includes(currentUserRole);
+  };
+
+  const transformAndFilter = (menuItem) => {
+    if (!hasRequiredRole(menuItem.roles)) return null;
+
+    // Get icon component based on key, replacing the one from enum
+    const IconComponent = getIconComponent(menuItem.key);
+
+    const transformed = {
       key: menuItem.route ? menuItem.route.name : menuItem.key,
-      icon: () => h(menuItem.icon),
+      // Use h() with the determined icon component
+      icon: IconComponent ? () => h(IconComponent) : null,
       label: menuItem.label,
-      adminOnly: menuItem.adminOnly,
       disabled: menuItem.disabled,
       class:
-        menuItem.highlight && !state.selectedKeys.includes(menuItem.route.name)
+        menuItem.highlight && !state.selectedKeys.includes(menuItem.route?.name)
           ? "menu-highlight"
           : "",
     };
+
+    if (menuItem.children) {
+      transformed.children = menuItem.children
+        .map((child) => {
+          if (!hasRequiredRole(child.roles)) return null;
+          return {
+            key: child.route ? child.route.name : child.key,
+            label: child.label,
+            disabled: child.disabled,
+            class:
+              child.highlight && !state.selectedKeys.includes(child.route?.name)
+                ? "menu-highlight"
+                : "",
+          };
+        })
+        .filter((child) => child !== null);
+
+      if (transformed.children.length === 0) return null;
+    }
+    return transformed;
   };
 
-  // 添加首頁
   const homeMenuItem = {
     key: RouterName.LandingPage,
-    icon: () => h(PieChartOutlined),
+    icon: () => h(PieChartOutlined), // Keep using PieChartOutlined for Home
     label: "首頁",
   };
 
-  const transformedItems = [homeMenuItem, ...MenuItems.map(transformMenu)];
+  const filteredAppMenuItems = MenuItems.map(transformAndFilter).filter(
+    (item) => item !== null
+  );
 
-  // 過濾掉管理員專用項目（如果非管理員）
-  return transformedItems.filter((item) => {
-    // 如果項目需要管理員權限但用戶不是管理員
-    if (item.adminOnly && userProfile.userType !== 1) {
-      return false;
-    }
-
-    // 處理子項目
-    if (item.children) {
-      item.children = item.children.filter((child) => {
-        return !(child.adminOnly && userProfile.userType !== 1);
-      });
-    }
-
-    return true;
-  });
+  return [homeMenuItem, ...filteredAppMenuItems];
 });
 
 const visible = ref(false);

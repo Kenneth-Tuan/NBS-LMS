@@ -1,3 +1,5 @@
+import dayjs from "dayjs"; // Import dayjs for date calculations
+
 const dummyNewsData = [
   {
     key: "1",
@@ -24,7 +26,7 @@ const dummyNewsData = [
 const dummyNoticeData = [
   {
     title: "課程查詢",
-    contents: ["課程節次時間起訖等請點閱左方”課程相關資訊”。"],
+    contents: ['課程節次時間起訖等請點閱左方 "課程相關資訊"。'],
   },
   {
     title: "選課系統",
@@ -81,12 +83,12 @@ const dummyCourseData = [
     id: 5128,
     image:
       "https://images.unsplash.com/photo-1529070538774-1843cb3265df?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    status: "招生中",
     title: "基礎系統神學導論",
     type: "新課程",
     duration: "600 分鐘",
     instructor: "王力生",
     startDate: "2025.03.29",
+    endDate: "2025.07.29",
     classType: "六日兩日下午專題班",
     description:
       "本課程旨在建立學員對系統神學的基礎認識，探討上帝論、基督論、救恩論等核心教義。學員將學習如何系統性地理解聖經真理，並能在現代處境中應用神學思維。課程結束後，學員將能夠掌握基本神學概念，並在教會服事中更有效地傳遞信仰。",
@@ -149,12 +151,12 @@ const dummyCourseData = [
     id: 5201,
     image:
       "https://plus.unsplash.com/premium_photo-1725075087617-302d48805d2b?q=80&w=3987&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    status: "招生中",
     title: "新約聖經希臘文研究與詮釋",
     type: "新課程",
     duration: "600 分鐘",
     instructor: "陳恩典",
-    startDate: "2025.04.12",
+    startDate: "2024.04.12",
+    endDate: "2024.08.12",
     classType: "六日兩日全天專題班",
     description:
       "本課程專注於新約聖經原文的研究與解釋，幫助學員掌握基礎希臘文語法結構和詞彙。透過原文學習，學員將能更深入理解新約經文的原意，提升解經能力。課程包含實際經文分析練習，使學員能獨立運用工具書進行原文查考。",
@@ -217,12 +219,12 @@ const dummyCourseData = [
     id: 5122,
     image:
       "https://plus.unsplash.com/premium_photo-1661963139522-22525f644234?q=80&w=3444&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    status: "即將額滿",
     title: "教會歷史：從初代教會到現代",
     type: "新課程",
     duration: "600 分鐘",
     instructor: "林信實",
-    startDate: "2025.03.15",
+    startDate: "2023.09.15",
+    endDate: "2024.01.15",
     classType: "六日兩日全天專題班",
     description:
       "本課程帶領學員縱覽教會兩千年的發展歷程，從使徒時代到現代教會的演變。學員將認識重要的歷史事件、人物和神學思潮，理解它們對現代教會的影響。課程強調從歷史中汲取智慧，以應對當代教會的挑戰。",
@@ -283,15 +285,60 @@ const dummyCourseData = [
     `,
   },
   {
+    id: 5300,
+    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97",
+    title: "舊約智慧文學",
+    type: "經典重開",
+    duration: "450 分鐘",
+    instructor: "李智慧",
+    startDate: "2023.02.10",
+    endDate: "2023.06.10",
+    classType: "二五夜間班",
+    description:
+      "深入探討約伯記、詩篇、箴言、傳道書、雅歌的文學特色與神學信息。",
+    outline: `<h3>課程單元</h3>...`,
+    teacherInfo: `<h3>講師簡介：李智慧</h3>...`,
+  },
+  {
+    id: 5301,
+    image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159",
+    title: "網頁開發與教會應用",
+    type: "新技能",
+    duration: "1200 分鐘",
+    instructor: "吳科技",
+    startDate: dayjs().subtract(1, "month").format("YYYY.MM.DD"),
+    endDate: dayjs().add(3, "month").format("YYYY.MM.DD"),
+    classType: "週末密集班",
+    description:
+      "學習基礎網頁技術(HTML/CSS/JS)，並探討如何應用於教會網站、線上報名系統等。",
+    outline: `<h3>課程單元</h3>...`,
+    teacherInfo: `<h3>講師簡介：吳科技</h3>...`,
+  },
+  {
+    id: 5302,
+    image: "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    title: "宣教策略與新媒體",
+    type: "趨勢研討",
+    duration: "300 分鐘",
+    instructor: "劉媒體",
+    startDate: dayjs().add(2, "month").format("YYYY.MM.DD"),
+    endDate: dayjs().add(4, "month").format("YYYY.MM.DD"),
+    classType: "單日研討會",
+    description:
+      "探討如何運用社交媒體、直播、短視頻等新媒體工具進行有效的福音預工與宣教。",
+    outline: `<h3>課程單元</h3>...`,
+    teacherInfo: `<h3>講師簡介：劉媒體</h3>...`,
+  },
+  {
     id: 5199,
     image:
       "https://media.istockphoto.com/id/1410772920/photo/group-of-people-praying-worship-believe.jpg?s=2048x2048&w=is&k=20&c=meRPDNTMRwVUIuuEs7QNsQzIcSaHXQ0kkC3bkNABIiw=",
-    status: "招生中",
     title: "基督教輔導與關顧事工",
     type: "新課程",
     duration: "1800 分鐘",
     instructor: "張恩惠",
     startDate: "2025.04.14",
+    endDate: "2025.08.14",
     classType: "一四夜間班",
     earlyBird: {
       deadline: "2025/04/06 23:59:59",
@@ -357,12 +404,12 @@ const dummyCourseData = [
   {
     id: 5169,
     image: "https://images.unsplash.com/photo-1511192336575-5a79af67a629?q=80",
-    status: "招生中",
     title: "教會音樂與崇拜學",
     type: "1227",
     duration: "1800 分鐘",
     instructor: "李榮耀",
     startDate: "2025.04.14",
+    endDate: "2025.08.14",
     classType: "一四夜間班",
     earlyBird: {
       deadline: "2025/04/06 23:59:59",
@@ -429,12 +476,12 @@ const dummyCourseData = [
     id: 5170,
     image:
       "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?q=80&w=3870&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    status: "招生中",
     title: "宣教學與跨文化溝通",
     type: "新課程",
     duration: "1800 分鐘",
     instructor: "黃盼望",
     startDate: "2025.04.14",
+    endDate: "2025.08.14",
     classType: "一四夜間班",
     earlyBird: {
       deadline: "2025/04/06 23:59:59",
@@ -500,12 +547,12 @@ const dummyCourseData = [
   {
     id: 5171,
     image: "https://images.unsplash.com/photo-1519452575417-564c1401ecc0?q=80",
-    status: "即將額滿",
     title: "基督教倫理學",
     type: "1227",
     duration: "1800 分鐘",
     instructor: "張正義",
     startDate: "2025.04.21",
+    endDate: "2025.08.21",
     classType: "一四夜間班",
     earlyBird: {
       deadline: "2025/04/13 23:59:59",
@@ -572,12 +619,12 @@ const dummyCourseData = [
     id: 5172,
     image:
       "https://images.unsplash.com/photo-1507627739453-d67de9c6362e?q=80&w=3000",
-    status: "即將額滿",
     title: "舊約聖經研究與詮釋",
     type: "新課程",
     duration: "1800 分鐘",
     instructor: "李約書亞",
     startDate: "2025.05.10",
+    endDate: "2025.09.10",
     classType: "六日兩日全天專題班",
     earlyBird: {
       deadline: "2025/04/30 23:59:59",
@@ -640,12 +687,12 @@ const dummyCourseData = [
     id: 5173,
     image:
       "https://images.unsplash.com/photo-1490187510156-99ca1a77c714?q=80&w=3000",
-    status: "招生中",
     title: "基督教倫理學導論",
     type: "新課程",
     duration: "1800 分鐘",
     instructor: "王真理",
     startDate: "2025.05.20",
+    endDate: "2025.09.20",
     classType: "一四夜間班",
     earlyBird: {
       deadline: "2025/05/10 23:59:59",
@@ -708,12 +755,12 @@ const dummyCourseData = [
     id: 5174,
     image:
       "https://images.unsplash.com/photo-1544427920-c49ccfb85579?q=80&w=3000",
-    status: "招生中",
     title: "講道學與表達藝術",
     type: "新課程",
     duration: "1200 分鐘",
     instructor: "陳雅各",
     startDate: "2025.05.25",
+    endDate: "2025.09.25",
     classType: "六日兩日全天專題班",
     description:
       "本課程著重培養學員的講道技巧與表達能力，從經文解析到講章撰寫的完整過程。學員將學習不同的講道方法、聲音運用技巧、講章結構設計等實用知識。課程包含實際演練與回饋，幫助學員提升講道效果。",
@@ -772,12 +819,12 @@ const dummyCourseData = [
     id: 5175,
     image:
       "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?q=80&w=3000",
-    status: "即將額滿",
     title: "靈修神學與實踐",
     type: "新課程",
     duration: "600 分鐘",
     instructor: "林恩惠",
     startDate: "2025.06.01",
+    endDate: "2025.08.01",
     classType: "六日兩日下午專題班",
     description:
       "本課程探討基督教靈修傳統與實踐方法，幫助學員深化個人靈命成長。學習內容包括各種靈修方式、禱告操練、屬靈辨識等主題。學員將建立穩定的靈修生活，並學習如何帶領他人進行靈命培育。",
@@ -836,12 +883,12 @@ const dummyCourseData = [
     id: 5176,
     image:
       "https://images.unsplash.com/photo-1616442751986-fe0df8d7e509?q=80&w=3000",
-    status: "招生中",
     title: "教會植堂策略與實務",
     type: "新課程",
     duration: "1800 分鐘",
     instructor: "黃信心",
     startDate: "2025.06.05",
+    endDate: "2025.08.05",
     classType: "一四夜間班",
     earlyBird: {
       deadline: "2025/05/25 23:59:59",
@@ -904,12 +951,12 @@ const dummyCourseData = [
     id: 5177,
     image:
       "https://images.unsplash.com/photo-1509062522246-3755977927d7?q=80&w=3000",
-    status: "招生中",
     title: "基督教教育理論與實踐",
     type: "新課程",
     duration: "1200 分鐘",
     instructor: "劉智慧",
     startDate: "2025.06.10",
+    endDate: "2025.08.10",
     classType: "六日兩日全天專題班",
     description:
       "本課程探討基督教教育的理論基礎與教學方法，培養學員設計和執行教育事工的能力。內容包括課程規劃、教學策略、評量方式等實務主題。學員將能根據不同年齡層的需求，發展適切的教育事工。",
@@ -968,12 +1015,12 @@ const dummyCourseData = [
     id: 5178,
     image:
       "https://images.unsplash.com/photo-1529634597503-139d3726fed5?q=80&w=3000",
-    status: "招生中",
     title: "婚姻與家庭輔導",
     type: "新課程",
     duration: "1800 分鐘",
     instructor: "周平安",
     startDate: "2025.06.15",
+    endDate: "2025.08.15",
     classType: "一四夜間班",
     earlyBird: {
       deadline: "2025/06/05 23:59:59",
@@ -1036,12 +1083,12 @@ const dummyCourseData = [
     id: 5179,
     image:
       "https://images.unsplash.com/photo-1511632765486-a01980e01a18?q=80&w=3000",
-    status: "即將額滿",
     title: "青少年事工與牧養",
     type: "新課程",
     duration: "600 分鐘",
     instructor: "吳喜樂",
     startDate: "2025.06.20",
+    endDate: "2025.08.20",
     classType: "六日兩日下午專題班",
     description:
       "本課程針對現代青少年事工的挑戰與機會，提供實用的牧養策略與方法。學員將了解青少年的發展特質、現代青少年文化，並學習如何設計適合青少年的活動與課程。課程強調實務應用，幫助學員建立有效的青少年事工。",
@@ -1100,12 +1147,12 @@ const dummyCourseData = [
     id: 5180,
     image:
       "https://images.unsplash.com/photo-1532012197267-da84d127e765?q=80&w=3000",
-    status: "招生中",
     title: "聖經詮釋學方法論",
     type: "新課程",
     duration: "1800 分鐘",
     instructor: "謝真道",
     startDate: "2025.06.25",
+    endDate: "2025.08.25",
     classType: "一四夜間班",
     earlyBird: {
       deadline: "2025/06/15 23:59:59",

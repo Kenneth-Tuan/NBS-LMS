@@ -3,17 +3,6 @@
     <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
       <h1 class="u-text-2xl u-font-bold u-mb-6 u-c-blue">課程與作業管理</h1>
 
-      <!-- 學生/老師身份切換 (僅供開發測試用) -->
-      <div
-        class="u-mb-4 u-p-2 u-bg-gray-100 u-rounded u-flex u-items-center u-gap-2"
-      >
-        <span class="u-text-sm u-text-gray-600">測試用：切換身份</span>
-        <a-radio-group v-model:value="userRole" @change="handleRoleChange">
-          <a-radio-button :value="UserRole.TEACHER">老師</a-radio-button>
-          <a-radio-button :value="UserRole.STUDENT">學生</a-radio-button>
-        </a-radio-group>
-      </div>
-
       <!-- 搜尋區塊 -->
       <div class="u-mb-6 u-bg-gray-50 u-p-4 u-rounded-lg">
         <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
