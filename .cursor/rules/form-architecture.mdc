@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # 表單處理架構
 
 本專案採用分層架構處理表單，實現關注點分離與代碼重用。

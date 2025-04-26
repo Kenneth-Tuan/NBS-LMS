@@ -52,7 +52,7 @@ const routes = [
   {
     path: "/courses/:id",
     name: RouterName.CourseDetail,
-    component: () => import("@/views/CourseDetail/Index.vue"),
+    component: () => import("@/views/Courses/CourseDetail.vue"),
     meta: {
       title: "課程詳情 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
@@ -158,6 +158,16 @@ const routes = [
     props: true,
     meta: {
       title: "(管理)課程詳情 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+      roles: [UserRole.Admin],
+    },
+  },
+  {
+    path: "/admin/users",
+    name: RouterName.UserManagement,
+    component: () => import("@/views/Admin/UserManagement.vue"),
+    meta: {
+      title: "使用者管理 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
       roles: [UserRole.Admin],
     },
