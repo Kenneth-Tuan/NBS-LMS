@@ -1,0 +1,45 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Appwrite Integration Guide
+
+## Setup
+- Appwrite client configuration: [src/appwrite.js](mdc:src/appwrite.js)
+- The client is configured with:
+  - Endpoint: Appwrite cloud or self-hosted instance
+  - Project ID: Your Appwrite project ID
+
+## Services
+- Account: User authentication and management
+- Databases: Document storage and retrieval
+
+## Usage Pattern
+1. Import the services from appwrite.js
+2. Use the service methods to interact with Appwrite
+3. Handle promises and errors appropriately
+
+## Example Usage
+```javascript
+import { account, databases } from '../appwrite.js';
+
+// Authentication
+async function login(email, password) {
+  try {
+    return await account.createEmailSession(email, password);
+  } catch (error) {
+    console.error('Login failed', error);
+    throw error;
+  }
+}
+
+// Database operations
+async function fetchData(databaseId, collectionId, filters = []) {
+  try {
+    return await databases.listDocuments(databaseId, collectionId, filters);
+  } catch (error) {
+    console.error('Data fetch failed', error);
+    throw error;
+  }
+}

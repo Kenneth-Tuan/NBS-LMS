@@ -1,0 +1,33 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Development Workflow
+
+## Getting Started
+- Install dependencies: `yarn install`
+- Start development server: `yarn dev`
+- Build for production: `yarn build`
+- Preview production build: `yarn preview`
+
+## Project Configuration
+- Vite is configured in [vite.config.mjs](mdc:vite.config.mjs)
+- Vue Router is set up in [src/router/](mdc:src/router)
+- State management with Pinia in [src/stores/](mdc:src/stores)
+
+## Component Development
+- UI components use Ant Design Vue
+- Create reusable components in [src/components/](mdc:src/components)
+- Create page components in [src/views/](mdc:src/views)
+- Use UnoCSS for utility CSS
+
+## API Development
+- API services are defined in [src/apis/](mdc:src/apis)
+- Mock APIs with MSW in [src/mocks/](mdc:src/mocks)
+- Real backend with Appwrite configured in [src/appwrite.js](mdc:src/appwrite.js)
+
+## Deployment
+- Deploy to Vercel using the configuration in [vercel.json](mdc:vercel.json)
+- All routes are rewritten to index.html for SPA routing
+- MSW is configured with special headers for the service worker
