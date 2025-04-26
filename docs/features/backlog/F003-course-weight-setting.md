@@ -25,8 +25,8 @@
 
 ### 2.2 相關需求文檔
 
-- [TODO.md](../../../TODO.md) - "課程的權重設定"
-- [Cource_Spec.md](../../../Specs/Cource_Spec.md) - 課程規格說明
+- [TODO.md](./TODO.md) - "課程的權重設定"
+- [Cource_Spec.md](../../specs/Cource_Spec.md) - 課程規格說明
 
 ## 3. 使用者故事
 
