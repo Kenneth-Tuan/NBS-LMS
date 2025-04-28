@@ -47,7 +47,7 @@
           </a-row>
 
           <a-row :gutter="16">
-            <a-col :span="12">
+            <a-col :span="24">
               <a-form-item
                 :validate-status="
                   courseStore.courseForm.duration.err ? 'error' : ''
@@ -58,6 +58,26 @@
                 <a-input
                   v-model:value="courseStore.courseForm.duration.value"
                   placeholder="請輸入課程時長（例如：600 分鐘）"
+                />
+              </a-form-item>
+            </a-col>
+          </a-row>
+
+          <a-row :gutter="16">
+            <a-col :span="12">
+              <a-form-item
+                :validate-status="
+                  courseStore.courseForm.credit.err ? 'error' : ''
+                "
+                :help="courseStore.courseForm.credit.errMsg"
+                :label="courseStore.courseForm.credit.label"
+              >
+                <a-input-number
+                  v-model:value="courseStore.courseForm.credit.value"
+                  placeholder="1-10學分"
+                  :min="1"
+                  :max="10"
+                  style="width: 100%"
                 />
               </a-form-item>
             </a-col>

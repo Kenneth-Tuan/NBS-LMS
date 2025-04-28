@@ -1,287 +1,90 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { message, Modal } from "ant-design-vue";
-import { useUserStore } from "@/stores/user";
-import { UserRole } from "@/enums/appEnums";
-import userApi from "@/apis/user";
+import { onMounted } from "vue";
+import { useUserManagementStore } from "@/stores/userManagement";
+import { useUserManagementTable } from "@/composables/useUserManagementTable";
+import { useUserManagementForm } from "@/composables/useUserManagementForm";
+import { formatLocaleDateTime } from "@/utils/formatters";
+import { getRoleText, getStatusText } from "@/utils/mappers";
+import {
+  PlusOutlined,
+  SearchOutlined,
+  ClearOutlined,
+  DeleteOutlined,
+  CheckCircleOutlined,
+  StopOutlined,
+  DownloadOutlined,
+} from "@ant-design/icons-vue";
 
-// Data and state
-const userStore = useUserStore();
-const loading = ref(false);
-const users = ref([]);
-const total = ref(0);
-const currentPage = ref(1);
-const pageSize = ref(10);
-const searchKeyword = ref("");
-const userRoleFilter = ref(null);
-const userStatusFilter = ref(null);
+// Initialize Store
+const store = useUserManagementStore();
 
-// Form for creating/editing users
-const userForm = ref({
-  id: "",
-  username: "",
-  name: "",
-  email: "",
-  phone: "",
-  role: null,
-  status: 1,
-  password: "",
-  confirmPassword: "",
-});
+// Setup Table Logic
+const {
+  users,
+  totalUsers,
+  loading,
+  exportLoading,
+  pagination,
+  filters,
+  hasSelected,
+  isAdmin,
+  columns,
+  rowSelection,
+  handlePageChange,
+  handleSearch,
+  handleResetFilters,
+  handleExportUsers,
+  showEditForm,
+  showCreateForm,
+  confirmBulkOperation,
+  confirmSingleDelete,
+} = useUserManagementTable();
 
-const formVisible = ref(false);
-const formTitle = ref("新增使用者");
-const formMode = ref("create");
-const formLoading = ref(false);
-const formRules = {
-  username: [
-    { required: true, message: "請輸入使用者ID/帳號", trigger: "blur" },
-  ],
-  name: [{ required: true, message: "請輸入姓名", trigger: "blur" }],
-  email: [
-    { required: true, message: "請輸入電子郵件", trigger: "blur" },
-    { type: "email", message: "請輸入有效的電子郵件", trigger: "blur" },
-  ],
-  role: [{ required: true, message: "請選擇角色", trigger: "change" }],
-  password: [
-    {
-      required: formMode.value === "create",
-      message: "請輸入密碼",
-      trigger: "blur",
-    },
-  ],
-  confirmPassword: [
-    {
-      required: formMode.value === "create",
-      message: "請確認密碼",
-      trigger: "blur",
-    },
-    { validator: validatePassword, trigger: "blur" },
-  ],
-};
+// Setup Form Logic
+const {
+  userForm,
+  formVisible,
+  formLoading,
+  formTitle,
+  formRules,
+  roleOptions,
+  statusOptions,
+  formRef,
+  handleFormSubmit,
+  handleFormCancel,
+} = useUserManagementForm();
 
-// Check if current user is admin
-const isAdmin = computed(
-  () => userStore.userProfile.userType === UserRole.Admin
-);
-
-// Role options for dropdown
-const roleOptions = [
-  { label: "管理員", value: UserRole.Admin },
-  { label: "經理", value: UserRole.Manager },
-  { label: "教師", value: UserRole.Teacher },
-  { label: "學生", value: UserRole.Student },
-];
-
-// Status options for dropdown
-const statusOptions = [
-  { label: "啟用", value: 1 },
-  { label: "停用", value: 0 },
-];
-
-// Get users on component mount
+// Fetch initial data on mount
 onMounted(() => {
   if (isAdmin.value) {
-    fetchUsers();
+    store.initialize();
   } else {
-    message.error("您沒有權限訪問此頁面");
+    console.error("Unauthorized access attempt to User Management.");
   }
 });
-
-// Password validator
-function validatePassword(rule, value) {
-  if (formMode.value === "create" && !value) {
-    return Promise.reject("請確認密碼");
-  }
-
-  if (value && value !== userForm.value.password) {
-    return Promise.reject("兩次輸入的密碼不一致");
-  }
-
-  return Promise.resolve();
-}
-
-// Fetch users from API
-async function fetchUsers() {
-  try {
-    loading.value = true;
-    const { data } = await userApi.getUsers({
-      page: currentPage.value,
-      pageSize: pageSize.value,
-      keyword: searchKeyword.value,
-      role: userRoleFilter.value,
-      status: userStatusFilter.value,
-    });
-
-    users.value = data.users;
-    total.value = data.total;
-  } catch (error) {
-    message.error("獲取用戶列表失敗");
-    console.error(error);
-  } finally {
-    loading.value = false;
-  }
-}
-
-// Handle page change
-function handlePageChange(page, size) {
-  currentPage.value = page;
-  pageSize.value = size;
-  fetchUsers();
-}
-
-// Handle search
-function handleSearch() {
-  currentPage.value = 1;
-  fetchUsers();
-}
-
-// Reset search filters
-function resetFilters() {
-  searchKeyword.value = "";
-  userRoleFilter.value = null;
-  userStatusFilter.value = null;
-  currentPage.value = 1;
-  fetchUsers();
-}
-
-// Open create user form
-function showCreateForm() {
-  formMode.value = "create";
-  formTitle.value = "新增使用者";
-  resetForm();
-  formVisible.value = true;
-}
-
-// Open edit user form
-function showEditForm(record) {
-  formMode.value = "edit";
-  formTitle.value = "編輯使用者";
-
-  userForm.value = {
-    id: record.id,
-    username: record.username,
-    name: record.name,
-    email: record.email,
-    phone: record.phone || "",
-    role: record.role,
-    status: record.status,
-    password: "",
-    confirmPassword: "",
-  };
-
-  formVisible.value = true;
-}
-
-// Reset form fields
-function resetForm() {
-  userForm.value = {
-    id: "",
-    username: "",
-    name: "",
-    email: "",
-    phone: "",
-    role: null,
-    status: 1,
-    password: "",
-    confirmPassword: "",
-  };
-}
-
-// Handle form cancel
-function handleCancel() {
-  formVisible.value = false;
-  resetForm();
-}
-
-// Handle form submit
-async function handleSubmit() {
-  try {
-    formLoading.value = true;
-
-    const formData = {
-      username: userForm.value.username,
-      name: userForm.value.name,
-      email: userForm.value.email,
-      phone: userForm.value.phone,
-      role: userForm.value.role,
-      status: userForm.value.status,
-    };
-
-    if (formMode.value === "create") {
-      formData.password = userForm.value.password;
-      await userApi.createUser(formData);
-      message.success("使用者創建成功");
-    } else {
-      formData.id = userForm.value.id;
-      if (userForm.value.password) {
-        formData.password = userForm.value.password;
-      }
-      await userApi.updateUser(formData);
-      message.success("使用者更新成功");
-    }
-
-    formVisible.value = false;
-    resetForm();
-    fetchUsers();
-  } catch (error) {
-    message.error(
-      formMode.value === "create" ? "創建使用者失敗" : "更新使用者失敗"
-    );
-    console.error(error);
-  } finally {
-    formLoading.value = false;
-  }
-}
-
-// Delete user
-function confirmDelete(record) {
-  Modal.confirm({
-    title: "確認刪除",
-    content: `確定要刪除使用者 "${record.name}" 嗎？此操作不可撤銷。`,
-    okText: "確認",
-    okType: "danger",
-    cancelText: "取消",
-    onOk: async () => {
-      try {
-        await userApi.deleteUser(record.id);
-        message.success("使用者刪除成功");
-        fetchUsers();
-      } catch (error) {
-        message.error("刪除使用者失敗");
-        console.error(error);
-      }
-    },
-  });
-}
-
-// Map role ID to text
-function getRoleText(role) {
-  const roleOption = roleOptions.find((item) => item.value === role);
-  return roleOption ? roleOption.label : "未知";
-}
-
-// Map status ID to text
-function getStatusText(status) {
-  return status === 1 ? "啟用" : "停用";
-}
 </script>
 
 <template>
-  <div class="user-management">
+  <div class="user-management u-w100%">
     <a-card title="使用者管理" :bordered="false">
       <template #extra>
-        <a-button v-if="isAdmin" type="primary" @click="showCreateForm">
-          <template #icon><plus-outlined /></template>
-          新增使用者
-        </a-button>
+        <a-space>
+          <a-button :loading="exportLoading" @click="handleExportUsers">
+            <template #icon><download-outlined /></template>
+            匯出用戶
+          </a-button>
+          <a-button v-if="isAdmin" type="primary" @click="showCreateForm">
+            <template #icon><plus-outlined /></template>
+            新增使用者
+          </a-button>
+        </a-space>
       </template>
 
       <!-- Search and filters -->
       <a-form layout="inline" class="table-filter-form mb-4">
         <a-form-item label="關鍵字">
           <a-input
-            v-model:value="searchKeyword"
+            v-model:value="filters.searchKeyword"
             placeholder="姓名/帳號/電子郵件"
             allow-clear
           />
@@ -289,35 +92,23 @@ function getStatusText(status) {
 
         <a-form-item label="角色">
           <a-select
-            v-model:value="userRoleFilter"
+            v-model:value="filters.role"
             placeholder="選擇角色"
             style="width: 120px"
             allow-clear
+            :options="roleOptions"
           >
-            <a-select-option
-              v-for="option in roleOptions"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </a-select-option>
           </a-select>
         </a-form-item>
 
         <a-form-item label="狀態">
           <a-select
-            v-model:value="userStatusFilter"
+            v-model:value="filters.status"
             placeholder="選擇狀態"
             style="width: 120px"
             allow-clear
+            :options="statusOptions"
           >
-            <a-select-option
-              v-for="option in statusOptions"
-              :key="option.value"
-              :value="option.value"
-            >
-              {{ option.label }}
-            </a-select-option>
           </a-select>
         </a-form-item>
 
@@ -329,54 +120,84 @@ function getStatusText(status) {
         </a-form-item>
 
         <a-form-item>
-          <a-button @click="resetFilters">
+          <a-button @click="handleResetFilters">
             <template #icon><clear-outlined /></template>
             重置
           </a-button>
         </a-form-item>
       </a-form>
 
+      <!-- Bulk actions -->
+      <div class="bulk-actions mb-4" v-if="isAdmin">
+        <a-space>
+          <span v-if="hasSelected"
+            >已選擇 {{ store.selectedRowKeys.length }} 項</span
+          >
+          <a-button
+            type="primary"
+            :disabled="!hasSelected"
+            @click="confirmBulkOperation('activate')"
+          >
+            <template #icon><check-circle-outlined /></template>
+            批量啟用
+          </a-button>
+          <a-button
+            :disabled="!hasSelected"
+            @click="confirmBulkOperation('deactivate')"
+          >
+            <template #icon><stop-outlined /></template>
+            批量停用
+          </a-button>
+          <a-button
+            type="danger"
+            :disabled="!hasSelected"
+            @click="confirmBulkOperation('delete')"
+          >
+            <template #icon><delete-outlined /></template>
+            批量刪除
+          </a-button>
+        </a-space>
+      </div>
+
       <!-- Users table -->
       <a-table
-        :columns="[
-          { title: '帳號', dataIndex: 'username', key: 'username' },
-          { title: '姓名', dataIndex: 'name', key: 'name' },
-          { title: '電子郵件', dataIndex: 'email', key: 'email' },
-          {
-            title: '角色',
-            dataIndex: 'role',
-            key: 'role',
-            customRender: ({ text }) => getRoleText(text),
-          },
-          {
-            title: '狀態',
-            dataIndex: 'status',
-            key: 'status',
-            customRender: ({ text }) => getStatusText(text),
-          },
-          { title: '操作', key: 'action', fixed: 'right', width: 200 },
-        ]"
+        :row-selection="rowSelection"
+        :columns="columns"
         :data-source="users"
         :loading="loading"
         :pagination="{
-          current: currentPage,
-          pageSize: pageSize,
-          total: total,
-          onChange: handlePageChange,
+          current: pagination.currentPage,
+          pageSize: pagination.pageSize,
+          total: totalUsers,
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: (total) => `共 ${total} 條記錄`,
         }"
         :row-key="(record) => record.id"
+        @change="handlePageChange"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'action'">
+          <template v-if="column.key === 'avatar'">
+            <a-avatar :src="record.avatar" :alt="record.name" />
+          </template>
+          <template v-else-if="column.key === 'role'">
+            {{ getRoleText(record.role) }}
+          </template>
+          <template v-else-if="column.key === 'status'">
+            <a-tag :color="record.status === 1 ? 'green' : 'red'">
+              {{ getStatusText(record.status) }}
+            </a-tag>
+          </template>
+          <template v-else-if="column.key === 'lastLogin'">
+            {{ formatLocaleDateTime(record.lastLogin) }}
+          </template>
+          <template v-else-if="column.key === 'action'">
             <span>
               <a-button type="link" @click="showEditForm(record)"
                 >編輯</a-button
               >
               <a-divider type="vertical" />
-              <a-button type="link" danger @click="confirmDelete(record)"
+              <a-button type="link" danger @click="confirmSingleDelete(record)"
                 >刪除</a-button
               >
             </span>
@@ -390,80 +211,100 @@ function getStatusText(status) {
       :visible="formVisible"
       :title="formTitle"
       :confirm-loading="formLoading"
-      @ok="handleSubmit"
-      @cancel="handleCancel"
+      @ok="handleFormSubmit"
+      @cancel="handleFormCancel"
       width="600px"
+      :destroyOnClose="true"
     >
-      <a-form :model="userForm" :rules="formRules" layout="vertical">
-        <a-form-item label="帳號" name="username">
-          <a-input
-            v-model:value="userForm.username"
-            placeholder="請輸入帳號"
-            :disabled="formMode === 'edit'"
-          />
-        </a-form-item>
+      <a-form
+        :model="userForm"
+        :rules="formRules"
+        layout="vertical"
+        ref="formRef"
+      >
+        <a-tabs>
+          <a-tab-pane key="basic" tab="基本資料">
+            <a-form-item label="帳號" name="username">
+              <a-input
+                v-model:value="userForm.username"
+                placeholder="請輸入帳號"
+                :disabled="store.formMode === 'edit'"
+              />
+            </a-form-item>
 
-        <a-form-item label="姓名" name="name">
-          <a-input v-model:value="userForm.name" placeholder="請輸入姓名" />
-        </a-form-item>
+            <a-form-item label="姓名" name="name">
+              <a-input v-model:value="userForm.name" placeholder="請輸入姓名" />
+            </a-form-item>
 
-        <a-form-item label="電子郵件" name="email">
-          <a-input
-            v-model:value="userForm.email"
-            placeholder="請輸入電子郵件"
-          />
-        </a-form-item>
+            <a-form-item label="電子郵件" name="email">
+              <a-input
+                v-model:value="userForm.email"
+                placeholder="請輸入電子郵件"
+              />
+            </a-form-item>
 
-        <a-form-item label="電話" name="phone">
-          <a-input
-            v-model:value="userForm.phone"
-            placeholder="請輸入電話（選填）"
-          />
-        </a-form-item>
+            <a-form-item label="電話" name="phone">
+              <a-input
+                v-model:value="userForm.phone"
+                placeholder="請輸入電話（選填）"
+              />
+            </a-form-item>
 
-        <a-form-item label="角色" name="role">
-          <a-select v-model:value="userForm.role" placeholder="請選擇角色">
-            <a-select-option
-              v-for="option in roleOptions"
-              :key="option.value"
-              :value="option.value"
+            <a-form-item label="角色" name="role">
+              <a-select
+                v-model:value="userForm.role"
+                placeholder="請選擇角色"
+                :options="roleOptions"
+              >
+              </a-select>
+            </a-form-item>
+
+            <a-form-item label="狀態" name="status">
+              <a-select
+                v-model:value="userForm.status"
+                placeholder="請選擇狀態"
+                :options="statusOptions"
+              >
+              </a-select>
+            </a-form-item>
+          </a-tab-pane>
+
+          <a-tab-pane key="organization" tab="組織資訊">
+            <a-form-item label="備註" name="notes">
+              <a-textarea
+                v-model:value="userForm.notes"
+                placeholder="請輸入備註"
+                :rows="4"
+              />
+            </a-form-item>
+          </a-tab-pane>
+
+          <a-tab-pane key="password" tab="密碼設定">
+            <a-form-item
+              :label="
+                store.formMode === 'create'
+                  ? '密碼'
+                  : '新密碼（留空表示不修改）'
+              "
+              name="password"
             >
-              {{ option.label }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
+              <a-input-password
+                v-model:value="userForm.password"
+                placeholder="請輸入密碼"
+              />
+            </a-form-item>
 
-        <a-form-item label="狀態" name="status">
-          <a-select v-model:value="userForm.status" placeholder="請選擇狀態">
-            <a-select-option
-              v-for="option in statusOptions"
-              :key="option.value"
-              :value="option.value"
+            <a-form-item
+              :label="store.formMode === 'create' ? '確認密碼' : '確認新密碼'"
+              name="confirmPassword"
             >
-              {{ option.label }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-
-        <a-form-item
-          :label="formMode === 'create' ? '密碼' : '新密碼（留空表示不修改）'"
-          name="password"
-        >
-          <a-input-password
-            v-model:value="userForm.password"
-            placeholder="請輸入密碼"
-          />
-        </a-form-item>
-
-        <a-form-item
-          :label="formMode === 'create' ? '確認密碼' : '確認新密碼'"
-          name="confirmPassword"
-        >
-          <a-input-password
-            v-model:value="userForm.confirmPassword"
-            placeholder="請再次輸入密碼"
-          />
-        </a-form-item>
+              <a-input-password
+                v-model:value="userForm.confirmPassword"
+                placeholder="請再次輸入密碼"
+              />
+            </a-form-item>
+          </a-tab-pane>
+        </a-tabs>
       </a-form>
     </a-modal>
   </div>
@@ -471,15 +312,28 @@ function getStatusText(status) {
 
 <style scoped>
 .user-management {
-  padding: 24px;
+  padding: 16px;
 }
 
 .table-filter-form {
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .table-filter-form .ant-form-item {
   margin-bottom: 16px;
   margin-right: 16px;
+}
+
+.bulk-actions {
+  margin-bottom: 16px;
+}
+
+.mb-4 {
+  margin-bottom: 16px;
+}
+
+/* Ensure table takes full width */
+:deep(.ant-card-body) {
+  padding: 16px; /* Adjust padding if needed */
 }
 </style>

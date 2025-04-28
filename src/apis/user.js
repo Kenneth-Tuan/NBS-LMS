@@ -29,4 +29,16 @@ export default {
   deleteUser(id) {
     return apiHelper.delete(`/users/${id}`);
   },
+
+  // Export users as CSV
+  exportUsersAsCsv() {
+    return apiHelper.get("/users/export/csv", {
+      responseType: "blob",
+    });
+  },
+
+  // Bulk operations (delete, activate, deactivate)
+  bulkOperateUsers(operation, userIds) {
+    return apiHelper.post("/users/bulk", { operation, userIds });
+  },
 };

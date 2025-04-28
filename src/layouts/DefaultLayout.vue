@@ -2,19 +2,15 @@
 import { reactive, watch, h, unref, ref, computed } from "vue";
 import { storeToRefs } from "pinia";
 import {
-  PieChartOutlined,
   LoginOutlined,
   UserOutlined,
   BellOutlined,
   CaretDownOutlined,
-  ClockCircleFilled,
-  MailOutlined,
-  FormOutlined,
 } from "@ant-design/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 
 import { useUserStore, user } from "@/stores/user";
-import { RouterName, MenuItems, UserRole } from "@/enums/appEnums";
+import SideMenu from "@/components/SideMenu.vue";
 
 const router = useRouter();
 const route = useRoute();
@@ -25,84 +21,6 @@ const { updateLoginDialogOpen, logout, userProfile, setUserRole } = userStore;
 
 const state = reactive({
   collapsed: false,
-  selectedKeys: [route.name],
-  openKeys: ["sub1"],
-  preOpenKeys: ["sub1"],
-});
-
-// Function to map key to icon component
-const getIconComponent = (key) => {
-  switch (key) {
-    case "timed-course-selection":
-      return ClockCircleFilled;
-    case "courses":
-      return MailOutlined;
-    case "applications":
-      return FormOutlined;
-    default:
-      return null;
-  }
-};
-
-// 從appEnums.ts的MenuItems轉換成ant design menu需要的格式
-const menuItems = computed(() => {
-  const currentUserRole = Number(userProfile.userType);
-  const hasRequiredRole = (itemRoles) => {
-    if (!itemRoles || !Array.isArray(itemRoles) || itemRoles.length === 0)
-      return true;
-    return itemRoles.includes(currentUserRole);
-  };
-
-  const transformAndFilter = (menuItem) => {
-    if (!hasRequiredRole(menuItem.roles)) return null;
-
-    // Get icon component based on key, replacing the one from enum
-    const IconComponent = getIconComponent(menuItem.key);
-
-    const transformed = {
-      key: menuItem.route ? menuItem.route.name : menuItem.key,
-      // Use h() with the determined icon component
-      icon: IconComponent ? () => h(IconComponent) : null,
-      label: menuItem.label,
-      disabled: menuItem.disabled,
-      class:
-        menuItem.highlight && !state.selectedKeys.includes(menuItem.route?.name)
-          ? "menu-highlight"
-          : "",
-    };
-
-    if (menuItem.children) {
-      transformed.children = menuItem.children
-        .map((child) => {
-          if (!hasRequiredRole(child.roles)) return null;
-          return {
-            key: child.route ? child.route.name : child.key,
-            label: child.label,
-            disabled: child.disabled,
-            class:
-              child.highlight && !state.selectedKeys.includes(child.route?.name)
-                ? "menu-highlight"
-                : "",
-          };
-        })
-        .filter((child) => child !== null);
-
-      if (transformed.children.length === 0) return null;
-    }
-    return transformed;
-  };
-
-  const homeMenuItem = {
-    key: RouterName.LandingPage,
-    icon: () => h(PieChartOutlined), // Keep using PieChartOutlined for Home
-    label: "首頁",
-  };
-
-  const filteredAppMenuItems = MenuItems.map(transformAndFilter).filter(
-    (item) => item !== null
-  );
-
-  return [homeMenuItem, ...filteredAppMenuItems];
 });
 
 const visible = ref(false);
@@ -112,18 +30,9 @@ const handleMenuClick = (e) => {
     router.push("/landing-page");
   }
 };
-const handleMenuSelect = ({ item, key, selectedKeys }) => {
-  router.push({ name: key });
-};
-watch(
-  () => state.openKeys,
-  (_val, oldVal) => {
-    state.preOpenKeys = oldVal;
-  }
-);
+
 const toggleCollapsed = () => {
   state.collapsed = !state.collapsed;
-  state.openKeys = state.collapsed ? [] : state.preOpenKeys;
 };
 
 async function onClickLoginBtn() {
@@ -135,14 +44,6 @@ async function onClickLoginBtn() {
     logout();
   }
 }
-
-// 根據路由更新選中的菜單項
-watch(
-  () => route.name,
-  (newRouteName) => {
-    state.selectedKeys = [newRouteName];
-  }
-);
 
 const isDev = import.meta.env.DEV;
 
@@ -270,17 +171,7 @@ const userRoleOptions = [
       <div class="u-absolute u-inset-0 u-bg-white u-opacity-40 u-h100%"></div>
       <div class="u-w100% u-h100% u-z-9 u-flex-1 u-flex u-flex-nowrap">
         <Transition name="fade" :duration="550" mode="out-in" appear>
-          <a-menu
-            v-if="isLoggedIn"
-            @select="handleMenuSelect"
-            class="u-wmin u-px0.5rem"
-            v-model:openKeys="state.openKeys"
-            v-model:selectedKeys="state.selectedKeys"
-            mode="inline"
-            theme="light"
-            :inline-collapsed="state.collapsed && false"
-            :items="menuItems"
-          ></a-menu>
+          <SideMenu v-if="isLoggedIn" :collapsed="state.collapsed" />
         </Transition>
         <router-view />
       </div>
@@ -298,39 +189,5 @@ const userRoleOptions = [
 </template>
 
 <style scoped>
-:deep(.menu-highlight) {
-  position: relative;
-  color: #ffbc11;
-  font-weight: bold;
-  animation: pulse 1.5s infinite;
-}
-
-/* :deep(.menu-highlight::after) {
-  content: "";
-  position: absolute;
-  right: 0px;
-  top: 0px;
-  height: 8px;
-  width: 8px;
-  border-radius: 50%;
-  background-color: #ffbc11;
-  animation: pulse 1.5s infinite;
-} */
-
-@keyframes pulse {
-  0% {
-    /* transform: scale(0.95); */
-    box-shadow: 0 0 0 0 rgba(255, 188, 17, 0.7);
-  }
-
-  70% {
-    /* transform: scale(1); */
-    box-shadow: 0 0 0 6px rgba(255, 188, 17, 0);
-  }
-
-  100% {
-    /* transform: scale(0.95); */
-    box-shadow: 0 0 0 0 rgba(255, 188, 17, 0);
-  }
-}
+/* Styles specific to the DefaultLayout component */
 </style>

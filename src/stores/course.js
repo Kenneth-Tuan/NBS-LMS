@@ -113,6 +113,17 @@ export const useCourseStore = defineStore(
         required: true,
         label: "課程時長",
       },
+      credit: {
+        value: null,
+        err: false,
+        errMsg: "",
+        required: true,
+        label: "學分數",
+        rules: [
+          (val) =>
+            val === null || (typeof val === "number" && val > 0 && val <= 10),
+        ],
+      },
       instructor: {
         value: "",
         err: false,
@@ -228,7 +239,7 @@ export const useCourseStore = defineStore(
           key === "prerequisites"
         ) {
           field.value = [];
-        } else if (key === "enrollmentLimit") {
+        } else if (key === "enrollmentLimit" || key === "credit") {
           field.value = null;
         } else {
           field.value = "";
@@ -257,7 +268,7 @@ export const useCourseStore = defineStore(
             courseForm[key].value = Array.isArray(courseData[key])
               ? [...courseData[key]]
               : [];
-          } else if (key === "enrollmentLimit") {
+          } else if (key === "enrollmentLimit" || key === "credit") {
             courseForm[key].value =
               typeof courseData[key] === "number" ? courseData[key] : null;
           } else if (key === "startDate") {
@@ -346,6 +357,8 @@ export const useCourseStore = defineStore(
               field.err = true;
               if (fieldName === "enrollmentLimit") {
                 field.errMsg = `${field.label}必須介於 1 到 999 之間`;
+              } else if (fieldName === "credit") {
+                field.errMsg = `${field.label}必須介於 1 到 10 之間`;
               } else {
                 field.errMsg = `${field.label}格式不正確`;
               }

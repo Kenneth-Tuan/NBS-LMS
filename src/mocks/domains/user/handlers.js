@@ -4,7 +4,12 @@ import { v4 as uuidv4 } from "uuid";
 
 // import { useMockStore } from "@/stores/mock";
 import { defaultApiError500 } from "@/mocks/handlers";
-import { generateUserprofile } from "../user/model";
+import {
+  generateUserprofile,
+  getUsersWithPagination,
+  getUserById,
+  exportUsersAsCsv,
+} from "../user/model";
 import { mockUsers } from "../user/data";
 
 // Create a mutable copy of the users array for the mock API
@@ -44,6 +49,73 @@ export const handlers = [
     return HttpResponse.json(result);
   }),
 
+  // New endpoint to export users as CSV
+  http.get("/users/export/csv", () => {
+    const csvContent = exportUsersAsCsv();
+
+    return new HttpResponse(csvContent, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/csv",
+        "Content-Disposition": "attachment; filename=users.csv",
+      },
+    });
+  }),
+
+  // New endpoint for bulk operations
+  http.post("/users/bulk", async ({ request }) => {
+    const { operation, userIds } = await request.json();
+
+    if (!operation || !userIds || !Array.isArray(userIds)) {
+      return new HttpResponse(
+        JSON.stringify({
+          message: "無效的請求格式",
+          code: "INVALID_REQUEST",
+        }),
+        {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    let affectedCount = 0;
+
+    if (operation === "delete") {
+      // Filter out users that are in the userIds array
+      const initialLength = users.length;
+      users = users.filter((user) => !userIds.includes(user.id));
+      affectedCount = initialLength - users.length;
+    } else if (operation === "activate" || operation === "deactivate") {
+      const newStatus = operation === "activate" ? 1 : 0;
+
+      users = users.map((user) => {
+        if (userIds.includes(user.id)) {
+          affectedCount++;
+          return {
+            ...user,
+            status: newStatus,
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        return user;
+      });
+    }
+
+    return HttpResponse.json({
+      message: `成功${
+        operation === "delete"
+          ? "刪除"
+          : operation === "activate"
+          ? "啟用"
+          : "停用"
+      } ${affectedCount} 個使用者`,
+      affectedCount,
+    });
+  }),
+
   // User management API endpoints
   http.get("/users", ({ request }) => {
     const url = new URL(request.url);
@@ -59,44 +131,24 @@ export const handlers = [
       ? parseInt(url.searchParams.get("status"))
       : null;
 
-    // Filter users based on query parameters
-    let filteredUsers = [...users];
-
-    if (keyword) {
-      const lowercaseKeyword = keyword.toLowerCase();
-      filteredUsers = filteredUsers.filter(
-        (user) =>
-          user.name.toLowerCase().includes(lowercaseKeyword) ||
-          user.username.toLowerCase().includes(lowercaseKeyword) ||
-          user.email.toLowerCase().includes(lowercaseKeyword)
-      );
-    }
-
-    if (role !== null) {
-      filteredUsers = filteredUsers.filter((user) => user.role === role);
-    }
-
-    if (status !== null) {
-      filteredUsers = filteredUsers.filter((user) => user.status === status);
-    }
-
-    // Calculate pagination
-    const total = filteredUsers.length;
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize;
-    const paginatedUsers = filteredUsers.slice(start, end);
+    // Use our model function to get paginated users
+    const result = getUsersWithPagination({
+      page,
+      pageSize,
+      keyword,
+      role,
+      status,
+    });
 
     return HttpResponse.json({
-      data: {
-        users: paginatedUsers,
-        total: total,
-      },
+      users: result.users,
+      total: result.total,
     });
   }),
 
   http.get("/users/:id", ({ params }) => {
     const { id } = params;
-    const user = users.find((user) => user.id === id);
+    const user = getUserById(id);
 
     if (!user) {
       return new HttpResponse(
@@ -159,20 +211,26 @@ export const handlers = [
 
     // Create a new user
     const now = new Date().toISOString();
+    const rolePrefix =
+      data.role === 1
+        ? "A"
+        : data.role === 2
+        ? "M"
+        : data.role === 3
+        ? "T"
+        : "S";
+
     const newUser = {
-      id: data.username.startsWith("S")
-        ? `S${uuidv4().substring(0, 3)}`
-        : data.username.startsWith("T")
-        ? `T${uuidv4().substring(0, 3)}`
-        : data.username.startsWith("M")
-        ? `M${uuidv4().substring(0, 3)}`
-        : `A${uuidv4().substring(0, 3)}`,
+      id: `${rolePrefix}${uuidv4().substring(0, 3)}`,
       username: data.username,
       name: data.name,
       email: data.email,
       phone: data.phone || "",
       role: data.role,
       status: data.status,
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${data.username}`,
+      lastLogin: "",
+      notes: data.notes || "",
       createdAt: now,
       updatedAt: now,
     };
@@ -181,7 +239,7 @@ export const handlers = [
 
     return HttpResponse.json(
       {
-        data: newUser,
+        newUser,
       },
       { status: 201 }
     );
@@ -209,7 +267,7 @@ export const handlers = [
       );
     }
 
-    // Check if email is taken by another user
+    // Check for email uniqueness (excluding the current user)
     const emailExists = users.some(
       (user) => user.email === data.email && user.id !== id
     );
@@ -229,21 +287,15 @@ export const handlers = [
       );
     }
 
-    // Update the user
-    const updatedUser = {
+    // Simple update with spread, assuming data doesn't contain password if unchanged
+    users[userIndex] = {
       ...users[userIndex],
-      name: data.name,
-      email: data.email,
-      phone: data.phone || users[userIndex].phone,
-      role: data.role,
-      status: data.status,
+      ...data,
       updatedAt: new Date().toISOString(),
     };
 
-    users[userIndex] = updatedUser;
-
     return HttpResponse.json({
-      data: updatedUser,
+      data: users[userIndex],
     });
   }),
 
