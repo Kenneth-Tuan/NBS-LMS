@@ -172,6 +172,15 @@ const routes = [
       roles: [UserRole.Admin],
     },
   },
+  {
+    path: "/notifications",
+    name: RouterName.Notifications,
+    component: () => import("@/views/Notifications/NotificationsView.vue"),
+    meta: {
+      title: "通知中心 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
 ];
 
 const router = createRouter({

@@ -28,6 +28,7 @@ export enum RouterName {
   CourseOverview = "course-overview", // Added New Overview Route
   AdminCourseDetail = "admin-course-detail", // NEW Admin Detail Route
   UserManagement = "user-management", // User Management Route
+  Notifications = "notifications", // 新增通知頁面 Route
 }
 
 // user role enums
@@ -149,5 +150,12 @@ export const MenuItems = [
     icon: TeamOutlined,
     route: { name: RouterName.UserManagement },
     roles: [UserRole.Admin],
+  },
+  {
+    key: "notifications",
+    label: "通知中心",
+    icon: ClockCircleFilled, // 可替換為更合適的icon
+    route: { name: RouterName.Notifications },
+    highlight: false,
   },
 ];
