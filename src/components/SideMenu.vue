@@ -1,16 +1,8 @@
 <script setup>
 import { reactive, watch, h, computed } from "vue";
-import { storeToRefs } from "pinia";
 
 import { useRouter, useRoute } from "vue-router";
-import {
-  PieChartOutlined,
-  ClockCircleFilled,
-  MailOutlined,
-  FormOutlined,
-  TeamOutlined,
-} from "@ant-design/icons-vue";
-import { RouterName, MenuItems } from "@/enums/appEnums";
+import { MenuItems } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 
 const props = defineProps({
@@ -32,22 +24,6 @@ const state = reactive({
   preOpenKeys: ["sub1"],
 });
 
-// Function to map key to icon component
-const getIconComponent = (key) => {
-  switch (key) {
-    case "timed-course-selection":
-      return ClockCircleFilled;
-    case "courses":
-      return MailOutlined;
-    case "applications":
-      return FormOutlined;
-    case "user-management":
-      return TeamOutlined;
-    default:
-      return null;
-  }
-};
-
 // 從appEnums.ts的MenuItems轉換成ant design menu需要的格式
 const menuItems = computed(() => {
   const currentUserRole = Number(userProfile.userType);
@@ -61,12 +37,10 @@ const menuItems = computed(() => {
     if (!hasRequiredRole(menuItem.roles)) return null;
 
     // Get icon component based on key, replacing the one from enum
-    const IconComponent = getIconComponent(menuItem.key);
 
     const transformed = {
       key: menuItem.route ? menuItem.route.name : menuItem.key,
-      // Use h() with the determined icon component
-      icon: IconComponent ? () => h(IconComponent) : null,
+      icon: () => h(menuItem.icon),
       label: menuItem.label,
       disabled: menuItem.disabled,
       class:
@@ -96,17 +70,11 @@ const menuItems = computed(() => {
     return transformed;
   };
 
-  const homeMenuItem = {
-    key: RouterName.LandingPage,
-    icon: () => h(PieChartOutlined), // Keep using PieChartOutlined for Home
-    label: "首頁",
-  };
-
   const filteredAppMenuItems = MenuItems.map(transformAndFilter).filter(
     (item) => item !== null
   );
 
-  return [homeMenuItem, ...filteredAppMenuItems];
+  return filteredAppMenuItems;
 });
 
 const handleMenuSelect = ({ item, key, selectedKeys }) => {

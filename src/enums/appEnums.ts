@@ -1,9 +1,10 @@
-import { h } from "vue";
 import {
+  HomeOutlined,
   MailOutlined,
   FormOutlined,
   ClockCircleFilled,
   TeamOutlined,
+  BellOutlined,
 } from "@ant-design/icons-vue";
 
 // router name enums (using kebab-case strings consistent with router setup)
@@ -68,6 +69,11 @@ export enum operationType {
 }
 
 export const MenuItems = [
+  {
+    key: RouterName.LandingPage,
+    icon: HomeOutlined,
+    label: "首頁",
+  },
   // {
   //   key: "dashboard",
   //   label: "儀表板",
@@ -86,11 +92,6 @@ export const MenuItems = [
     label: "課程管理",
     icon: MailOutlined,
     children: [
-      // {
-      //   key: "course-list",
-      //   label: "課程列表",
-      //   route: { name: RouterName.CourseList },
-      // },
       {
         key: RouterName.CourseOverview,
         label: "課程總覽",
@@ -154,7 +155,7 @@ export const MenuItems = [
   {
     key: "notifications",
     label: "通知中心",
-    icon: ClockCircleFilled, // 可替換為更合適的icon
+    icon: BellOutlined,
     route: { name: RouterName.Notifications },
     highlight: false,
   },
