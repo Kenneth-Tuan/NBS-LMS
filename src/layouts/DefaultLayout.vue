@@ -94,7 +94,7 @@ const userRoleOptions = [
       <div class="u-flex-1"></div>
 
       <!-- DEV ONLY: Role Switcher -->
-      <div class="u-mx-2">
+      <div v-if="isLoggedIn" class="u-mx-2">
         <a-select
           :value="userProfile.userType"
           style="width: 120px"

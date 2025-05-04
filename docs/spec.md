@@ -60,13 +60,11 @@
 
 #### 修改方式
 
-1. 透過 admin/creator 在用戶管理中修改
-2. 透過帳號本身修改，可修改：
-   1. email
-   2. telephone
-   3. password
+1.  role
+2.  telephone
+3.  password（待後續開發，信箱驗證）
 
-### 刪除角色
+### 刪除角色 x => only 停用/啓用
 
 #### deleteRole API
 
@@ -169,7 +167,6 @@
   - Type: Date
   - YYYY-MM-DD HH:mm:ss
 - 選課學分上限
-
   - mandatory
   - Type: Number
   - max: 99
@@ -194,16 +191,19 @@
 - startDate(開課時間)
 - endDate(結業時間)
 - enrollmentLimit(選課人數上限)
-- weekday(上課日)
+- weekday(上課日；可能會是一周一天以上)
 - classTime(上課時段)
 - description(課程簡介)
 - prerequisites(先修課程)
-- outlineFile(課程大綱)
-- status(課程狀態：尚未開課/正在進行/已結業)
+- outlineFile(課程大綱；多個；格式任意)
+- status(啓用/停用)
 - 成績評定項目（多項）
 - 作業
 
 ### 課程總覽
+
+學生：修課記錄
+老師：開課記錄
 
 #### getCourses API
 
@@ -240,6 +240,7 @@
 ### 課程與作業
 
 > 老師透過 upadteCourse API 設定成績評定項目
+> 作業只能單個（請學生壓成 zip；單一 pdf；32MB max size；not mvp scope；畫面上顯示 10MB）
 
 #### submitAssignment API
 

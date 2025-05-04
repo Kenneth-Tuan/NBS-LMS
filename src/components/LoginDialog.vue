@@ -6,10 +6,11 @@ import { MailOutlined, LockOutlined } from "@ant-design/icons-vue";
 import { sha256 } from "@/utils/misc";
 import { useUserStore, user } from "../stores/user";
 import { storeToRefs } from "pinia";
+import { dummyUserData } from "@/data/dummy";
 
 const userStore = useUserStore();
 const { loginDialogOpen } = storeToRefs(userStore);
-const { updateLoginDialogOpen, signIn } = userStore;
+const { updateLoginDialogOpen, signIn, setUserProfile } = userStore;
 
 const formState = reactive({
   username: "",
@@ -24,23 +25,29 @@ const onFinish = async (values) => {
   try {
     loading.value = true;
     delete values.remember;
-    const hashedAccountInfo = await sha256(JSON.stringify(values));
+    // const hashedAccountInfo = await sha256(JSON.stringify(values));
 
     message.loading({ content: "Loading...", key: "login" });
 
+    const userInfo = dummyUserData.find(
+      (user) =>
+        user.userEmail === values.userEmail && user.password === values.password
+    );
+
     // const isLoginSuccess = await signIn(hashedAccountInfo);
 
-    const isLoginSuccess = await user.login(values.userEmail, values.password);
+    const isLoginSuccess = userInfo !== undefined;
 
     if (isLoginSuccess) {
-      user.init();
+      // user.init();
+      setUserProfile(userInfo);
       message.success({
         content: "Login Success!",
         key: "login",
         duration: 2,
       });
       updateLoginDialogOpen(false);
-    }
+    } else throw new Error("Login Failed!");
     loading.value = false;
   } catch (error) {
     message.error({
