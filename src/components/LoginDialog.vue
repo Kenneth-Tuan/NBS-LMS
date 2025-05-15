@@ -1,46 +1,62 @@
 <script setup>
-import { reactive, ref, computed } from "vue";
+import { reactive, ref, computed, onMounted, onUnmounted } from "vue";
 import { message } from "ant-design-vue";
 import { MailOutlined, LockOutlined } from "@ant-design/icons-vue";
 
-import { sha256 } from "@/utils/misc";
-import { useUserStore, user } from "../stores/user";
+import { useUserStore } from "../stores/user";
 import { storeToRefs } from "pinia";
-import { dummyUserData } from "@/data/dummy";
+import { UserRole } from "../enums/appEnums";
+import { loginService } from "../services/login.service";
 
 const userStore = useUserStore();
 const { loginDialogOpen } = storeToRefs(userStore);
-const { updateLoginDialogOpen, signIn, setUserProfile } = userStore;
+const { updateLoginDialogOpen } = userStore;
 
 const formState = reactive({
-  username: "",
   userEmail: "",
   password: "",
+  userRole: "",
   remember: true,
 });
 
 const loading = ref(false);
+const showCreatorOption = ref(false);
 
-const onFinish = async (values) => {
+const handleKeyDown = (event) => {
+  if (event.key === "Shift") {
+    showCreatorOption.value = true;
+  }
+};
+
+const handleKeyUp = (event) => {
+  if (event.key === "Shift") {
+    showCreatorOption.value = false;
+  }
+};
+
+onMounted(() => {
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keyup", handleKeyUp);
+});
+
+const onFinish = async () => {
   try {
     loading.value = true;
-    delete values.remember;
-    // const hashedAccountInfo = await sha256(JSON.stringify(values));
 
     message.loading({ content: "Loading...", key: "login" });
 
-    const userInfo = dummyUserData.find(
-      (user) =>
-        user.userEmail === values.userEmail && user.password === values.password
+    const result = await loginService.login(
+      formState.userRole,
+      formState.userEmail,
+      formState.password
     );
 
-    // const isLoginSuccess = await signIn(hashedAccountInfo);
-
-    const isLoginSuccess = userInfo !== undefined;
-
-    if (isLoginSuccess) {
-      // user.init();
-      setUserProfile(userInfo);
+    if (result) {
       message.success({
         content: "Login Success!",
         key: "login",
@@ -48,6 +64,7 @@ const onFinish = async (values) => {
       });
       updateLoginDialogOpen(false);
     } else throw new Error("Login Failed!");
+
     loading.value = false;
   } catch (error) {
     message.error({
@@ -86,22 +103,22 @@ const disabled = computed(() => {
         @finish="onFinish"
         @finishFailed="onFinishFailed"
       >
-        <!-- <a-form-item
-          label="Username"
-          name="username"
-          :rules="[{ required: true, message: 'Please input your username!' }]"
-        >
-          <a-input v-model:value="formState.username">
-            <template #prefix>
-              <UserOutlined class="site-form-item-icon" />
-            </template>
-          </a-input>
-        </a-form-item> -->
+        <a-form-item label="角色" name="userRole">
+          <a-select v-model:value="formState.userRole" placeholder="請選擇">
+            <a-select-option v-if="showCreatorOption" :value="UserRole.Creator"
+              >Creator</a-select-option
+            >
+            <a-select-option :value="UserRole.Admin">Admin</a-select-option>
+            <a-select-option :value="UserRole.Manager">管理員</a-select-option>
+            <a-select-option :value="UserRole.Student">學生</a-select-option>
+            <a-select-option :value="UserRole.Teacher">教師</a-select-option>
+          </a-select>
+        </a-form-item>
 
         <a-form-item
-          label="Email"
+          label="信箱"
           name="userEmail"
-          :rules="[{ required: true, message: 'Please input your email!' }]"
+          :rules="[{ required: true, message: '請輸入信箱!' }]"
         >
           <a-input v-model:value="formState.userEmail">
             <template #prefix>
@@ -111,9 +128,9 @@ const disabled = computed(() => {
         </a-form-item>
 
         <a-form-item
-          label="Password"
+          label="密碼"
           name="password"
-          :rules="[{ required: true, message: 'Please input your password!' }]"
+          :rules="[{ required: true, message: '請輸入密碼!' }]"
         >
           <a-input-password v-model:value="formState.password">
             <template #prefix>
@@ -122,14 +139,14 @@ const disabled = computed(() => {
           </a-input-password>
         </a-form-item>
 
-        <a-form-item>
+        <!-- <a-form-item>
           <a-form-item name="remember" no-style>
             <a-checkbox v-model:checked="formState.remember">
               Remember me
             </a-checkbox>
           </a-form-item>
           <a class="login-form-forgot" href="">Forgot password</a>
-        </a-form-item>
+        </a-form-item> -->
 
         <a-form-item>
           <a-button
@@ -141,8 +158,8 @@ const disabled = computed(() => {
           >
             Log in
           </a-button>
-          Or
-          <a href="">register now!</a>
+          <!-- Or
+          <a href="">register now!</a> -->
         </a-form-item>
       </a-form>
 

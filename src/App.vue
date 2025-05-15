@@ -2,11 +2,6 @@
 import { onMounted } from "vue";
 
 import LoginDialog from "@/components/LoginDialog.vue";
-import { user } from "@/stores/user";
-
-onMounted(async () => {
-  await user.init();
-});
 </script>
 
 <template>

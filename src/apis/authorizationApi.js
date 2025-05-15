@@ -1,8 +1,9 @@
-import { apiHelper } from "@/utils/axios";
+import qs from "qs";
+import { authApiHelper } from "@/utils/axios";
 
 export default {
   signIn(hashedValue) {
-    return apiHelper.post(
+    return authApiHelper.post(
       "/token",
       {
         hashedValue,
@@ -11,5 +12,11 @@ export default {
         headers: { "content-type": "application/json" },
       }
     );
+  },
+  login(userRole, email, password) {
+    return authApiHelper.post(`/login/${userRole}`, {
+      email,
+      password,
+    });
   },
 };

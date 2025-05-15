@@ -291,13 +291,12 @@ import {
   handleFileSubmission,
   getSubmissionsByAssignment,
 } from "@/stores/course";
-import { useUserStore } from "@/stores/user";
 
 // 路由
 const router = useRouter();
 
 // 用戶角色 (模擬用)
-const userRole = ref(UserRole.STUDENT);
+const userRole = ref(UserRole.Student);
 
 // 學期列表
 const semesterList = ["2022-秋季", "2023-春季", "2023-秋季", "2024-春季"];
@@ -310,7 +309,7 @@ const searchCourseName = ref("");
 const loading = ref(false);
 
 // 用戶是否為教師
-const isTeacher = computed(() => userRole.value === UserRole.TEACHER);
+const isTeacher = computed(() => userRole.value === UserRole.Teacher);
 
 // 模擬課程資料
 const courses = ref([
@@ -531,7 +530,7 @@ const handleReset = () => {
 // 切換角色
 const handleRoleChange = () => {
   message.info(
-    `已切換為${userRole.value === UserRole.TEACHER ? "教師" : "學生"}身份`
+    `已切換為${userRole.value === UserRole.Teacher ? "教師" : "學生"}身份`
   );
 };
 

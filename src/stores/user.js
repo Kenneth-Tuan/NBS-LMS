@@ -1,11 +1,9 @@
-import { ID } from "appwrite";
-import { account } from "@/appwrite";
 import { defineStore } from "pinia";
-import dayjs from "dayjs";
+
 import { ref, reactive, computed } from "vue";
 
 import { UserRole } from "../enums/appEnums";
-import authorizationApi from "@/apis/authorizationApi";
+
 import userApi from "@/apis/user";
 
 export const useUserStore = defineStore(
@@ -27,33 +25,6 @@ export const useUserStore = defineStore(
 
     function getToken() {
       return $cookies.get("ApiToken");
-    }
-
-    async function signIn(hashedValue) {
-      // 清除所有 localStorage 資料
-      localStorage.clear();
-
-      // 清除所有 sessionStorage 資料
-      sessionStorage.clear();
-
-      try {
-        const { data } = await authorizationApi.signIn(hashedValue);
-        const tokenPair = {
-          ApiToken: data.access_token,
-          RefreshToken: data.refresh_token,
-          ApiTokenExpiryTime: dayjs().add(data.expires_in, "s").valueOf(),
-        };
-
-        for (const key in tokenPair) {
-          $cookies.set(key, tokenPair[key]);
-        }
-
-        await fetchUserProfile();
-
-        return !!data.access_token;
-      } catch (error) {
-        throw new Error("signIn failed");
-      }
     }
 
     async function fetchUserProfile() {
@@ -124,7 +95,7 @@ export const useUserStore = defineStore(
 
       // methods
       getToken,
-      signIn,
+
       fetchUserProfile,
       setUserProfile,
       getUserAndCompanyID,
@@ -137,41 +108,3 @@ export const useUserStore = defineStore(
     persist: false,
   }
 );
-
-export const user = reactive({
-  current: null,
-  async init() {
-    try {
-      this.current = await account.get();
-      if (!!this.current) this.setUserProfile();
-      console.log("test current:", this.current, this.current.prefs.userType); // for debug
-    } catch (e) {
-      this.current = null;
-    }
-  },
-  async register(email, password) {
-    await account.create(ID.unique(), email, password);
-    await this.login(email, password);
-  },
-  async login(email, password) {
-    try {
-      await account.createEmailPasswordSession(email, password);
-
-      return true;
-    } catch (e) {
-      throw new Error("login failed");
-    }
-  },
-  async logout() {
-    await account.deleteSession("current");
-    this.current = null;
-  },
-
-  setUserProfile() {
-    useUserStore().userProfile.userType = Number(this.current.prefs.userType);
-    useUserStore().userProfile.userID = this.current.$id;
-    useUserStore().userProfile.userName = this.current.name;
-    useUserStore().userProfile.userEmail = this.current.email;
-    useUserStore().userProfile.userTel = this.current.phone;
-  },
-});

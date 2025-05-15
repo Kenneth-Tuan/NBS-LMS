@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, reactive, computed } from "vue";
+import { ref, reactive, computed } from "vue";
 import { cloneDeep } from "lodash-es";
 import { message } from "ant-design-vue"; // Import message for feedback
 
@@ -22,7 +22,7 @@ import {
   dummyAnnouncementData,
 } from "@/data/dummy";
 
-import { useUserStore, user } from "@/stores/user"; // Import user store
+import { useUserStore } from "@/stores/user"; // Import user store
 import { UserRole } from "@/enums/appEnums"; // Import UserRole enum
 
 // --- Store and User Role ---
@@ -302,10 +302,6 @@ const otherColumns = [
     key: "publisher",
   },
 ];
-
-onMounted(async () => {
-  await user.init();
-});
 </script>
 
 <template>

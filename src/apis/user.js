@@ -1,44 +1,56 @@
-import { apiHelper } from "@/utils/axios";
+import { baseApiHelper } from "@/utils/axios";
 
 export default {
   getUserProfile() {
-    return apiHelper.get("/userprofile");
+    return baseApiHelper.get("/userprofile");
   },
 
   // Get all users with pagination and filtering
   getUsers(params) {
-    return apiHelper.get("/users", { params });
+    return baseApiHelper.get("/users", { params });
   },
 
   // Get a specific user by ID
   getUser(id) {
-    return apiHelper.get(`/users/${id}`);
+    return baseApiHelper.get(`/users/${id}`);
   },
 
   // Create a new user
   createUser(data) {
-    return apiHelper.post("/users", data);
+    return baseApiHelper.post("/users", data);
   },
 
   // Update an existing user
   updateUser(data) {
-    return apiHelper.put(`/users/${data.id}`, data);
+    return baseApiHelper.put(`/users/${data.id}`, data);
   },
 
   // Delete a user
   deleteUser(id) {
-    return apiHelper.delete(`/users/${id}`);
+    return baseApiHelper.delete(`/users/${id}`);
   },
 
   // Export users as CSV
   exportUsersAsCsv() {
-    return apiHelper.get("/users/export/csv", {
+    return baseApiHelper.get("/users/export/csv", {
       responseType: "blob",
     });
   },
 
   // Bulk operations (delete, activate, deactivate)
   bulkOperateUsers(operation, userIds) {
-    return apiHelper.post("/users/bulk", { operation, userIds });
+    return baseApiHelper.post("/users/bulk", { operation, userIds });
+  },
+
+  userList(params) {
+    return baseApiHelper.post("/user-management/get-list", { params });
+  },
+
+  createUser(params) {
+    return baseApiHelper.post("/user-management/create-one", { params });
+  },
+
+  updateUser(params) {
+    return baseApiHelper.put("/user-management/update-one", { params });
   },
 };

@@ -34,10 +34,11 @@ export enum RouterName {
 
 // user role enums
 export enum UserRole {
-  Admin = 1,
-  Manager = 2,
-  Teacher = 3, // Swapped Teacher/Student order for consistency if needed, keeping JS values
-  Student = 4,
+  Creator = "creator",
+  Admin = "admin",
+  Manager = "manager",
+  Teacher = "teacher", // Swapped Teacher/Student order for consistency if needed, keeping JS values
+  Student = "student",
 }
 
 export enum CourseStatus {

@@ -1,19 +1,19 @@
-import { apiHelper } from "@/utils/axios";
+import { baseApiHelper } from "@/utils/axios";
 
 export default {
   getApplicationList() {
-    return apiHelper.get("/application/list");
+    return baseApiHelper.get("/application/list");
   },
   getApplicationDetail(id) {
-    return apiHelper.get(`/application/${id}`);
+    return baseApiHelper.get(`/application/${id}`);
   },
   createApplication(data) {
-    return apiHelper.post("/application", data);
+    return baseApiHelper.post("/application", data);
   },
   updateApplication(id, data) {
-    return apiHelper.put(`/application/${id}`, data);
+    return baseApiHelper.put(`/application/${id}`, data);
   },
   deleteApplication(id) {
-    return apiHelper.delete(`/application/${id}`);
+    return baseApiHelper.delete(`/application/${id}`);
   },
 };

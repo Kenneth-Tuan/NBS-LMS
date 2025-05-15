@@ -9,7 +9,7 @@ import {
 } from "@ant-design/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 
-import { useUserStore, user } from "@/stores/user";
+import { useUserStore } from "@/stores/user";
 import SideMenu from "@/components/SideMenu.vue";
 
 const router = useRouter();
@@ -36,8 +36,6 @@ const toggleCollapsed = () => {
 };
 
 async function onClickLoginBtn() {
-  console.log("test: ", user.current);
-  if (user.current) await user.logout();
   if (!unref(isLoggedIn)) {
     updateLoginDialogOpen(true);
   } else {

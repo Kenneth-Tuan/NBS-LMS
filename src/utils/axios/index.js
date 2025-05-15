@@ -3,9 +3,9 @@ import axios from "axios";
 import { useUserStore } from "@/stores/user";
 import { responseHandler, responseErrorHandler } from "@/utils/axios/utils";
 
-const baseURL = import.meta.env.VITE_LMS_BASE_URL;
+const baseURL = import.meta.env.VITE_API_BASE_URL;
 
-export const apiHelper = axios.create({
+const baseApiHelper = axios.create({
   baseURL,
   headers: {
     Accept: "application/json",
@@ -13,7 +13,7 @@ export const apiHelper = axios.create({
   },
 });
 
-apiHelper.interceptors.request.use(
+baseApiHelper.interceptors.request.use(
   function (config) {
     const userStore = useUserStore();
     const { getToken } = userStore;
@@ -28,7 +28,7 @@ apiHelper.interceptors.request.use(
   }
 );
 
-apiHelper.interceptors.response.use(
+baseApiHelper.interceptors.response.use(
   function (response) {
     return responseHandler(response);
   },
@@ -36,3 +36,9 @@ apiHelper.interceptors.response.use(
     return responseErrorHandler(error);
   }
 );
+
+const authApiHelper = axios.create({
+  baseURL,
+});
+
+export { baseApiHelper, authApiHelper };
