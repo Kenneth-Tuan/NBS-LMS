@@ -92,7 +92,7 @@ const userRoleOptions = [
       <div class="u-flex-1"></div>
 
       <!-- DEV ONLY: Role Switcher -->
-      <div v-if="isLoggedIn" class="u-mx-2">
+      <div v-if="false" class="u-mx-2">
         <a-select
           :value="userProfile.userType"
           style="width: 120px"
@@ -103,64 +103,62 @@ const userRoleOptions = [
       </div>
       <!-- END DEV ONLY -->
 
-      <Transition name="fade" :duration="550" mode="out-in" appear>
-        <a-tooltip v-if="isLoggedIn" title="通知">
-          <a-button
-            @click="() => {}"
-            shape="circle"
-            :size="'large'"
-            type="ghost"
-            :ghost="true"
+      <!-- <Transition name="fade" :duration="550" mode="out-in" appear> -->
+      <a-tooltip v-if="isLoggedIn" title="通知">
+        <a-button
+          @click="() => {}"
+          shape="circle"
+          :size="'large'"
+          type="ghost"
+          :ghost="true"
+        >
+          <BellOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
+        </a-button>
+      </a-tooltip>
+
+      <a-tooltip v-else title="登入">
+        <a-button
+          @click="onClickLoginBtn"
+          shape="circle"
+          :size="'large'"
+          type="ghost"
+          :ghost="true"
+        >
+          <LoginOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
+        </a-button>
+      </a-tooltip>
+      <!-- </Transition> -->
+
+      <!-- <Transition name="fade" :duration="550" mode="out-in" appear> -->
+      <div v-if="isLoggedIn">
+        <a-dropdown v-model:open="visible">
+          <div
+            class="u-flex u-items-center u-justify-center u-flex-gap-x-0.5rem"
           >
-            <BellOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
-          </a-button>
-        </a-tooltip>
-      </Transition>
+            <UserOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
+            <span class="u-text-1rem u-font-bold u-c-blue">
+              {{ userProfile.userID }} {{ userProfile.userName }}
+            </span>
 
-      <Transition name="fade" :duration="550" mode="out-in" appear>
-        <a-tooltip v-if="!isLoggedIn" title="登入">
-          <a-button
-            @click="onClickLoginBtn"
-            shape="circle"
-            :size="'large'"
-            type="ghost"
-            :ghost="true"
-          >
-            <LoginOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
-          </a-button>
-        </a-tooltip>
-      </Transition>
-
-      <Transition name="fade" :duration="550" mode="out-in" appear>
-        <div v-if="isLoggedIn">
-          <a-dropdown v-model:open="visible">
-            <div
-              class="u-flex u-items-center u-justify-center u-flex-gap-x-0.5rem"
-            >
-              <UserOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
-              <span class="u-text-1rem u-font-bold u-c-blue">
-                {{ userProfile.userID }} {{ userProfile.userName }}
-              </span>
-
-              <CaretDownOutlined
-                class="u-text-1rem u-font-bold u-c-blue"
-                :class="{
-                  'u-rotate-180': visible,
-                  'u-transition-all u-duration-250ms u-ease-in-out': true,
-                }"
-              />
-            </div>
-            <template #overlay>
-              <a-menu @click="handleMenuClick">
-                <a-menu-item key="1"> 個人資料</a-menu-item>
-                <a-menu-item key="2"> 修改密碼</a-menu-item>
-                <a-menu-divider />
-                <a-menu-item key="3"> 登出</a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-        </div>
-      </Transition>
+            <CaretDownOutlined
+              class="u-text-1rem u-font-bold u-c-blue"
+              :class="{
+                'u-rotate-180': visible,
+                'u-transition-all u-duration-250ms u-ease-in-out': true,
+              }"
+            />
+          </div>
+          <template #overlay>
+            <a-menu @click="handleMenuClick">
+              <a-menu-item key="1"> 個人資料</a-menu-item>
+              <a-menu-item key="2"> 修改密碼</a-menu-item>
+              <a-menu-divider />
+              <a-menu-item key="3"> 登出</a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
+      </div>
+      <!-- </Transition> -->
     </header>
 
     <main

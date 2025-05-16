@@ -1,4 +1,3 @@
-import qs from "qs";
 import { authApiHelper } from "@/utils/axios";
 
 export default {
