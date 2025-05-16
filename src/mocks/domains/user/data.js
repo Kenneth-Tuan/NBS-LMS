@@ -4,7 +4,7 @@ export const adminData = {
     userName: "Admin",
     userEmail: "admin@test.com",
     userTel: "0912-345-678",
-    userType: 1,
+    userRole: 1,
     userStatus: 1,
   },
 };
@@ -15,7 +15,7 @@ export const managerData = {
     userName: "Manager",
     userEmail: "manager@test.com",
     userTel: "0912-333-123",
-    userType: 2,
+    userRole: 2,
     userStatus: 1,
   },
 };
@@ -26,7 +26,7 @@ export const teacherData = {
     userName: "Teacher",
     userEmail: "teacher@test.com",
     userTel: "0912-222-241",
-    userType: 3,
+    userRole: 3,
     userStatus: 1,
   },
 };
@@ -37,7 +37,7 @@ export const studentData = {
     userName: "Student",
     userEmail: "student@test.com",
     userTel: "0912-111-273",
-    userType: 4,
+    userRole: 4,
     userStatus: 1,
   },
 };

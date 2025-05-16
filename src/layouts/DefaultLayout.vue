@@ -11,6 +11,7 @@ import { useRouter, useRoute } from "vue-router";
 
 import { useUserStore } from "@/stores/user";
 import SideMenu from "@/components/SideMenu.vue";
+import { UserRole } from "@/enums/appEnums";
 
 const router = useRouter();
 const route = useRoute();
@@ -54,19 +55,19 @@ const handleRoleChange = (newRole) => {
 const userRoleOptions = [
   {
     label: "Admin",
-    value: 1,
+    value: UserRole.Admin,
   },
   {
     label: "Manager",
-    value: 2,
+    value: UserRole.Manager,
   },
   {
     label: "Teacher",
-    value: 3,
+    value: UserRole.Teacher,
   },
   {
     label: "Student",
-    value: 4,
+    value: UserRole.Student,
   },
 ];
 </script>
@@ -92,9 +93,9 @@ const userRoleOptions = [
       <div class="u-flex-1"></div>
 
       <!-- DEV ONLY: Role Switcher -->
-      <div v-if="false" class="u-mx-2">
+      <div v-if="isLoggedIn" class="u-mx-2">
         <a-select
-          :value="userProfile.userType"
+          :value="userProfile.userRole"
           style="width: 120px"
           @change="handleRoleChange"
           :options="userRoleOptions"

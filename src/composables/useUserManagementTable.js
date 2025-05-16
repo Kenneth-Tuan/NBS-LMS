@@ -36,7 +36,7 @@ export function useUserManagementTable() {
   } = store;
 
   const isAdmin = computed(
-    () => userStore.userProfile.userType === UserRole.Admin
+    () => userStore.userProfile.userRole === UserRole.Admin
   );
 
   // --- Table Columns Definition ---

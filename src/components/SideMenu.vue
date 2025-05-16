@@ -26,7 +26,7 @@ const state = reactive({
 
 // 從appEnums.ts的MenuItems轉換成ant design menu需要的格式
 const menuItems = computed(() => {
-  const currentUserRole = Number(userProfile.userType);
+  const currentUserRole = userProfile.userRole;
   const hasRequiredRole = (itemRoles) => {
     if (!itemRoles || !Array.isArray(itemRoles) || itemRoles.length === 0)
       return true;

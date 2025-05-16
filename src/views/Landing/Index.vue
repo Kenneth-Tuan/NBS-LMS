@@ -29,7 +29,7 @@ import { UserRole } from "@/enums/appEnums"; // Import UserRole enum
 const userStore = useUserStore();
 const { userProfile } = userStore; // No need for storeToRefs if just reading profile directly
 
-const isAdmin = computed(() => Number(userProfile.userType) === UserRole.Admin);
+const isAdmin = computed(() => userProfile.userRole === UserRole.Admin);
 
 // --- Latest News Table Data and Logic ---
 const baseColumns = [

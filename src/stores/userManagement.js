@@ -4,6 +4,7 @@ import userApi from "@/apis/user";
 import { message } from "ant-design-vue";
 import { initialUserFormState } from "@/schemas/userManagementForm.schema";
 import { mockUsers } from "@/mocks/domains/user/data";
+import { userService } from "../services/user.service";
 
 export const useUserManagementStore = defineStore("userManagement", () => {
   // === State ===
@@ -45,12 +46,9 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   async function fetchUsers() {
     loading.value = true;
     try {
-      // const response = await userApi.getUsers(tableParams.value);
-      // console.log("test response users: ", response.data.users);
-      // users.value = [...response.data.users];
-      // totalUsers.value = response.data.total;
-      users.value = [...mockUsers];
-      totalUsers.value = mockUsers.length;
+      const response = await userService.getUserList(tableParams.value);
+      users.value = [...response.data.users];
+      totalUsers.value = response.data.total;
       // Clear selection when data is refreshed
       selectedRowKeys.value = [];
     } catch (error) {

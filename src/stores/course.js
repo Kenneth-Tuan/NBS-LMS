@@ -3,8 +3,6 @@ import { computed, reactive, ref, h } from "vue";
 import dayjs from "dayjs";
 import { saveCourse } from "@/mocks/domains/courses/model";
 import { message } from "ant-design-vue";
-import { UserRole } from "@/enums/appEnums";
-import { useUserStore } from "@/stores/user";
 
 import { dummyCourseData } from "@/data/dummy";
 

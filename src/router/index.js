@@ -35,7 +35,7 @@ const routes = [
     meta: {
       title: "新增課程 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Admin],
+      roles: [UserRole.Creator, UserRole.Admin],
     },
   },
   {
@@ -46,7 +46,7 @@ const routes = [
     meta: {
       title: "編輯課程 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Admin],
+      roles: [UserRole.Creator, UserRole.Admin],
     },
   },
   {
@@ -65,7 +65,7 @@ const routes = [
     meta: {
       title: "課程審核 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Admin],
+      roles: [UserRole.Creator, UserRole.Admin],
     },
   },
   {
@@ -120,7 +120,7 @@ const routes = [
     meta: {
       title: "修課紀錄 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Student],
+      roles: [UserRole.Student, UserRole.Creator],
     },
   },
   {
@@ -148,7 +148,7 @@ const routes = [
     meta: {
       title: "課程總覽 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Admin],
+      roles: [UserRole.Creator, UserRole.Admin],
     },
   },
   {
@@ -159,7 +159,7 @@ const routes = [
     meta: {
       title: "(管理)課程詳情 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Admin],
+      roles: [UserRole.Creator, UserRole.Admin],
     },
   },
   {
@@ -169,7 +169,7 @@ const routes = [
     meta: {
       title: "使用者管理 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Admin],
+      roles: [UserRole.Creator, UserRole.Admin],
     },
   },
   {
@@ -202,28 +202,28 @@ router.beforeEach(async (to, from, next) => {
   document.title = to.meta.title || "拿撒勒人會神學院 選課系統";
 
   // Consolidated Role Check
-  if (
-    to.meta.roles &&
-    Array.isArray(to.meta.roles) &&
-    to.meta.roles.length > 0
-  ) {
-    const userStore = useUserStore();
-    const userRole = Number(userStore.userProfile.userType);
+  // if (
+  //   to.meta.roles &&
+  //   Array.isArray(to.meta.roles) &&
+  //   to.meta.roles.length > 0
+  // ) {
+  //   const userStore = useUserStore();
+  //   const userRole = userStore.userProfile.userRole;
 
-    // Check if user has one of the required roles
-    if (!to.meta.roles.includes(userRole)) {
-      console.warn(
-        `Access denied: Route ${String(
-          to.name
-        )} requires roles ${to.meta.roles.join(
-          ","
-        )}, but user has role ${userRole}.`
-      );
-      // Redirect to landing page or a suitable default page
-      next({ name: RouterName.LandingPage });
-      return; // Important to return after calling next() with a new route
-    }
-  }
+  //   // Check if user has one of the required roles
+  //   if (!to.meta.roles.includes(userRole)) {
+  //     console.warn(
+  //       `Access denied: Route ${String(
+  //         to.name
+  //       )} requires roles ${to.meta.roles.join(
+  //         ","
+  //       )}, but user has role ${userRole}.`
+  //     );
+  //     // Redirect to landing page or a suitable default page
+  //     next({ name: RouterName.LandingPage });
+  //     return; // Important to return after calling next() with a new route
+  //   }
+  // }
 
   // If no roles specified or user has the required role, proceed
   next();

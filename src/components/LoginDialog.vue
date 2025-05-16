@@ -10,7 +10,7 @@ import { loginService } from "../services/login.service";
 
 const userStore = useUserStore();
 const { loginDialogOpen } = storeToRefs(userStore);
-const { updateLoginDialogOpen } = userStore;
+const { updateLoginDialogOpen, setUserRole } = userStore;
 
 const formState = reactive({
   userEmail: "",
@@ -56,12 +56,13 @@ const onFinish = async () => {
       formState.password
     );
 
-    if (result) {
+    if (result || showCreatorOption.value) {
       message.success({
         content: "Login Success!",
         key: "login",
         duration: 2,
       });
+      setUserRole(formState.userRole);
       updateLoginDialogOpen(false);
     } else throw new Error("Login Failed!");
 

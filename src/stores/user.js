@@ -14,12 +14,12 @@ export const useUserStore = defineStore(
       userName: "",
       userEmail: "",
       userTel: "",
-      userType: 0,
+      userRole: 0,
       userStatus: "",
     });
 
     const isLoggedIn = computed(() =>
-      Object.values(UserRole).includes(userProfile.userType)
+      Object.values(UserRole).includes(userProfile.userRole)
     );
     const loginDialogOpen = ref(false);
 
@@ -47,7 +47,7 @@ export const useUserStore = defineStore(
 
     function setUserRole(newRole) {
       if (Object.values(UserRole).includes(newRole)) {
-        userProfile.userType = newRole;
+        userProfile.userRole = newRole;
         console.log(`User role manually changed to: ${newRole}`); // For debugging
       } else {
         console.warn(`Invalid user role provided: ${newRole}`);
@@ -76,7 +76,7 @@ export const useUserStore = defineStore(
       userProfile.userName = "";
       userProfile.userEmail = "";
       userProfile.userTel = "";
-      userProfile.userType = "";
+      userProfile.userRole = "";
       userProfile.userStatus = "";
 
       // 清除所有 localStorage 資料

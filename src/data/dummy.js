@@ -1219,31 +1219,31 @@ const dummyUserData = [
     userEmail: "nightCat@mail.com",
     password: "12345678",
     userName: "夜喵",
-    userType: UserRole.Admin,
+    userRole: UserRole.Admin,
   },
   {
     userEmail: "admin@test.com",
     password: "12345678",
     userName: "院長",
-    userType: UserRole.Admin,
+    userRole: UserRole.Admin,
   },
   {
     userEmail: "manager@test.com",
     password: "12345678",
     userName: "管理員",
-    userType: UserRole.Manager,
+    userRole: UserRole.Manager,
   },
   {
     userEmail: "teacher@test.com",
     password: "12345678",
     userName: "老師",
-    userType: UserRole.Teacher,
+    userRole: UserRole.Teacher,
   },
   {
     userEmail: "student@tests.com",
     password: "12345678",
     userName: "學生",
-    userType: UserRole.Student,
+    userRole: UserRole.Student,
   },
 ];
 
