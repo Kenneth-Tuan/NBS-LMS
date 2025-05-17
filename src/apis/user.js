@@ -43,14 +43,15 @@ export default {
   },
 
   userList(params) {
-    return baseApiHelper.post("/user-management/get-list", { params });
+    return baseApiHelper.post("/user-management/get-list", params);
   },
 
   createUser(params) {
-    return baseApiHelper.post("/user-management/create-one", { params });
+    return baseApiHelper.post("/user-management/create-one", params);
   },
 
   updateUser(params) {
-    return baseApiHelper.put("/user-management/update-one", { params });
+    const { id, ...rest } = params;
+    return baseApiHelper.patch(`/user-management/edit-one?user_id=${id}`, rest);
   },
 };

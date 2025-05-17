@@ -14,7 +14,7 @@ const loginService = {
       const { data } = await authorizationApi.login(userRole, email, password);
 
       const tokenPair = {
-        ApiToken: data.token,
+        ApiToken: data.data.token,
       };
 
       for (const key in tokenPair) {

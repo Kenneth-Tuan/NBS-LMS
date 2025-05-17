@@ -14,6 +14,7 @@ import {
   StopOutlined,
   DownloadOutlined,
 } from "@ant-design/icons-vue";
+import { UserStatus } from "@/enums/appEnums";
 
 // Initialize Store
 const store = useUserManagementStore();
@@ -21,13 +22,13 @@ const store = useUserManagementStore();
 // Setup Table Logic
 const {
   users,
+  filteredUsers,
   totalUsers,
   loading,
   exportLoading,
   pagination,
   filters,
   hasSelected,
-  isAdmin,
   columns,
   rowSelection,
   handlePageChange,
@@ -56,11 +57,7 @@ const {
 
 // Fetch initial data on mount
 onMounted(() => {
-  if (isAdmin.value) {
-    store.initialize();
-  } else {
-    console.error("Unauthorized access attempt to User Management.");
-  }
+  store.initialize();
 });
 </script>
 
@@ -73,7 +70,7 @@ onMounted(() => {
             <template #icon><download-outlined /></template>
             匯出用戶
           </a-button>
-          <a-button v-if="isAdmin" type="primary" @click="showCreateForm">
+          <a-button type="primary" @click="showCreateForm">
             <template #icon><plus-outlined /></template>
             新增使用者
           </a-button>
@@ -113,7 +110,7 @@ onMounted(() => {
         </a-form-item>
 
         <a-form-item>
-          <a-button type="primary" @click="handleSearch">
+          <a-button v-if="false" type="primary" @click="handleSearch">
             <template #icon><search-outlined /></template>
             搜尋
           </a-button>
@@ -128,7 +125,7 @@ onMounted(() => {
       </a-form>
 
       <!-- Bulk actions -->
-      <div class="bulk-actions mb-4" v-if="isAdmin">
+      <div class="bulk-actions mb-4" v-if="false">
         <a-space>
           <span v-if="hasSelected"
             >已選擇 {{ store.selectedRowKeys.length }} 項</span
@@ -163,7 +160,7 @@ onMounted(() => {
       <a-table
         :row-selection="rowSelection"
         :columns="columns"
-        :data-source="users"
+        :data-source="filteredUsers"
         :loading="loading"
         :pagination="{
           current: pagination.currentPage,
@@ -184,7 +181,9 @@ onMounted(() => {
             {{ getRoleText(record.role) }}
           </template>
           <template v-else-if="column.key === 'status'">
-            <a-tag :color="record.status === 1 ? 'green' : 'red'">
+            <a-tag
+              :color="record.status === UserStatus.Active ? 'green' : 'red'"
+            >
               {{ getStatusText(record.status) }}
             </a-tag>
           </template>
@@ -196,8 +195,12 @@ onMounted(() => {
               <a-button type="link" @click="showEditForm(record)"
                 >編輯</a-button
               >
-              <a-divider type="vertical" />
-              <a-button type="link" danger @click="confirmSingleDelete(record)"
+              <a-divider v-if="false" type="vertical" />
+              <a-button
+                v-if="false"
+                type="link"
+                danger
+                @click="confirmSingleDelete(record)"
                 >刪除</a-button
               >
             </span>
@@ -224,22 +227,19 @@ onMounted(() => {
       >
         <a-tabs>
           <a-tab-pane key="basic" tab="基本資料">
-            <a-form-item label="帳號" name="username">
+            <a-form-item label="姓名" name="name">
               <a-input
-                v-model:value="userForm.username"
-                placeholder="請輸入帳號"
+                v-model:value="userForm.name"
+                placeholder="請輸入姓名"
                 :disabled="store.formMode === 'edit'"
               />
-            </a-form-item>
-
-            <a-form-item label="姓名" name="name">
-              <a-input v-model:value="userForm.name" placeholder="請輸入姓名" />
             </a-form-item>
 
             <a-form-item label="電子郵件" name="email">
               <a-input
                 v-model:value="userForm.email"
                 placeholder="請輸入電子郵件"
+                :disabled="store.formMode === 'edit'"
               />
             </a-form-item>
 
@@ -247,6 +247,7 @@ onMounted(() => {
               <a-input
                 v-model:value="userForm.phone"
                 placeholder="請輸入電話（選填）"
+                :disabled="store.formMode === 'edit'"
               />
             </a-form-item>
 
@@ -259,7 +260,11 @@ onMounted(() => {
               </a-select>
             </a-form-item>
 
-            <a-form-item label="狀態" name="status">
+            <a-form-item
+              v-if="store.formMode === 'edit'"
+              label="狀態"
+              name="status"
+            >
               <a-select
                 v-model:value="userForm.status"
                 placeholder="請選擇狀態"
@@ -269,7 +274,7 @@ onMounted(() => {
             </a-form-item>
           </a-tab-pane>
 
-          <a-tab-pane key="organization" tab="組織資訊">
+          <a-tab-pane v-if="false" key="organization" tab="組織資訊">
             <a-form-item label="備註" name="notes">
               <a-textarea
                 v-model:value="userForm.notes"
@@ -279,7 +284,11 @@ onMounted(() => {
             </a-form-item>
           </a-tab-pane>
 
-          <a-tab-pane key="password" tab="密碼設定">
+          <a-tab-pane
+            v-if="store.formMode === 'create'"
+            key="password"
+            tab="密碼設定"
+          >
             <a-form-item
               :label="
                 store.formMode === 'create'

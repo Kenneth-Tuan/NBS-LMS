@@ -84,8 +84,6 @@ export const useUserStore = defineStore(
 
       // 清除所有 sessionStorage 資料
       sessionStorage.clear();
-
-      user.logout();
     }
 
     return {
@@ -105,6 +103,6 @@ export const useUserStore = defineStore(
     };
   },
   {
-    persist: false,
+    persist: ["userProfile"],
   }
 );

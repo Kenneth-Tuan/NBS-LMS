@@ -1,10 +1,12 @@
 import { defineStore } from "pinia";
 import { ref, reactive, computed } from "vue";
-import userApi from "@/apis/user";
 import { message } from "ant-design-vue";
+
+import userApi from "@/apis/user";
 import { initialUserFormState } from "@/schemas/userManagementForm.schema";
-import { mockUsers } from "@/mocks/domains/user/data";
 import { userService } from "../services/user.service";
+import { useUserStore } from "./user";
+import { UserRole } from "@/enums/appEnums";
 
 export const useUserManagementStore = defineStore("userManagement", () => {
   // === State ===
@@ -30,15 +32,6 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   const formMode = ref("create"); // 'create' or 'edit'
   const userForm = initialUserFormState();
 
-  // === Getters ===
-  const tableParams = computed(() => ({
-    page: pagination.currentPage,
-    pageSize: pagination.pageSize,
-    keyword: filters.searchKeyword,
-    role: filters.role,
-    status: filters.status,
-  }));
-
   const hasSelected = computed(() => selectedRowKeys.value.length > 0);
 
   // === Actions ===
@@ -46,8 +39,8 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   async function fetchUsers() {
     loading.value = true;
     try {
-      const response = await userService.getUserList(tableParams.value);
-      users.value = [...response.data.users];
+      const response = await userService.getUserList();
+      users.value = [...response.data.data.users];
       totalUsers.value = response.data.total;
       // Clear selection when data is refreshed
       selectedRowKeys.value = [];
@@ -123,14 +116,17 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       delete formData.confirmPassword;
 
       if (formMode.value === "create") {
-        await userApi.createUser(formData);
+        delete formData.status;
+        delete formData.id;
+        await userService.createUser(formData);
         message.success("使用者創建成功");
       } else {
-        // Don't send password if it's empty during edit
-        if (!formData.password) {
-          delete formData.password;
-        }
-        await userApi.updateUser(formData);
+        delete formData.password;
+        delete formData.confirmPassword;
+        delete formData.email;
+        delete formData.name;
+        delete formData.telephone;
+        await userService.updateUser(formData);
         message.success("使用者更新成功");
       }
       hideForm();
@@ -210,6 +206,46 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     fetchUsers();
   }
 
+  const filteredUsers = computed(() => {
+    const userStore = useUserStore();
+    const currentUserRole = userStore.userProfile.userRole;
+
+    return users.value.filter((user) => {
+      // 1. 當 userRole 不為 creator 時，過濾掉 creator 角色的用戶
+      if (
+        currentUserRole !== UserRole.Creator &&
+        user.role === UserRole.Creator
+      ) {
+        return false;
+      }
+
+      // 2. 應用關鍵字搜尋過濾條件
+      if (filters.searchKeyword && filters.searchKeyword.trim() !== "") {
+        const keyword = filters.searchKeyword.toLowerCase();
+        const matchesKeyword =
+          (user.name && user.name.toLowerCase().includes(keyword)) ||
+          (user.username && user.username.toLowerCase().includes(keyword)) ||
+          (user.email && user.email.toLowerCase().includes(keyword)) ||
+          (user.phone && user.phone.toLowerCase().includes(keyword));
+
+        if (!matchesKeyword) return false;
+      }
+
+      // 3. 應用角色過濾條件
+      if (filters.role && user.role !== filters.role) {
+        return false;
+      }
+
+      // 4. 應用狀態過濾條件
+      if (filters.status !== null && user.status !== filters.status) {
+        return false;
+      }
+
+      // 通過所有過濾條件
+      return true;
+    });
+  });
+
   return {
     // State
     users,
@@ -224,8 +260,9 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     formMode,
     userForm,
     // Getters
-    tableParams,
+
     hasSelected,
+    filteredUsers,
     // Actions
     fetchUsers,
     updatePagination,

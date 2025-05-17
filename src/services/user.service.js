@@ -1,4 +1,5 @@
 import userApi from "@/apis/user";
+import { UserRole, UserStatus } from "../enums/appEnums";
 
 const userService = {
   // {
@@ -53,8 +54,9 @@ const userService = {
   async updateUser(userInfo) {
     try {
       const params = {
-        role: userInfo.role ?? "student",
-        is_active: userInfo.is_active ?? true,
+        id: userInfo.id,
+        role: userInfo.role ?? UserRole.Student,
+        is_active: userInfo.status === UserStatus.Active ? true : false,
       };
       const result = await userApi.updateUser(params);
       return result;

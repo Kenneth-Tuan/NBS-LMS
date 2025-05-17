@@ -69,6 +69,11 @@ export enum operationType {
   Edit = "edit",
 }
 
+export enum UserStatus {
+  Active = "active",
+  Inactive = "inactive",
+}
+
 export const MenuItems = [
   {
     key: RouterName.LandingPage,

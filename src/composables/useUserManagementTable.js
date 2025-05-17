@@ -21,6 +21,7 @@ export function useUserManagementTable() {
     filters,
     selectedRowKeys,
     hasSelected,
+    filteredUsers,
   } = storeToRefs(store);
 
   const {
@@ -35,14 +36,10 @@ export function useUserManagementTable() {
     showCreateForm,
   } = store;
 
-  const isAdmin = computed(
-    () => userStore.userProfile.userRole === UserRole.Admin
-  );
-
   // --- Table Columns Definition ---
   const columns = computed(() => [
-    { title: "頭像", dataIndex: "avatar", key: "avatar", width: 80 },
-    { title: "帳號", dataIndex: "username", key: "username" },
+    // { title: "頭像", dataIndex: "avatar", key: "avatar", width: 80 },
+    // { title: "帳號", dataIndex: "username", key: "username" },
     { title: "姓名", dataIndex: "name", key: "name" },
     { title: "電子郵件", dataIndex: "email", key: "email" },
     {
@@ -52,17 +49,23 @@ export function useUserManagementTable() {
       customRender: ({ text }) => getRoleText(text),
     },
     {
+      title: "電話",
+      dataIndex: "telephone",
+      key: "telephone",
+      customRender: ({ text }) => (text ? text : "-"),
+    },
+    {
       title: "狀態",
       dataIndex: "status",
       key: "status",
       customRender: ({ text }) => getStatusText(text),
     },
-    {
-      title: "最後登入",
-      dataIndex: "lastLogin",
-      key: "lastLogin",
-      customRender: ({ text }) => formatLocaleDateTime(text),
-    },
+    // {
+    //   title: "最後登入",
+    //   dataIndex: "lastLogin",
+    //   key: "lastLogin",
+    //   customRender: ({ text }) => formatLocaleDateTime(text),
+    // },
     { title: "操作", key: "action", fixed: "right", width: 200 },
   ]);
 
@@ -144,11 +147,11 @@ export function useUserManagementTable() {
     filters,
     selectedRowKeys,
     hasSelected,
-    isAdmin,
 
     // Computed
     columns,
     rowSelection,
+    filteredUsers,
 
     // Methods bound to store actions
     handlePageChange,

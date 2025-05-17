@@ -1,16 +1,16 @@
 import { ref } from "vue";
 
+import { UserStatus } from "@/enums/appEnums";
+
 // Initial state for the user form
 export const initialUserFormState = () =>
   ref({
     id: "",
-    username: "",
     name: "",
     email: "",
     phone: "",
     role: null,
-    status: 1,
-    notes: "",
+    status: UserStatus.Active,
     password: "",
     confirmPassword: "",
   });
@@ -28,9 +28,6 @@ export function validatePasswordConfirmation(formRef) {
 
 // Form validation rules
 export const getUserFormRules = (formRef, formMode) => ({
-  username: [
-    { required: true, message: "請輸入使用者ID/帳號", trigger: "blur" },
-  ],
   name: [{ required: true, message: "請輸入姓名", trigger: "blur" }],
   email: [
     { required: true, message: "請輸入電子郵件", trigger: "blur" },

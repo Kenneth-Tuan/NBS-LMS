@@ -8,7 +8,7 @@ const baseURL = import.meta.env.VITE_API_BASE_URL;
 const baseApiHelper = axios.create({
   baseURL,
   headers: {
-    Accept: "application/json",
+    Accept: "text/plain",
     "Content-Type": "application/json",
   },
 });
@@ -19,7 +19,7 @@ baseApiHelper.interceptors.request.use(
     const { getToken } = userStore;
 
     const token = getToken();
-    config.headers.Authorization = `Bearer ${token}`;
+    config.headers["X-Campus-System-Token"] = token;
 
     return config;
   },
