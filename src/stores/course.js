@@ -78,174 +78,38 @@ export const useCourseStore = defineStore(
   "course",
   () => {
     const courseForm = reactive({
-      title: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "課程名稱",
-      },
-      type: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: false,
-        label: "課程類型",
-        options: [
-          { label: "新課程", value: "新課程" },
-          { label: "重開課程", value: "重開課程" },
-          { label: "進階課程", value: "進階課程" },
-        ],
-      },
-      classMode: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "上課方式",
-      },
-      duration: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "課程時長",
-      },
-      credit: {
-        value: null,
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "學分數",
-        rules: [
-          (val) =>
-            val === null || (typeof val === "number" && val > 0 && val <= 10),
-        ],
-      },
-      instructor: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "授課教師",
-      },
-      startDate: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        mask: "####.##.##",
-        rules: [(val) => !!val && dayjs(val, "YYYY.MM.DD", true)],
-        label: "開課日期",
-      },
-      enrollmentLimit: {
-        value: null,
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "選課人數上限",
-        rules: [
-          (val) =>
-            val === null || (typeof val === "number" && val >= 1 && val <= 999),
-        ],
-      },
-      weekday: {
-        value: [],
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "上課日",
-        options: [
-          { label: "週一", value: "mon" },
-          { label: "週二", value: "tue" },
-          { label: "週三", value: "wed" },
-          { label: "週四", value: "thu" },
-          { label: "週五", value: "fri" },
-          { label: "週六", value: "sat" },
-          { label: "週日", value: "sun" },
-        ],
-      },
-      classTime: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "上課時段",
-        rules: [
-          (val) =>
-            !val ||
-            /^([0-1][0-9]|2[0-3]):[0-5][0-9]-([0-1][0-9]|2[0-3]):[0-5][0-9]$/.test(
-              val
-            ),
-        ],
-      },
-      description: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "課程簡介",
-      },
-      prerequisites: {
-        value: [],
-        err: false,
-        errMsg: "",
-        required: false,
-        label: "先修課程",
-        options: [],
-      },
-      outlineFile: {
-        value: [],
-        err: false,
-        errMsg: "",
-        required: false,
-        label: "課程大綱附件",
-      },
-      teacherInfo: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: false,
-        label: "教師資訊",
-      },
-      image: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: false,
-        label: "課程封面圖片",
-      },
+      title: "",
+      classMode: "",
+      credit: null,
+      instructor: "",
+      startDate: "",
+      endDate: "",
+      enrollmentLimit: null,
+      weekday: [],
+      classTime: [],
+      description: "",
+      prerequisites: [],
+      outlineFile: [],
     });
 
     const courseList = ref([]);
     const loading = ref(false);
     const error = ref(null);
 
-    const populatePrerequisiteOptions = () => {
-      courseForm.prerequisites.options = dummyCourseData.map((course) => ({
-        label: course.title,
-        value: course.id,
-      }));
-    };
-
     const resetForm = () => {
       Object.keys(courseForm).forEach((key) => {
-        const field = courseForm[key];
         if (
           key === "outlineFile" ||
           key === "weekday" ||
           key === "prerequisites"
         ) {
-          field.value = [];
+          courseForm[key] = [];
         } else if (key === "enrollmentLimit" || key === "credit") {
-          field.value = null;
+          courseForm[key] = null;
         } else {
-          field.value = "";
+          courseForm[key] = "";
         }
-        field.err = false;
-        field.errMsg = "";
       });
-      populatePrerequisiteOptions();
     };
 
     const populateForm = (courseData) => {
@@ -255,7 +119,7 @@ export const useCourseStore = defineStore(
         return;
       }
       console.log("Populating form with:", courseData);
-      populatePrerequisiteOptions();
+
       courseForm.prerequisites.options =
         courseForm.prerequisites.options.filter(
           (option) => option.value !== courseData.id
@@ -503,8 +367,6 @@ export const useCourseStore = defineStore(
       pageSizeOptions: ["10", "20", "50"],
       total: dummyCourseData.length,
     });
-
-    populatePrerequisiteOptions();
 
     return {
       courseForm,

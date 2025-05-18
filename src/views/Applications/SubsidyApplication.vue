@@ -84,7 +84,7 @@
             </a-form-item>
           </a-col>
 
-          <a-col :span="12">
+          <!-- <a-col :span="12">
             <a-form-item
               label="補助金額"
               :validateStatus="formField('subsidyAmount').err ? 'error' : ''"
@@ -96,9 +96,9 @@
                 addon-before="NT$"
               />
             </a-form-item>
-          </a-col>
+          </a-col> -->
 
-          <a-col :span="24">
+          <!-- <a-col :span="24">
             <a-form-item
               label="收據"
               :validateStatus="formField('receipts').err ? 'error' : ''"
@@ -164,9 +164,9 @@
                 </template>
               </a-upload>
             </a-form-item>
-          </a-col>
+          </a-col> -->
 
-          <a-col :span="24">
+          <a-col :span="12">
             <a-form-item
               label="相關附件"
               :validateStatus="

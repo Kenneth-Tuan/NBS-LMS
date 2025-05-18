@@ -26,6 +26,7 @@ export enum RouterName {
   CourseRecord = "course-record", // Added from JS
   GradeDetail = "grade-detail", // Added from JS
   TimedCourseSelection = "timed-course-selection", // Added from JS
+  TimedCourseSettings = "timed-course-settings", // Added from JS
   CourseOverview = "course-overview", // Added New Overview Route
   AdminCourseDetail = "admin-course-detail", // NEW Admin Detail Route
   UserManagement = "user-management", // User Management Route
@@ -121,6 +122,12 @@ export const MenuItems = [
         label: "修課紀錄",
         route: { name: RouterName.CourseRecord },
         roles: [UserRole.Creator, UserRole.Manager],
+      },
+      {
+        key: RouterName.TimedCourseSettings,
+        label: "限時選課設定",
+        route: { name: RouterName.TimedCourseSettings },
+        roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
       },
     ],
   },

@@ -142,6 +142,15 @@ const routes = [
     },
   },
   {
+    path: "/timed-course-settings",
+    name: RouterName.TimedCourseSettings,
+    component: () => import("@/views/Courses/TimedCourseSettings.vue"),
+    meta: {
+      title: "限時選課設定 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
     path: "/course-overview",
     name: RouterName.CourseOverview,
     component: () => import("@/views/Courses/CourseOverview.vue"),
