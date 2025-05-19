@@ -29,7 +29,11 @@ import { UserRole } from "@/enums/appEnums"; // Import UserRole enum
 const userStore = useUserStore();
 const { userProfile } = userStore; // No need for storeToRefs if just reading profile directly
 
-const isAdmin = computed(() => userProfile.userRole === UserRole.Admin);
+const isAdmin = computed(
+  () =>
+    userProfile.userRole === UserRole.Admin ||
+    userProfile.userRole === UserRole.Creator
+);
 
 // --- Latest News Table Data and Logic ---
 const baseColumns = [
@@ -310,14 +314,21 @@ const otherColumns = [
       class="u-p24px u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
       <div class="u-flex u-justify-between u-items-center u-mb-2">
-        <h1 class="u-text-24px u-font-bold u-c-blue">
+        <h1 class="u-text-24px u-font-bold u-c-blue u-m0">
           {{ "最新消息" }}
         </h1>
-        <a-button v-if="isAdmin" type="primary" @click="addNewsRow"
-          >新增消息</a-button
+        <a-button
+          v-if="isAdmin"
+          type="primary"
+          @click="addNewsRow"
+          size="small"
+        >
+          新增消息</a-button
         >
       </div>
+
       <Divider class="u-my8px" />
+
       <a-table
         :columns="computedColumns"
         :data-source="newsDataSource"
@@ -388,13 +399,14 @@ const otherColumns = [
       class="u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
     >
       <div class="u-flex u-justify-between u-items-center u-mb-2">
-        <h1 class="u-text-24px u-font-bold u-c-blue">
+        <h1 class="u-text-24px u-font-bold u-c-blue u-m0">
           {{ "課程公告" }}
         </h1>
         <a-button
           v-if="isAdmin"
           type="primary"
           @click="showAddAnnouncementModal"
+          size="small"
           >新增公告</a-button
         >
       </div>
@@ -439,10 +451,14 @@ const otherColumns = [
       class="u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
     >
       <div class="u-flex u-justify-between u-items-center u-mb-2">
-        <h1 class="u-text-24px u-font-bold u-c-blue">
+        <h1 class="u-text-24px u-font-bold u-c-blue u-m0">
           {{ "注意事項" }}
         </h1>
-        <a-button v-if="isAdmin" type="primary" @click="showAddNoticeModal"
+        <a-button
+          v-if="isAdmin"
+          type="primary"
+          @click="showAddNoticeModal"
+          size="small"
           >新增注意</a-button
         >
       </div>
