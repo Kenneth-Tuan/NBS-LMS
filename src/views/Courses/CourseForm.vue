@@ -1,13 +1,16 @@
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted, h } from "vue";
 import { message } from "ant-design-vue";
-import dayjs from "dayjs";
+
 import { useRouter } from "vue-router";
-import { InboxOutlined } from "@ant-design/icons-vue";
-import { InputGroup as AInputGroup, Divider } from "ant-design-vue";
+import { Divider } from "ant-design-vue";
+import {
+  InboxOutlined,
+  MinusOutlined,
+  PlusOutlined,
+} from "@ant-design/icons-vue";
 
 import { useCourseStore } from "@/stores/course";
-import { dummyCourseData } from "@/data/dummy"; // Import dummy data for lookup
 import { RouterName } from "../../enums/appEnums";
 import { courseSchema } from "@/schemas/course.schema";
 
@@ -25,6 +28,7 @@ const props = defineProps({
 const courseStore = useCourseStore();
 const router = useRouter();
 const loading = ref(false);
+const formRef = ref(null);
 
 // 上傳課程大綱前檢查
 const beforeOutlineUpload = (file) => {
@@ -80,23 +84,23 @@ const filterOption = (input, option) => {
 
 // Fetch and populate data on mount if editing
 onMounted(() => {
-  if (props.isEdit && props.courseId) {
-    console.log("Edit mode detected, course ID:", props.courseId);
-    // Find the course data (using dummy data for now)
-    const courseToEdit = dummyCourseData.find(
-      (c) => c.id === Number(props.courseId)
-    );
-    if (courseToEdit) {
-      courseStore.populateForm(courseToEdit); // Call the store action
-    } else {
-      message.error(`找不到 ID 為 ${props.courseId} 的課程資料`);
-      // Optionally redirect back or handle error
-      router.push("/course-overview");
-    }
-  } else {
-    // If in create mode, ensure form is reset
-    courseStore.resetForm();
-  }
+  // if (props.isEdit && props.courseId) {
+  //   console.log("Edit mode detected, course ID:", props.courseId);
+  //   // Find the course data (using dummy data for now)
+  //   const courseToEdit = dummyCourseData.find(
+  //     (c) => c.id === Number(props.courseId)
+  //   );
+  //   if (courseToEdit) {
+  //     // courseStore.populateForm(courseToEdit); // Call the store action
+  //   } else {
+  //     message.error(`找不到 ID 為 ${props.courseId} 的課程資料`);
+  //     // Optionally redirect back or handle error
+  //     router.push("/course-overview");
+  //   }
+  // } else {
+  //   // If in create mode, ensure form is reset
+  //   courseStore.resetForm();
+  // }
 });
 </script>
 
@@ -110,6 +114,7 @@ onMounted(() => {
       <Divider class="u-my8px" />
 
       <a-form
+        ref="formRef"
         :model="courseStore.courseForm"
         layout="vertical"
         @finish="handleSubmit"
@@ -123,7 +128,7 @@ onMounted(() => {
               <a-form-item v-bind="courseSchema.title" name="title">
                 <a-input
                   v-model:value="courseStore.courseForm.title"
-                  placeholder="請輸入課程名稱"
+                  :placeholder="courseSchema.title.placeholder"
                 />
               </a-form-item>
             </a-col>
@@ -132,7 +137,7 @@ onMounted(() => {
               <a-form-item v-bind="courseSchema.classMode" name="classMode">
                 <a-input
                   v-model:value="courseStore.courseForm.classMode"
-                  placeholder="請輸入上課方式"
+                  :placeholder="courseSchema.classMode.placeholder"
                 />
               </a-form-item>
             </a-col>
@@ -140,10 +145,19 @@ onMounted(() => {
 
           <a-row :gutter="16">
             <a-col :span="12">
+              <a-form-item v-bind="courseSchema.instructor" name="instructor">
+                <a-input
+                  v-model:value="courseStore.courseForm.instructor"
+                  :placeholder="courseSchema.instructor.placeholder"
+                />
+              </a-form-item>
+            </a-col>
+
+            <a-col :span="6">
               <a-form-item v-bind="courseSchema.credit" name="credit">
                 <a-input-number
                   v-model:value="courseStore.courseForm.credit"
-                  placeholder="1-10學分"
+                  :placeholder="courseSchema.credit.placeholder"
                   :min="1"
                   :max="999"
                   class="u-w-full"
@@ -151,62 +165,13 @@ onMounted(() => {
               </a-form-item>
             </a-col>
 
-            <a-col :span="12">
-              <a-form-item v-bind="courseSchema.instructor" name="instructor">
-                <a-input
-                  v-model:value="courseStore.courseForm.instructor"
-                  placeholder="請輸入授課教師姓名"
-                />
-              </a-form-item>
-            </a-col>
-          </a-row>
-
-          <a-row :gutter="16">
-            <a-col :span="12">
-              <a-form-item v-bind="courseSchema.startDate" name="startDate">
-                <a-date-picker
-                  v-model:value="courseStore.courseForm.startDate"
-                  :format="courseSchema.startDate.mask"
-                  class="u-w-full"
-                />
-              </a-form-item>
-            </a-col>
-            <a-col :span="12">
-              <a-form-item v-bind="courseSchema.endDate" name="endDate">
-                <a-date-picker
-                  v-model:value="courseStore.courseForm.endDate"
-                  :format="courseSchema.endDate.mask"
-                  class="u-w-full"
-                />
-              </a-form-item>
-            </a-col>
-          </a-row>
-
-          <a-row :gutter="16">
-            <a-col :span="12">
-              <a-form-item v-bind="courseSchema.weekday" name="weekday">
-                <a-select
-                  v-model:value="courseStore.courseForm.weekday"
-                  placeholder="請選擇上課日"
-                >
-                  <a-select-option
-                    v-for="option in courseSchema.weekday.options"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
-
-            <a-col :span="12">
-              <a-form-item v-bind="courseSchema.classTime" name="classTime">
-                <a-time-range-picker
-                  v-model:value="courseStore.courseForm.classTime"
-                  format="HH:mm"
-                  value-format="HH:mm"
-                  :placeholder="['開始時間', '結束時間']"
+            <a-col :span="6">
+              <a-form-item v-bind="courseSchema.duration" name="duration">
+                <a-input-number
+                  v-model:value="courseStore.courseForm.duration"
+                  :placeholder="courseSchema.duration.placeholder"
+                  :min="1"
+                  :max="999"
                   class="u-w-full"
                 />
               </a-form-item>
@@ -221,7 +186,7 @@ onMounted(() => {
               >
                 <a-input-number
                   v-model:value="courseStore.courseForm.enrollmentLimit"
-                  placeholder="1-999人"
+                  :placeholder="courseSchema.enrollmentLimit.placeholder"
                   :min="1"
                   :max="999"
                   class="u-w-full"
@@ -236,7 +201,7 @@ onMounted(() => {
                 <a-select
                   v-model:value="courseStore.courseForm.prerequisites"
                   mode="multiple"
-                  placeholder="選擇先修課程 (可多選)"
+                  :placeholder="courseSchema.prerequisites.placeholder"
                   :options="courseSchema.prerequisites.options"
                   allow-clear
                   class="u-w-full"
@@ -253,6 +218,110 @@ onMounted(() => {
                   </template>
                 </a-select>
               </a-form-item>
+            </a-col>
+          </a-row>
+
+          <a-row :gutter="16">
+            <a-col :span="12">
+              <a-form-item v-bind="courseSchema.startDate" name="startDate">
+                <a-date-picker
+                  v-model:value="courseStore.courseForm.startDate"
+                  :format="courseSchema.startDate.mask"
+                  class="u-w-full"
+                  :placeholder="courseSchema.startDate.placeholder"
+                />
+              </a-form-item>
+            </a-col>
+            <a-col :span="12">
+              <a-form-item v-bind="courseSchema.endDate" name="endDate">
+                <a-date-picker
+                  v-model:value="courseStore.courseForm.endDate"
+                  :format="courseSchema.endDate.mask"
+                  class="u-w-full"
+                  :placeholder="courseSchema.endDate.placeholder"
+                />
+              </a-form-item>
+            </a-col>
+          </a-row>
+
+          <a-row :gutter="16">
+            <template
+              v-for="(schedule, index) in courseStore.courseForm.weeklySchedule"
+              :key="schedule.id"
+              class="u-flex u-mb8px u-h40px"
+              align="baseline"
+            >
+              <a-col :span="12">
+                <a-form-item
+                  v-bind="courseSchema.week_day"
+                  :name="['weeklySchedule', index, 'week_day']"
+                  :label="`第${index + 1}個${courseSchema.week_day.label}`"
+                >
+                  <a-select
+                    v-model:value="schedule.week_day"
+                    :placeholder="courseSchema.week_day.placeholder"
+                    :options="courseStore.courseInfos.weekDays"
+                  >
+                  </a-select>
+                </a-form-item>
+              </a-col>
+
+              <a-col :span="6">
+                <a-form-item
+                  :name="['weeklySchedule', index, 'start_time']"
+                  v-bind="courseSchema.start_time"
+                >
+                  <a-time-picker
+                    v-model:value="schedule.start_time"
+                    format="HH:mm"
+                    value-format="HH:mm"
+                    class="u-w-full"
+                  />
+                </a-form-item>
+              </a-col>
+
+              <a-col :span="5">
+                <a-form-item
+                  :name="['weeklySchedule', index, 'end_time']"
+                  v-bind="courseSchema.end_time"
+                >
+                  <a-time-picker
+                    v-model:value="schedule.end_time"
+                    format="HH:mm"
+                    value-format="HH:mm"
+                    class="u-w-full"
+                  />
+                </a-form-item>
+              </a-col>
+
+              <a-col :span="1">
+                <a-form-item label=" ">
+                  <div class="u-flex u-items-center u-justify-center">
+                    <a-tooltip title="刪除">
+                      <a-button
+                        type="dashed"
+                        shape="circle"
+                        :icon="h(MinusOutlined)"
+                        @click="courseStore.removeWeeklySchedule(index)"
+                      />
+                    </a-tooltip>
+                  </div>
+                </a-form-item>
+              </a-col>
+            </template>
+          </a-row>
+
+          <a-row>
+            <a-col :span="12">
+              <div class="u-flex u-items-center u-justify-start">
+                <a-button
+                  type="dashed"
+                  :icon="h(PlusOutlined)"
+                  @click="courseStore.addWeeklySchedule"
+                >
+                  <span> 新增上課日 </span>
+                </a-button>
+              </div>
             </a-col>
           </a-row>
           <!-- END NEW -->
@@ -285,7 +354,7 @@ onMounted(() => {
             <a-textarea
               v-model:value="courseStore.courseForm.description"
               :rows="4"
-              placeholder="請輸入課程簡介"
+              :placeholder="courseSchema.description.placeholder"
             />
           </a-form-item>
 
@@ -295,6 +364,7 @@ onMounted(() => {
               name="file"
               action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
               :before-upload="beforeOutlineUpload"
+              :placeholder="courseSchema.outlineFile.placeholder"
             >
               <p class="ant-upload-drag-icon">
                 <InboxOutlined />

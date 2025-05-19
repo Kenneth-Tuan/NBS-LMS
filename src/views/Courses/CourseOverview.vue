@@ -57,10 +57,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { dummyCourseData } from "@/data/dummy";
-import { RouterName } from "@/enums/appEnums";
 import {
   Tag as ATag,
   Table as ATable,
@@ -68,7 +67,9 @@ import {
   Button as AButton,
   Popconfirm as APopconfirm,
 } from "ant-design-vue";
-import dayjs from "dayjs"; // Import dayjs for date comparison
+import dayjs from "dayjs";
+
+import { RouterName } from "@/enums/appEnums";
 
 const router = useRouter();
 const loading = ref(false);

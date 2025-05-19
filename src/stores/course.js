@@ -1,10 +1,9 @@
 import { defineStore } from "pinia";
-import { computed, reactive, ref, h } from "vue";
-import dayjs from "dayjs";
-import { saveCourse } from "@/mocks/domains/courses/model";
+import { reactive, ref } from "vue";
 import { message } from "ant-design-vue";
+import { v4 as uuidv4 } from "uuid";
 
-import { dummyCourseData } from "@/data/dummy";
+import { saveCourse } from "@/mocks/domains/courses/model";
 
 // Assignment status
 export const AssignmentStatus = {
@@ -80,83 +79,102 @@ export const useCourseStore = defineStore(
     const courseForm = reactive({
       title: "",
       classMode: "",
-      credit: null,
+      duration: 1,
+      credit: 1,
       instructor: "",
       startDate: "",
       endDate: "",
-      enrollmentLimit: null,
-      weekday: [],
-      classTime: [],
-      description: "",
+      enrollmentLimit: 1,
+      weeklySchedule: [
+        {
+          id: uuidv4(),
+          week_day: "週一",
+          start_time: "15:00",
+          end_time: "17:00",
+        },
+      ],
       prerequisites: [],
+      description: "",
       outlineFile: [],
     });
 
-    const courseList = ref([]);
     const loading = ref(false);
-    const error = ref(null);
+
+    const courseInfos = reactive({
+      courseList: [],
+      teachers: [],
+      prerequisites: [],
+      weekDays: [
+        { label: "週一", value: "週一" },
+        { label: "週二", value: "週二" },
+        { label: "週三", value: "週三" },
+        { label: "週四", value: "週四" },
+        { label: "週五", value: "週五" },
+        { label: "週六", value: "週六" },
+        { label: "週日", value: "週日" },
+      ],
+    });
 
     const resetForm = () => {
-      Object.keys(courseForm).forEach((key) => {
-        if (
-          key === "outlineFile" ||
-          key === "weekday" ||
-          key === "prerequisites"
-        ) {
-          courseForm[key] = [];
-        } else if (key === "enrollmentLimit" || key === "credit") {
-          courseForm[key] = null;
-        } else {
-          courseForm[key] = "";
-        }
-      });
+      // Object.keys(courseForm).forEach((key) => {
+      //   if (
+      //     key === "outlineFile" ||
+      //     key === "weekday" ||
+      //     key === "prerequisites"
+      //   ) {
+      //     courseForm[key] = [];
+      //   } else if (key === "enrollmentLimit" || key === "credit") {
+      //     courseForm[key] = null;
+      //   } else {
+      //     courseForm[key] = "";
+      //   }
+      // });
     };
 
     const populateForm = (courseData) => {
-      if (!courseData) {
-        console.error("Cannot populate form: courseData is null or undefined.");
-        message.error("無法加載課程資料進行編輯");
-        return;
-      }
-      console.log("Populating form with:", courseData);
-
-      courseForm.prerequisites.options =
-        courseForm.prerequisites.options.filter(
-          (option) => option.value !== courseData.id
-        );
-      Object.keys(courseForm).forEach((key) => {
-        if (courseData.hasOwnProperty(key)) {
-          if (key === "weekday" || key === "prerequisites") {
-            courseForm[key].value = Array.isArray(courseData[key])
-              ? [...courseData[key]]
-              : [];
-          } else if (key === "enrollmentLimit" || key === "credit") {
-            courseForm[key].value =
-              typeof courseData[key] === "number" ? courseData[key] : null;
-          } else if (key === "startDate") {
-            courseForm[key].value = courseData[key] || "";
-          } else if (key === "classTime") {
-            courseForm[key].value = courseData[key] || "";
-          } else if (key === "outlineFile") {
-            courseForm[key].value = [];
-          } else if (key === "image") {
-            courseForm[key].value = courseData[key] || "";
-          } else {
-            courseForm[key].value = courseData[key];
-          }
-        } else {
-          if (
-            key !== "outlineFile" &&
-            key !== "weekday" &&
-            key !== "prerequisites"
-          ) {
-            courseForm[key].value = "";
-          }
-        }
-        courseForm[key].err = false;
-        courseForm[key].errMsg = "";
-      });
-      console.log("Form populated:", courseForm);
+      // if (!courseData) {
+      //   console.error("Cannot populate form: courseData is null or undefined.");
+      //   message.error("無法加載課程資料進行編輯");
+      //   return;
+      // }
+      // console.log("Populating form with:", courseData);
+      // courseForm.prerequisites.options =
+      //   courseForm.prerequisites.options.filter(
+      //     (option) => option.value !== courseData.id
+      //   );
+      // Object.keys(courseForm).forEach((key) => {
+      //   if (courseData.hasOwnProperty(key)) {
+      //     if (key === "weekday" || key === "prerequisites") {
+      //       courseForm[key].value = Array.isArray(courseData[key])
+      //         ? [...courseData[key]]
+      //         : [];
+      //     } else if (key === "enrollmentLimit" || key === "credit") {
+      //       courseForm[key].value =
+      //         typeof courseData[key] === "number" ? courseData[key] : null;
+      //     } else if (key === "startDate") {
+      //       courseForm[key].value = courseData[key] || "";
+      //     } else if (key === "classTime") {
+      //       courseForm[key].value = courseData[key] || "";
+      //     } else if (key === "outlineFile") {
+      //       courseForm[key].value = [];
+      //     } else if (key === "image") {
+      //       courseForm[key].value = courseData[key] || "";
+      //     } else {
+      //       courseForm[key].value = courseData[key];
+      //     }
+      //   } else {
+      //     if (
+      //       key !== "outlineFile" &&
+      //       key !== "weekday" &&
+      //       key !== "prerequisites"
+      //     ) {
+      //       courseForm[key].value = "";
+      //     }
+      //   }
+      //   courseForm[key].err = false;
+      //   courseForm[key].errMsg = "";
+      // });
+      // console.log("Form populated:", courseForm);
     };
 
     const submitForm = async () => {
@@ -237,24 +255,9 @@ export const useCourseStore = defineStore(
       return isValid;
     };
 
-    const getCourseList = async () => {
-      loading.value = true;
-      error.value = null;
-
-      try {
-        courseList.value = dummyCourseData;
-      } catch (err) {
-        error.value = err.message || "獲取課程列表時發生錯誤";
-        throw err;
-      } finally {
-        loading.value = false;
-      }
-    };
-
     const updateCourseStatus = async (id, status, reviewData = {}) => {
       try {
         loading.value = true;
-        error.value = null;
 
         const response = await fetch("/updateCourseStatus", {
           method: "POST",
@@ -270,121 +273,51 @@ export const useCourseStore = defineStore(
           await getCourseList();
           return data.data;
         } else {
-          error.value = data.message || "更新課程狀態失敗";
-          throw new Error(error.value);
+          throw new Error();
         }
       } catch (err) {
-        error.value = err.message || "更新課程狀態時發生錯誤";
         throw err;
       } finally {
         loading.value = false;
       }
     };
 
-    const courses = ref(dummyCourseData);
+    const setCourseInfos = (column, value) => {
+      if (column === "teachers") {
+        courseInfos.teachers = value;
+      } else if (column === "prerequisites") {
+        courseInfos.prerequisites = value;
+      }
+    };
 
-    const courseTableColumns = computed(() => [
-      {
-        title: "封面",
-        dataIndex: "image",
-        key: "image",
-      },
-      {
-        title: "課程名稱",
-        dataIndex: "title",
-        key: "title",
-      },
-      {
-        title: "狀態",
-        dataIndex: "status",
-        key: "status",
-        filters: [
-          { text: "招生中", value: "招生中" },
-          { text: "即將額滿", value: "即將額滿" },
-        ],
-        onFilter: (value, record) => record.status === value,
-      },
-      {
-        title: "類型",
-        dataIndex: "type",
-        key: "type",
-      },
-      {
-        title: "時數",
-        dataIndex: "duration",
-        key: "duration",
-      },
-      {
-        title: "講師",
-        dataIndex: "instructor",
-        key: "instructor",
-      },
-      {
-        title: "開課日期",
-        dataIndex: "startDate",
-        key: "startDate",
-        sorter: (a, b) => new Date(a.startDate) - new Date(b.startDate),
-      },
-      {
-        title: "上課方式",
-        dataIndex: "classMode",
-        key: "classMode",
-      },
-      {
-        title: "上課日",
-        dataIndex: "weekday",
-        key: "weekday",
-        customRender: ({ value }) => {
-          if (!value || !Array.isArray(value) || value.length === 0) return "-";
+    const addWeeklySchedule = () => {
+      courseForm.weeklySchedule.push({
+        id: uuidv4(),
+        week_day: "",
+        start_time: "",
+        end_time: "",
+      });
+    };
 
-          const weekdayMap = {
-            mon: "週一",
-            tue: "週二",
-            wed: "週三",
-            thu: "週四",
-            fri: "週五",
-            sat: "週六",
-            sun: "週日",
-          };
-
-          return value.map((day) => weekdayMap[day] || day).join(", ");
-        },
-      },
-      {
-        title: "上課時段",
-        dataIndex: "classTime",
-        key: "classTime",
-      },
-    ]);
-
-    const searchCourseCriteria = reactive({
-      title: "",
-    });
-
-    const courseTablePagination = reactive({
-      pageSize: 10,
-      current: 1,
-      pageSizeOptions: ["10", "20", "50"],
-      total: dummyCourseData.length,
-    });
+    const removeWeeklySchedule = (index) => {
+      courseForm.weeklySchedule.splice(index, 1);
+    };
 
     return {
       courseForm,
-      courseList,
       loading,
-      error,
+      courseInfos,
+
       resetForm,
       populateForm,
       submitForm,
-      getCourseList,
       updateCourseStatus,
-      courses,
-      searchCourseCriteria,
-      courseTableColumns,
-      courseTablePagination,
+      setCourseInfos,
+      addWeeklySchedule,
+      removeWeeklySchedule,
     };
   },
   {
-    persist: false,
+    persist: ["courseInfos"],
   }
 );
