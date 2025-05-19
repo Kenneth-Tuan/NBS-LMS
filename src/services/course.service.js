@@ -6,7 +6,7 @@ import { useCourseStore } from "../stores/course";
 const courseService = {
   getTeachers: async () => {
     const { courseInfos } = useCourseStore();
-    if (courseInfos.teachers.length > 0) return;
+    // if (courseInfos.teachers.length > 0) return;
 
     try {
       const {
@@ -26,7 +26,7 @@ const courseService = {
 
   getPrerequisites: async () => {
     const { courseInfos } = useCourseStore();
-    if (courseInfos.prerequisites.length > 0) return;
+    // if (courseInfos.prerequisites.length > 0) return;
 
     try {
       const {
@@ -71,7 +71,8 @@ const courseService = {
 
     loading.value = true;
 
-    const params = getCourseFormParams(courseForm);
+    const params = await courseService.getCourseFormParams(courseForm);
+
     try {
       const data = await courseApi.createCourse(params);
       return data;
@@ -83,74 +84,53 @@ const courseService = {
     }
   },
 
-  getCourseFormParams: (courseForm) => {
-    return {
-      name: courseForm.title,
-      class_mode: courseForm.classMode,
-      duration: courseForm.duration,
-      credit: courseForm.credit,
-      teacher_id: courseForm.instructor,
-      start_date: courseForm.startDate,
-      end_date: courseForm.endDate,
-      enrollment_limit: courseForm.enrollmentLimit,
-      weekly_schedule: courseForm.weeklySchedule,
-      prerequisite_course_ids: courseForm.prerequisites,
-      description: courseForm.description,
-      cover_image: null,
-      outline_files: courseForm.outlineFile,
-    };
+  getCourseFormParams: async (courseForm) => {
+    try {
+      const outline_files = await courseService.uploadFile(
+        courseForm.outlineFile
+      );
+
+      const weekly_schedule = courseForm.weeklySchedule.map((schedule) => {
+        delete schedule.id;
+        return schedule;
+      });
+
+      return {
+        name: courseForm.title,
+        class_mode: courseForm.classMode,
+        duration: courseForm.duration,
+        credit: courseForm.credit,
+        teacher_id: courseForm.instructor,
+        start_date: courseForm.startDate,
+        end_date: courseForm.endDate,
+        enrollment_limit: courseForm.enrollmentLimit,
+        weekly_schedule: weekly_schedule,
+        prerequisite_course_ids: courseForm.prerequisites,
+        description: courseForm.description,
+        cover_image: null,
+        outline_files: outline_files,
+      };
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
   },
 
   uploadFile: async (data) => {
     console.log("uploadFile called with data:", data);
     const formData = new FormData();
 
-    // 處理 Ant Design Upload 的 custom-request 格式
-    if (data.file) {
-      // 這是來自 Ant Design 的 custom-request
-      formData.append("files", data.file);
+    data.forEach((file) => {
+      formData.append("files", file.originFileObj);
+    });
 
-      try {
-        const response = await courseApi.uploadFile(formData);
-        console.log("Upload response:", response);
-
-        // 呼叫 Ant Design Upload 的 onSuccess 回調
-        if (data.onSuccess) {
-          data.onSuccess(response.data.data.upload_urls);
-        }
-
-        return response.data.data.upload_urls;
-      } catch (error) {
-        console.error("Upload error:", error);
-
-        // 呼叫 Ant Design Upload 的 onError 回調
-        if (data.onError) {
-          data.onError(error);
-        }
-
-        return [];
-      }
-    } else {
-      // 直接檔案上傳
-      // 判斷 data 是單個檔案還是檔案陣列
-      if (Array.isArray(data)) {
-        // 多檔案上傳
-        data.forEach((file) => {
-          formData.append("files", file);
-        });
-      } else {
-        // 單個檔案上傳
-        formData.append("files", data);
-      }
-
-      try {
-        const response = await courseApi.uploadFile(formData);
-        console.log("Upload response:", response);
-        return response.data.data.upload_urls;
-      } catch (error) {
-        console.error("Upload error:", error);
-        return [];
-      }
+    try {
+      const response = await courseApi.uploadFile(formData);
+      console.log("Upload response:", response);
+      return response.data.data.upload_urls;
+    } catch (error) {
+      console.error("Upload error:", error);
+      return [];
     }
   },
 };

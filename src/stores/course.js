@@ -3,7 +3,6 @@ import { reactive, ref } from "vue";
 import { message } from "ant-design-vue";
 import { v4 as uuidv4 } from "uuid";
 
-import { saveCourse } from "@/mocks/domains/courses/model";
 import { courseService } from "../services/course.service";
 
 // Assignment status
@@ -78,14 +77,14 @@ export const useCourseStore = defineStore(
   "course",
   () => {
     const courseForm = reactive({
-      title: "",
-      classMode: "",
-      duration: 1,
-      credit: 1,
+      title: "系統神學",
+      classMode: "綫上",
+      duration: 120,
+      credit: 10,
       instructor: "",
       startDate: "",
       endDate: "",
-      enrollmentLimit: 1,
+      enrollmentLimit: 20,
       weeklySchedule: [
         {
           id: uuidv4(),
@@ -95,7 +94,7 @@ export const useCourseStore = defineStore(
         },
       ],
       prerequisites: [],
-      description: "",
+      description: "系統神學是神學的一個分支，主要研究神的系統和神的計畫。",
       outlineFile: [],
     });
 
@@ -117,19 +116,19 @@ export const useCourseStore = defineStore(
     });
 
     const resetForm = () => {
-      // Object.keys(courseForm).forEach((key) => {
-      //   if (
-      //     key === "outlineFile" ||
-      //     key === "weekday" ||
-      //     key === "prerequisites"
-      //   ) {
-      //     courseForm[key] = [];
-      //   } else if (key === "enrollmentLimit" || key === "credit") {
-      //     courseForm[key] = null;
-      //   } else {
-      //     courseForm[key] = "";
-      //   }
-      // });
+      courseForm.title = "";
+      courseForm.classMode = "";
+      courseForm.duration = 1;
+      courseForm.credit = 1;
+      courseForm.instructor = "";
+      courseForm.startDate = "";
+      courseForm.endDate = "";
+      courseForm.enrollmentLimit = 1;
+      courseForm.weeklySchedule = [];
+      courseForm.prerequisites = [];
+      courseForm.description = "";
+      courseForm.outlineFile = [];
+      addWeeklySchedule();
     };
 
     const populateForm = (courseData) => {
@@ -178,75 +177,25 @@ export const useCourseStore = defineStore(
       // console.log("Form populated:", courseForm);
     };
 
-    const submitForm = async () => {
+    const createCourse = async () => {
       try {
         loading.value = true;
 
-        courseForm.outlineFile = await courseService.uploadFile(
-          courseForm.outlineFile
-        );
+        const response = await courseService.createCourse();
 
-        await courseService.createCourse(courseForm);
+        if (response.status !== 200) {
+          throw error;
+        } else {
+          await courseService.getTeachers();
+          resetForm();
+          message.success("課程已成功建立");
+        }
       } catch (error) {
-        console.error("Error submitting form:", error);
+        message.error("課程建立失敗，請稍後再試");
         throw error;
       } finally {
         loading.value = false;
       }
-    };
-
-    const validateForm = () => {
-      let isValid = true;
-      console.log("Validating form...");
-      Object.keys(courseForm).forEach((fieldName) => {
-        const field = courseForm[fieldName];
-        field.err = false;
-        field.errMsg = "";
-
-        if (field.required) {
-          let isEmpty = false;
-          if (Array.isArray(field.value)) {
-            isEmpty = field.value.length === 0;
-          } else if (typeof field.value === "number") {
-            isEmpty = field.value === null || field.value === undefined;
-          } else {
-            isEmpty = !field.value;
-          }
-          if (isEmpty) {
-            field.err = true;
-            field.errMsg = `${field.label}為必填欄位`;
-            console.error(field.errMsg);
-            isValid = false;
-          }
-        }
-
-        if (
-          field.rules &&
-          field.value !== null &&
-          field.value !== undefined &&
-          (!Array.isArray(field.value) || field.value.length > 0)
-        ) {
-          for (const rule of field.rules) {
-            if (!rule(field.value)) {
-              field.err = true;
-              if (fieldName === "enrollmentLimit") {
-                field.errMsg = `${field.label}必須介於 1 到 999 之間`;
-              } else if (fieldName === "credit") {
-                field.errMsg = `${field.label}必須介於 1 到 10 之間`;
-              } else {
-                field.errMsg = `${field.label}格式不正確`;
-              }
-              console.error(field.errMsg);
-              isValid = false;
-              break;
-            }
-          }
-        }
-      });
-      if (!isValid) {
-        console.error("Form validation failed.");
-      }
-      return isValid;
     };
 
     const updateCourseStatus = async (id, status, reviewData = {}) => {
@@ -304,7 +253,7 @@ export const useCourseStore = defineStore(
 
       resetForm,
       populateForm,
-      submitForm,
+      createCourse,
       updateCourseStatus,
       setCourseInfos,
       addWeeklySchedule,

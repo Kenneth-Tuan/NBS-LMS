@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, watch, h, unref, ref, computed } from "vue";
+import { reactive, unref, ref, onMounted, onUnmounted, computed } from "vue";
 import { storeToRefs } from "pinia";
 import {
   LoginOutlined,
@@ -7,14 +7,13 @@ import {
   BellOutlined,
   CaretDownOutlined,
 } from "@ant-design/icons-vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 
 import { useUserStore } from "@/stores/user";
 import SideMenu from "@/components/SideMenu.vue";
 import { UserRole } from "@/enums/appEnums";
 
 const router = useRouter();
-const route = useRoute();
 
 const userStore = useUserStore();
 const { isLoggedIn } = storeToRefs(userStore);
@@ -44,32 +43,62 @@ async function onClickLoginBtn() {
   }
 }
 
-const isDev = import.meta.env.DEV;
-
 const handleRoleChange = (newRole) => {
   setUserRole(newRole);
   // Optionally: refresh or trigger something to reflect role change immediately
   // e.g., router.go(0) or re-fetch data based on role
 };
 
-const userRoleOptions = [
-  {
-    label: "Admin",
-    value: UserRole.Admin,
-  },
-  {
-    label: "Manager",
-    value: UserRole.Manager,
-  },
-  {
-    label: "Teacher",
-    value: UserRole.Teacher,
-  },
-  {
-    label: "Student",
-    value: UserRole.Student,
-  },
-];
+const showCreatorOption = ref(false);
+
+const handleKeyDown = (event) => {
+  if (event.key === "Shift") {
+    showCreatorOption.value = true;
+  }
+};
+
+const handleKeyUp = (event) => {
+  if (event.key === "Shift") {
+    showCreatorOption.value = false;
+  }
+};
+
+const userRoleOptions = computed(() => {
+  return [
+    {
+      label: "Creator",
+      value: UserRole.Creator,
+    },
+    {
+      label: "Admin",
+      value: UserRole.Admin,
+    },
+    {
+      label: "Manager",
+      value: UserRole.Manager,
+    },
+    {
+      label: "Teacher",
+      value: UserRole.Teacher,
+    },
+    {
+      label: "Student",
+      value: UserRole.Student,
+    },
+  ].filter(
+    (item) => showCreatorOption.value || item.value !== UserRole.Creator
+  );
+});
+
+onMounted(() => {
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keyup", handleKeyUp);
+});
 </script>
 
 <template>

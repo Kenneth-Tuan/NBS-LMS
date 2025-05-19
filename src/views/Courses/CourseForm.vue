@@ -56,20 +56,6 @@ const beforeOutlineUpload = (file) => {
   return true;
 };
 
-// 提交表單
-const handleSubmit = async () => {
-  try {
-    loading.value = true;
-    await courseStore.submitForm();
-    message.success(props.isEdit ? "課程更新成功" : "課程創建成功");
-    router.push({ name: RouterName.CourseOverview });
-  } catch (error) {
-    message.error(error.message || "提交失敗，請重試");
-  } finally {
-    loading.value = false;
-  }
-};
-
 // 取消
 const handleCancel = () => {
   courseStore.resetForm();
@@ -106,7 +92,6 @@ onMounted(() => {
   //     (c) => c.id === Number(props.courseId)
   //   );
   //   if (courseToEdit) {
-  //     // courseStore.populateForm(courseToEdit); // Call the store action
   //   } else {
   //     message.error(`找不到 ID 為 ${props.courseId} 的課程資料`);
   //     // Optionally redirect back or handle error
@@ -122,9 +107,13 @@ onMounted(() => {
 <template>
   <div class="u-p-4 u-w-full">
     <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
-      <h1 class="u-text-2xl u-font-bold u-mb-6 u-c-blue">
-        {{ isEdit ? "編輯課程" : "新增課程" }}
-      </h1>
+      <div class="u-flex u-justify-between u-items-center u-mb-2">
+        <h1 class="u-text-2xl u-font-bold u-c-blue">
+          {{ isEdit ? "編輯課程" : "新增課程" }}
+        </h1>
+
+        <a-button @click="courseStore.resetForm">重置</a-button>
+      </div>
 
       <Divider class="u-my8px" />
 
@@ -132,7 +121,7 @@ onMounted(() => {
         ref="formRef"
         :model="courseStore.courseForm"
         layout="vertical"
-        @finish="handleSubmit"
+        @finish="courseStore.createCourse"
       >
         <!-- 基本信息 -->
         <div class="u-mb-6">
@@ -250,6 +239,7 @@ onMounted(() => {
                   :format="courseSchema.startDate.mask"
                   class="u-w-full"
                   :placeholder="courseSchema.startDate.placeholder"
+                  :value-format="courseSchema.startDate.mask"
                 />
               </a-form-item>
             </a-col>
@@ -260,6 +250,7 @@ onMounted(() => {
                   :format="courseSchema.endDate.mask"
                   class="u-w-full"
                   :placeholder="courseSchema.endDate.placeholder"
+                  :value-format="courseSchema.endDate.mask"
                 />
               </a-form-item>
             </a-col>
@@ -323,6 +314,9 @@ onMounted(() => {
                         type="dashed"
                         shape="circle"
                         :icon="h(MinusOutlined)"
+                        :disabled="
+                          courseStore.courseForm.weeklySchedule.length === 1
+                        "
                         @click="courseStore.removeWeeklySchedule(index)"
                       />
                     </a-tooltip>
@@ -338,6 +332,7 @@ onMounted(() => {
                 <a-button
                   type="dashed"
                   :icon="h(PlusOutlined)"
+                  :disabled="courseStore.courseForm.weeklySchedule.length >= 7"
                   @click="courseStore.addWeeklySchedule"
                 >
                   <span> 新增上課日 </span>
