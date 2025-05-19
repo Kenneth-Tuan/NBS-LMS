@@ -1,4 +1,4 @@
-import { baseApiHelper } from "@/utils/axios";
+import { baseApiHelper, fileApiHelper } from "@/utils/axios";
 
 export default {
   getTeachers() {
@@ -11,5 +11,9 @@ export default {
 
   createCourse(params) {
     return baseApiHelper.post("/course-management/create-one", params);
+  },
+
+  uploadFile(formData) {
+    return fileApiHelper.post("/upload", formData);
   },
 };

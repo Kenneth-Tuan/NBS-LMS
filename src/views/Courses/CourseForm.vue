@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, h } from "vue";
+import { ref, onMounted, onBeforeMount, h } from "vue";
 import { message } from "ant-design-vue";
 
 import { useRouter } from "vue-router";
@@ -13,6 +13,7 @@ import {
 import { useCourseStore } from "@/stores/course";
 import { RouterName } from "../../enums/appEnums";
 import { courseSchema } from "@/schemas/course.schema";
+import { courseService } from "@/services/course.service";
 
 const props = defineProps({
   isEdit: {
@@ -21,7 +22,6 @@ const props = defineProps({
   },
   courseId: {
     type: Number,
-    default: null,
   },
 });
 
@@ -32,23 +32,27 @@ const formRef = ref(null);
 
 // 上傳課程大綱前檢查
 const beforeOutlineUpload = (file) => {
+  console.log("beforeOutlineUpload called with file:", file);
+  // Check file type
   const isPDF = file.type === "application/pdf";
   const isExcel =
-    file.type === "application/vnd.ms-excel" ||
     file.type ===
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    file.type === "application/vnd.ms-excel";
 
   if (!isPDF && !isExcel) {
-    message.error("只能上傳 PDF 或 Excel 檔案！");
+    message.error("僅支援 PDF 或 Excel 檔案!");
     return false;
   }
 
+  // Check file size
   const isLt10M = file.size / 1024 / 1024 < 10;
   if (!isLt10M) {
-    message.error("檔案必須小於 10MB！");
+    message.error("檔案大小不能超過 10MB!");
     return false;
   }
 
+  console.log("File validation passed, returning true");
   return true;
 };
 
@@ -81,6 +85,17 @@ const filterOption = (input, option) => {
     option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
   );
 };
+
+const handleFileChange = () => {
+  courseStore.courseForm.outlineFile = courseStore.courseForm.outlineFile.map(
+    (file) => ({ ...file, status: "done" })
+  );
+};
+
+onBeforeMount(() => {
+  courseService.getTeachers();
+  courseService.getPrerequisites();
+});
 
 // Fetch and populate data on mount if editing
 onMounted(() => {
@@ -146,10 +161,16 @@ onMounted(() => {
           <a-row :gutter="16">
             <a-col :span="12">
               <a-form-item v-bind="courseSchema.instructor" name="instructor">
-                <a-input
+                <a-select
                   v-model:value="courseStore.courseForm.instructor"
                   :placeholder="courseSchema.instructor.placeholder"
-                />
+                  :options="courseStore.courseInfos.teachers"
+                  allow-clear
+                  class="u-w-full"
+                  :filter-option="filterOption"
+                  show-search
+                >
+                </a-select>
               </a-form-item>
             </a-col>
 
@@ -202,7 +223,7 @@ onMounted(() => {
                   v-model:value="courseStore.courseForm.prerequisites"
                   mode="multiple"
                   :placeholder="courseSchema.prerequisites.placeholder"
-                  :options="courseSchema.prerequisites.options"
+                  :options="courseStore.courseInfos.prerequisites"
                   allow-clear
                   class="u-w-full"
                   :filter-option="filterOption"
@@ -361,8 +382,8 @@ onMounted(() => {
           <a-form-item v-bind="courseSchema.outlineFile" name="outlineFile">
             <a-upload-dragger
               v-model:file-list="courseStore.courseForm.outlineFile"
-              name="file"
-              action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+              @change="handleFileChange"
+              :custom-request="() => {}"
               :before-upload="beforeOutlineUpload"
               :placeholder="courseSchema.outlineFile.placeholder"
             >

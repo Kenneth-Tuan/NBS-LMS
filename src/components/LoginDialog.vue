@@ -34,16 +34,6 @@ const handleKeyUp = (event) => {
   }
 };
 
-onMounted(() => {
-  window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("keyup", handleKeyUp);
-});
-
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown);
-  window.removeEventListener("keyup", handleKeyUp);
-});
-
 const onFinish = async () => {
   try {
     loading.value = true;
@@ -85,6 +75,16 @@ const onFinishFailed = (errorInfo) => {
 
 const disabled = computed(() => {
   return !(formState.userEmail && formState.password);
+});
+
+onMounted(() => {
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keyup", handleKeyUp);
 });
 </script>
 

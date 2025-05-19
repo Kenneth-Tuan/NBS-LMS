@@ -65,7 +65,7 @@ const courseSchema = {
       {
         type: "string",
         required: true,
-        validator: (val) => !!val && dayjs(val, "YYYY-MM-DD", true),
+        // validator: (val) => !!val && dayjs(val, "YYYY-MM-DD", true),
         message: "請輸入正確的開課日期",
       },
     ],
@@ -78,7 +78,7 @@ const courseSchema = {
       {
         type: "string",
         required: true,
-        validator: (val) => !!val && dayjs(val, "YYYY-MM-DD", true),
+        // validator: (val) => !!val && dayjs(val, "YYYY-MM-DD", true),
         message: "請輸入正確的結課日期",
       },
     ],

@@ -41,4 +41,12 @@ const authApiHelper = axios.create({
   baseURL,
 });
 
-export { baseApiHelper, authApiHelper };
+const fileApiHelper = axios.create({
+  baseURL,
+  headers: {
+    Accept: "text/plain",
+    "Content-Type": "multipart/form-data",
+  },
+});
+
+export { baseApiHelper, authApiHelper, fileApiHelper };

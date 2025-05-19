@@ -4,6 +4,7 @@ import { message } from "ant-design-vue";
 import { v4 as uuidv4 } from "uuid";
 
 import { saveCourse } from "@/mocks/domains/courses/model";
+import { courseService } from "../services/course.service";
 
 // Assignment status
 export const AssignmentStatus = {
@@ -179,25 +180,18 @@ export const useCourseStore = defineStore(
 
     const submitForm = async () => {
       try {
-        const isValid = validateForm();
-        if (!isValid) {
-          throw new Error("表單驗證失敗");
-        }
-        const formData = {};
-        Object.keys(courseForm).forEach((key) => {
-          if (key !== "prerequisites" || !courseForm[key].options) {
-            formData[key] = courseForm[key].value;
-          } else {
-            formData[key] = courseForm[key].value;
-          }
-        });
-        formData.status = "待審核";
-        const savedCourse = await saveCourse(formData);
-        resetForm();
-        return savedCourse;
+        loading.value = true;
+
+        courseForm.outlineFile = await courseService.uploadFile(
+          courseForm.outlineFile
+        );
+
+        await courseService.createCourse(courseForm);
       } catch (error) {
         console.error("Error submitting form:", error);
         throw error;
+      } finally {
+        loading.value = false;
       }
     };
 
