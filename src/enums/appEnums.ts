@@ -103,6 +103,19 @@ export const MenuItems = [
         key: RouterName.CourseOverview,
         label: "課程總覽",
         route: { name: RouterName.CourseOverview },
+        roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
+      },
+      {
+        key: RouterName.CourseOverview,
+        label: "開課記錄",
+        route: { name: RouterName.CourseOverview },
+        roles: [UserRole.Teacher],
+      },
+      {
+        key: RouterName.CourseOverview,
+        label: "修課紀錄",
+        route: { name: RouterName.CourseOverview },
+        roles: [UserRole.Student],
       },
       {
         key: "course-create",
@@ -112,7 +125,7 @@ export const MenuItems = [
       },
       {
         key: "course-assignments",
-        label: "課程與作業",
+        label: "本期課程",
         route: { name: RouterName.CourseAssignments },
         roles: [
           UserRole.Creator,

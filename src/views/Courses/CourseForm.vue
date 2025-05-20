@@ -11,7 +11,6 @@ import {
 } from "@ant-design/icons-vue";
 
 import { useCourseStore } from "@/stores/course";
-import { RouterName } from "../../enums/appEnums";
 import { courseSchema } from "@/schemas/course.schema";
 import { courseService } from "@/services/course.service";
 
@@ -106,13 +105,13 @@ onMounted(() => {
 
 <template>
   <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
-      <div class="u-flex u-justify-between u-items-center u-mb-2">
-        <h1 class="u-text-2xl u-font-bold u-c-blue">
+    <div class="u-bg-white u-rounded-16px u-p24px u-shadow">
+      <div class="u-flex u-justify-between u-items-center u-mb16px">
+        <h1 class="u-text-24px u-font-bold u-mb0 u-c-blue">
           {{ isEdit ? "編輯課程" : "新增課程" }}
         </h1>
 
-        <a-button @click="courseStore.resetForm">重置</a-button>
+        <a-button size="small" @click="courseStore.resetForm">重置</a-button>
       </div>
 
       <Divider class="u-my8px" />

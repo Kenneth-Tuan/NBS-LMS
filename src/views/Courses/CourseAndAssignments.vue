@@ -1,285 +1,3 @@
-<template>
-  <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
-      <h1 class="u-text-2xl u-font-bold u-mb-6 u-c-blue">課程與作業管理</h1>
-
-      <!-- 搜尋區塊 -->
-      <div class="u-mb-6 u-bg-gray-50 u-p-4 u-rounded-lg">
-        <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
-          <a-form-item label="學期">
-            <a-select
-              v-model:value="searchSemester"
-              style="width: 180px"
-              placeholder="選擇學期"
-              allow-clear
-            >
-              <a-select-option
-                v-for="semester in semesterList"
-                :key="semester"
-                :value="semester"
-              >
-                {{ semester }}
-              </a-select-option>
-            </a-select>
-          </a-form-item>
-
-          <a-form-item label="課程名稱">
-            <a-input
-              v-model:value="searchCourseName"
-              placeholder="輸入課程名稱"
-              style="width: 200px"
-              allow-clear
-            />
-          </a-form-item>
-
-          <a-form-item>
-            <a-button type="primary" @click="handleSearch">查詢</a-button>
-            <a-button class="u-ml-2" @click="handleReset">重置</a-button>
-          </a-form-item>
-        </a-form>
-      </div>
-
-      <!-- 加載中狀態 -->
-      <a-spin :spinning="loading">
-        <!-- 無資料顯示 -->
-        <a-empty
-          v-if="filteredCourses.length === 0"
-          :description="isTeacher ? '暫無教授課程' : '暫無修習課程'"
-        />
-
-        <!-- 課程卡片 -->
-        <div
-          v-else
-          class="u-grid u-grid-cols-1 md:u-grid-cols-2 lg:u-grid-cols-3 u-gap-4"
-        >
-          <div
-            v-for="course in filteredCourses"
-            :key="course.id"
-            class="u-rounded-lg u-shadow-md u-border u-border-gray-200 u-overflow-hidden u-transition-all u-duration-300 hover:u-shadow-lg"
-          >
-            <div class="u-bg-blue-50 u-p-4">
-              <h3 class="u-text-lg u-font-bold u-mb-2 u-c-#1890FF">
-                {{ course.courseName }}
-              </h3>
-              <div class="u-flex u-justify-between u-text-sm u-text-gray-600">
-                <span>{{ course.semester }}</span>
-                <span>{{
-                  isTeacher
-                    ? "學生人數：" + course.studentCount
-                    : "教師：" + course.teacher
-                }}</span>
-              </div>
-            </div>
-
-            <div class="u-p-4">
-              <!-- 課程進度顯示 -->
-              <div class="u-mb-4">
-                <div class="u-flex u-justify-between u-mb-1">
-                  <span class="u-text-sm u-font-medium">課程進度</span>
-                  <span class="u-text-sm u-font-medium"
-                    >{{ course.progress }}%</span
-                  >
-                </div>
-                <a-progress
-                  :percent="course.progress"
-                  :stroke-color="{ from: '#108ee9', to: '#87d068' }"
-                />
-              </div>
-
-              <!-- 作業列表 -->
-              <div class="u-mb-4">
-                <div class="u-flex u-justify-between u-mb-2">
-                  <h4 class="u-font-medium">作業列表</h4>
-                  <a-button
-                    v-if="isTeacher"
-                    type="link"
-                    size="small"
-                    @click="handleAddAssignment(course.id)"
-                  >
-                    新增作業
-                  </a-button>
-                </div>
-
-                <a-list
-                  size="small"
-                  :data-source="course.assignments"
-                  :pagination="false"
-                >
-                  <template #renderItem="{ item }">
-                    <a-list-item>
-                      <div class="u-w-full">
-                        <div class="u-flex u-justify-between u-items-center">
-                          <div class="u-font-medium">{{ item.title }}</div>
-                          <a-tag :color="getStatusColor(item.status)">{{
-                            getStatusText(item.status)
-                          }}</a-tag>
-                        </div>
-                        <div class="u-text-xs u-text-gray-500">
-                          截止日期：{{ item.dueDate }}
-                        </div>
-
-                        <!-- 學生視角：上傳作業 -->
-                        <div v-if="!isTeacher" class="u-mt-2">
-                          <div
-                            v-if="
-                              item.status === 'submitted' ||
-                              item.status === 'graded'
-                            "
-                          >
-                            <div
-                              class="u-flex u-justify-between u-items-center"
-                            >
-                              <span class="u-text-xs"
-                                >已繳交: {{ item.fileName }}</span
-                              >
-                              <a-button
-                                type="link"
-                                size="small"
-                                @click="handleResubmit(course.id, item.id)"
-                              >
-                                重新繳交
-                              </a-button>
-                            </div>
-                          </div>
-                          <a-upload
-                            v-else
-                            :file-list="[]"
-                            :before-upload="
-                              (file) => beforeUpload(file, course.id, item.id)
-                            "
-                            :show-upload-list="false"
-                          >
-                            <a-button
-                              size="small"
-                              :disabled="
-                                item.status === AssignmentStatus.CLOSED
-                              "
-                            >
-                              繳交作業
-                            </a-button>
-                          </a-upload>
-                        </div>
-
-                        <!-- 老師視角：查看學生繳交作業 -->
-                        <div v-else class="u-mt-2">
-                          <a-button
-                            type="primary"
-                            size="small"
-                            @click="handleViewSubmissions(course.id, item.id)"
-                          >
-                            查看繳交狀況
-                          </a-button>
-                        </div>
-                      </div>
-                    </a-list-item>
-                  </template>
-                </a-list>
-              </div>
-
-              <!-- 課程操作 -->
-              <div class="u-flex u-justify-end u-gap-2">
-                <a-button
-                  size="small"
-                  @click="handleViewCourseDetail(course.id)"
-                >
-                  查看課程詳情
-                </a-button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </a-spin>
-    </div>
-
-    <!-- 新增作業對話框 (教師) -->
-    <a-modal
-      v-model:visible="addAssignmentModal.visible"
-      title="新增作業"
-      @ok="confirmAddAssignment"
-      okText="確認"
-      cancelText="取消"
-    >
-      <a-form :model="addAssignmentModal.form" layout="vertical">
-        <a-form-item
-          label="作業標題"
-          name="title"
-          :rules="[{ required: true, message: '請輸入作業標題' }]"
-        >
-          <a-input
-            v-model:value="addAssignmentModal.form.title"
-            placeholder="請輸入作業標題"
-          />
-        </a-form-item>
-        <a-form-item label="作業描述" name="description">
-          <a-textarea
-            v-model:value="addAssignmentModal.form.description"
-            placeholder="請輸入作業描述"
-            :rows="4"
-          />
-        </a-form-item>
-        <a-form-item
-          label="截止日期"
-          name="dueDate"
-          :rules="[{ required: true, message: '請選擇截止日期' }]"
-        >
-          <a-date-picker
-            v-model:value="addAssignmentModal.form.dueDate"
-            style="width: 100%"
-            format="YYYY-MM-DD"
-          />
-        </a-form-item>
-      </a-form>
-    </a-modal>
-
-    <!-- 查看作業繳交狀況對話框 (教師) -->
-    <a-modal
-      v-model:visible="viewSubmissionsModal.visible"
-      title="學生作業繳交狀況"
-      width="800px"
-      footer="{null}"
-      @cancel="viewSubmissionsModal.visible = false"
-    >
-      <a-table
-        :columns="studentSubmissionColumns"
-        :data-source="viewSubmissionsModal.data"
-        rowKey="id"
-        :pagination="{ pageSize: 10 }"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.dataIndex === 'file'">
-            <a
-              v-if="record.file"
-              :href="record.file.url"
-              target="_blank"
-              @click="handleFileClick(record.file)"
-            >
-              {{ record.file.name }}
-            </a>
-            <span v-else>尚未繳交</span>
-          </template>
-          <template v-if="column.dataIndex === 'status'">
-            <a-tag :color="getStatusColor(record.status)">{{
-              getStatusText(record.status)
-            }}</a-tag>
-          </template>
-          <template v-if="column.dataIndex === 'action'">
-            <a-space>
-              <a-button
-                v-if="record.file"
-                type="link"
-                size="small"
-                @click="handleGradeAssignment(record.id)"
-              >
-                確認
-              </a-button>
-            </a-space>
-          </template>
-        </template>
-      </a-table>
-    </a-modal>
-  </div>
-</template>
-
 <script setup>
 import { ref, computed, reactive, onMounted } from "vue";
 import { message } from "ant-design-vue";
@@ -787,3 +505,285 @@ onMounted(() => {
   handleSearch();
 });
 </script>
+
+<template>
+  <div class="u-p-4 u-w-full">
+    <div class="u-bg-white u-rounded-16px u-p24px u-shadow">
+      <h1 class="u-text-24px u-font-bold u-mb16px u-c-blue">課程與作業管理</h1>
+
+      <!-- 搜尋區塊 -->
+      <div class="u-mb16px u-bg-gray-50 u-p24px u-rounded-16px">
+        <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
+          <a-form-item label="學期">
+            <a-select
+              v-model:value="searchSemester"
+              style="width: 180px"
+              placeholder="選擇學期"
+              allow-clear
+            >
+              <a-select-option
+                v-for="semester in semesterList"
+                :key="semester"
+                :value="semester"
+              >
+                {{ semester }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+
+          <a-form-item label="課程名稱">
+            <a-input
+              v-model:value="searchCourseName"
+              placeholder="輸入課程名稱"
+              style="width: 200px"
+              allow-clear
+            />
+          </a-form-item>
+
+          <a-form-item>
+            <a-button type="primary" @click="handleSearch">查詢</a-button>
+            <a-button class="u-ml-2" @click="handleReset">重置</a-button>
+          </a-form-item>
+        </a-form>
+      </div>
+
+      <!-- 加載中狀態 -->
+      <a-spin :spinning="loading">
+        <!-- 無資料顯示 -->
+        <a-empty
+          v-if="filteredCourses.length === 0"
+          :description="isTeacher ? '暫無教授課程' : '暫無修習課程'"
+        />
+
+        <!-- 課程卡片 -->
+        <div
+          v-else
+          class="u-grid u-grid-cols-1 md:u-grid-cols-2 lg:u-grid-cols-3 u-gap-4"
+        >
+          <div
+            v-for="course in filteredCourses"
+            :key="course.id"
+            class="u-rounded-lg u-shadow-md u-border u-border-gray-200 u-overflow-hidden u-transition-all u-duration-300 hover:u-shadow-lg"
+          >
+            <div class="u-bg-blue-50 u-p-4">
+              <h3 class="u-text-lg u-font-bold u-mb-2 u-c-#1890FF">
+                {{ course.courseName }}
+              </h3>
+              <div class="u-flex u-justify-between u-text-sm u-text-gray-600">
+                <span>{{ course.semester }}</span>
+                <span>{{
+                  isTeacher
+                    ? "學生人數：" + course.studentCount
+                    : "教師：" + course.teacher
+                }}</span>
+              </div>
+            </div>
+
+            <div class="u-p-4">
+              <!-- 課程進度顯示 -->
+              <div class="u-mb-4">
+                <div class="u-flex u-justify-between u-mb-1">
+                  <span class="u-text-sm u-font-medium">課程進度</span>
+                  <span class="u-text-sm u-font-medium"
+                    >{{ course.progress }}%</span
+                  >
+                </div>
+                <a-progress
+                  :percent="course.progress"
+                  :stroke-color="{ from: '#108ee9', to: '#87d068' }"
+                />
+              </div>
+
+              <!-- 作業列表 -->
+              <div class="u-mb-4">
+                <div class="u-flex u-justify-between u-mb-2">
+                  <h4 class="u-font-medium">作業列表</h4>
+                  <a-button
+                    v-if="isTeacher"
+                    type="link"
+                    size="small"
+                    @click="handleAddAssignment(course.id)"
+                  >
+                    新增作業
+                  </a-button>
+                </div>
+
+                <a-list
+                  size="small"
+                  :data-source="course.assignments"
+                  :pagination="false"
+                >
+                  <template #renderItem="{ item }">
+                    <a-list-item>
+                      <div class="u-w-full">
+                        <div class="u-flex u-justify-between u-items-center">
+                          <div class="u-font-medium">{{ item.title }}</div>
+                          <a-tag :color="getStatusColor(item.status)">{{
+                            getStatusText(item.status)
+                          }}</a-tag>
+                        </div>
+                        <div class="u-text-xs u-text-gray-500">
+                          截止日期：{{ item.dueDate }}
+                        </div>
+
+                        <!-- 學生視角：上傳作業 -->
+                        <div v-if="!isTeacher" class="u-mt-2">
+                          <div
+                            v-if="
+                              item.status === 'submitted' ||
+                              item.status === 'graded'
+                            "
+                          >
+                            <div
+                              class="u-flex u-justify-between u-items-center"
+                            >
+                              <span class="u-text-xs"
+                                >已繳交: {{ item.fileName }}</span
+                              >
+                              <a-button
+                                type="link"
+                                size="small"
+                                @click="handleResubmit(course.id, item.id)"
+                              >
+                                重新繳交
+                              </a-button>
+                            </div>
+                          </div>
+                          <a-upload
+                            v-else
+                            :file-list="[]"
+                            :before-upload="
+                              (file) => beforeUpload(file, course.id, item.id)
+                            "
+                            :show-upload-list="false"
+                          >
+                            <a-button
+                              size="small"
+                              :disabled="
+                                item.status === AssignmentStatus.CLOSED
+                              "
+                            >
+                              繳交作業
+                            </a-button>
+                          </a-upload>
+                        </div>
+
+                        <!-- 老師視角：查看學生繳交作業 -->
+                        <div v-else class="u-mt-2">
+                          <a-button
+                            type="primary"
+                            size="small"
+                            @click="handleViewSubmissions(course.id, item.id)"
+                          >
+                            查看繳交狀況
+                          </a-button>
+                        </div>
+                      </div>
+                    </a-list-item>
+                  </template>
+                </a-list>
+              </div>
+
+              <!-- 課程操作 -->
+              <div class="u-flex u-justify-end u-gap-2">
+                <a-button
+                  size="small"
+                  @click="handleViewCourseDetail(course.id)"
+                >
+                  查看課程詳情
+                </a-button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </a-spin>
+    </div>
+
+    <!-- 新增作業對話框 (教師) -->
+    <a-modal
+      v-model:visible="addAssignmentModal.visible"
+      title="新增作業"
+      @ok="confirmAddAssignment"
+      okText="確認"
+      cancelText="取消"
+    >
+      <a-form :model="addAssignmentModal.form" layout="vertical">
+        <a-form-item
+          label="作業標題"
+          name="title"
+          :rules="[{ required: true, message: '請輸入作業標題' }]"
+        >
+          <a-input
+            v-model:value="addAssignmentModal.form.title"
+            placeholder="請輸入作業標題"
+          />
+        </a-form-item>
+        <a-form-item label="作業描述" name="description">
+          <a-textarea
+            v-model:value="addAssignmentModal.form.description"
+            placeholder="請輸入作業描述"
+            :rows="4"
+          />
+        </a-form-item>
+        <a-form-item
+          label="截止日期"
+          name="dueDate"
+          :rules="[{ required: true, message: '請選擇截止日期' }]"
+        >
+          <a-date-picker
+            v-model:value="addAssignmentModal.form.dueDate"
+            style="width: 100%"
+            format="YYYY-MM-DD"
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
+
+    <!-- 查看作業繳交狀況對話框 (教師) -->
+    <a-modal
+      v-model:visible="viewSubmissionsModal.visible"
+      title="學生作業繳交狀況"
+      width="800px"
+      footer="{null}"
+      @cancel="viewSubmissionsModal.visible = false"
+    >
+      <a-table
+        :columns="studentSubmissionColumns"
+        :data-source="viewSubmissionsModal.data"
+        rowKey="id"
+        :pagination="{ pageSize: 10 }"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.dataIndex === 'file'">
+            <a
+              v-if="record.file"
+              :href="record.file.url"
+              target="_blank"
+              @click="handleFileClick(record.file)"
+            >
+              {{ record.file.name }}
+            </a>
+            <span v-else>尚未繳交</span>
+          </template>
+          <template v-if="column.dataIndex === 'status'">
+            <a-tag :color="getStatusColor(record.status)">{{
+              getStatusText(record.status)
+            }}</a-tag>
+          </template>
+          <template v-if="column.dataIndex === 'action'">
+            <a-space>
+              <a-button
+                v-if="record.file"
+                type="link"
+                size="small"
+                @click="handleGradeAssignment(record.id)"
+              >
+                確認
+              </a-button>
+            </a-space>
+          </template>
+        </template>
+      </a-table>
+    </a-modal>
+  </div>
+</template>

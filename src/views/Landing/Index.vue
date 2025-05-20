@@ -313,7 +313,7 @@ const otherColumns = [
     <div
       class="u-p24px u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
-      <div class="u-flex u-justify-between u-items-center u-mb-2">
+      <div class="u-flex u-justify-between u-items-center u-mb16px">
         <h1 class="u-text-24px u-font-bold u-c-blue u-m0">
           {{ "最新消息" }}
         </h1>

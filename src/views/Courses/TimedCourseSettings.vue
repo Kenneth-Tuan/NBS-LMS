@@ -1,12 +1,17 @@
 <script setup>
 import { reactive, onMounted, ref } from "vue";
+import dayjs from "dayjs";
+import { Divider } from "ant-design-vue";
+
 import { dummyCourseData } from "@/data/dummy";
 import { timeCourseSettingsSchema } from "@/schemas/timeCourseSettings.schema";
-import { Divider } from "ant-design-vue";
 
 const formState = reactive({
   ["selectable-courses"]: [5128, 5122, 5301, 5169, 5199, 5302],
-  ["range-time-picker"]: ["2025-05-01 03:00:00", "2025-05-30 18:45:59"],
+  ["range-time-picker"]: [
+    dayjs().format("YYYY-MM-DD HH:mm:ss"),
+    dayjs().add(14, "day").format("YYYY-MM-DD HH:mm:ss"),
+  ],
   ["courses-credit"]: 21,
 });
 
@@ -39,8 +44,8 @@ onMounted(() => {
 
 <template>
   <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
-      <h1 class="u-text-2xl u-font-bold u-mb-6 u-c-blue">限時選課設定</h1>
+    <div class="u-bg-white u-rounded-16px u-p24px u-shadow">
+      <h1 class="u-text-24px u-font-bold u-mb16px u-c-blue">限時選課設定</h1>
 
       <Divider class="u-my8px" />
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, reactive } from "vue";
 import { useRouter } from "vue-router";
 import {
   Tag as ATag,
@@ -107,6 +107,34 @@ const title = computed(() => {
   }
 });
 
+const filters = reactive({
+  keyword: "",
+  teacher: "",
+});
+
+// 教師
+const teacherOptions = computed(() => {
+  const teachers = new Set();
+  courseData.value.forEach((course) => {
+    teachers.add(course.instructor);
+  });
+  return Array.from(teachers).sort();
+});
+
+const handleReset = () => {
+  filters.keyword = "";
+  filters.teacher = "";
+};
+
+const filteredCourseData = computed(() => {
+  return courseData.value.filter((course) => {
+    return (
+      course.title.includes(filters.keyword) &&
+      course.instructor.includes(filters.teacher)
+    );
+  });
+});
+
 onMounted(() => {
   // Optional: Sort data initially by start date if desired
   // courseData.value.sort((a, b) => dayjs(a.startDate, 'YYYY.MM.DD').valueOf() - dayjs(b.startDate, 'YYYY.MM.DD').valueOf());
@@ -116,18 +144,50 @@ onMounted(() => {
 <template>
   <div class="u-p-4 u-w-full">
     <div class="u-bg-white u-rounded-16px u-p24px u-shadow">
-      <h1 class="u-text-24px u-font-bold u-mb2 u-c-blue">{{ title }}</h1>
+      <h1 class="u-text-24px u-font-bold u-mb16px u-c-blue">{{ title }}</h1>
 
       <Divider class="u-my8px" />
 
-      <!-- Add filtering options if needed -->
-      <!-- <div class="u-mb-4">
-        Filters...
-      </div> -->
+      <div class="u-mb16px u-bg-gray-50 u-p24px u-rounded-16px">
+        <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
+          <a-form-item label="課程名稱">
+            <a-input
+              v-model:value="filters.keyword"
+              placeholder="輸入課程名稱關鍵字"
+              style="width: 200px"
+              allow-clear
+            />
+          </a-form-item>
+
+          <a-form-item label="教師">
+            <a-select
+              v-model:value="filters.teacher"
+              style="width: 180px"
+              placeholder="選擇教師"
+              allow-clear
+            >
+              <a-select-option
+                v-for="teacher in teacherOptions"
+                :key="teacher"
+                :value="teacher"
+              >
+                {{ teacher }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+
+          <a-form-item>
+            <a-button v-if="false" type="primary" @click="handleSearch"
+              >查詢</a-button
+            >
+            <a-button class="u-ml-2" @click="handleReset">重置</a-button>
+          </a-form-item>
+        </a-form>
+      </div>
 
       <a-table
         :columns="columns"
-        :data-source="courseData"
+        :data-source="filteredCourseData"
         row-key="id"
         :loading="loading"
         :pagination="{ pageSize: 10 }"

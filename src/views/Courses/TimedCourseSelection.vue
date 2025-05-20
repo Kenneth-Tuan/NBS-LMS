@@ -1,283 +1,9 @@
-<template>
-  <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
-      <!-- 頁面標題 -->
-      <div class="u-flex u-justify-between u-items-center u-mb-6">
-        <h1 class="u-text-2xl u-font-bold u-c-blue">限時選課</h1>
-        <div class="u-flex u-items-center">
-          <span class="u-mr-2 u-font-bold u-text-red-500">選課開放時間：</span>
-          <a-tag color="red">
-            <span class="u-font-bold">{{ selectionPeriod }}</span>
-          </a-tag>
-          <a-tag color="green" v-if="isSelectionPeriodActive" class="u-ml-2">
-            <span class="u-font-bold">選課進行中</span>
-          </a-tag>
-          <a-tag color="default" v-else class="u-ml-2">
-            <span class="u-font-bold">選課未開放</span>
-          </a-tag>
-        </div>
-      </div>
-
-      <!-- 選課說明 -->
-      <a-alert
-        type="info"
-        showIcon
-        class="u-mb-6"
-        message="選課須知"
-        description="1. 限時選課僅開放指定時間內進行，請注意選課時間。 2. 選課有21學分的上限。 3. 部分課程有人數上限，先選先得。 4. 確認課程無時間衝突。"
-      />
-
-      <!-- 分頁標籤 -->
-      <a-tabs v-model:activeKey="activeTabKey" class="u-mb-6">
-        <a-tab-pane key="available" tab="可選課程">
-          <!-- 搜尋區塊 -->
-          <div class="u-mb-6 u-bg-gray-50 u-p-4 u-rounded-lg">
-            <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
-              <a-form-item label="課程類別">
-                <a-select
-                  v-model:value="filters.category"
-                  style="width: 180px"
-                  placeholder="選擇類別"
-                  allow-clear
-                >
-                  <a-select-option
-                    v-for="category in categoryOptions"
-                    :key="category"
-                    :value="category"
-                  >
-                    {{ category }}
-                  </a-select-option>
-                </a-select>
-              </a-form-item>
-
-              <a-form-item label="課程名稱">
-                <a-input
-                  v-model:value="filters.keyword"
-                  placeholder="輸入課程名稱關鍵字"
-                  style="width: 200px"
-                  allow-clear
-                />
-              </a-form-item>
-
-              <a-form-item label="教師">
-                <a-select
-                  v-model:value="filters.teacher"
-                  style="width: 180px"
-                  placeholder="選擇教師"
-                  allow-clear
-                >
-                  <a-select-option
-                    v-for="teacher in teacherOptions"
-                    :key="teacher"
-                    :value="teacher"
-                  >
-                    {{ teacher }}
-                  </a-select-option>
-                </a-select>
-              </a-form-item>
-
-              <a-form-item>
-                <a-button type="primary" @click="handleSearch">查詢</a-button>
-                <a-button class="u-ml-2" @click="handleReset">重置</a-button>
-              </a-form-item>
-            </a-form>
-          </div>
-
-          <div class="u-mb-4 u-flex u-justify-between u-items-center">
-            <div>
-              <!-- 移除全選功能 -->
-            </div>
-            <!-- 移除批量選課按鈕 -->
-          </div>
-
-          <!-- 可選課程表格 -->
-          <a-spin :spinning="loading">
-            <a-table
-              :dataSource="filteredAvailableCourses"
-              :columns="availableCoursesColumns"
-              rowKey="id"
-              :pagination="{ pageSize: 10 }"
-              size="middle"
-            >
-              <!-- 剩餘名額顯示 -->
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.dataIndex === 'remainingSlots'">
-                  <span
-                    :class="{
-                      'u-text-red-500': record.remainingSlots < 5,
-                      'u-font-bold': record.remainingSlots < 5,
-                    }"
-                  >
-                    {{ record.remainingSlots }}/{{ record.enrollmentLimit }}
-                  </span>
-                </template>
-                <template v-if="column.dataIndex === 'action'">
-                  <a-button
-                    type="primary"
-                    size="small"
-                    @click="handleSelectCourse(record)"
-                    :disabled="
-                      !isSelectionPeriodActive ||
-                      isCourseFull(record) ||
-                      hasCourseTimeConflict(record) ||
-                      hasReachedCreditLimit ||
-                      willExceedCreditLimit(record)
-                    "
-                  >
-                    選課
-                  </a-button>
-                  <a-tooltip
-                    v-if="isCourseFull(record) && isSelectionPeriodActive"
-                    title="課程已額滿"
-                  >
-                    <a-button class="u-ml-2" size="small" type="text">
-                      <i class="fas fa-info-circle"></i>
-                    </a-button>
-                  </a-tooltip>
-                  <a-tooltip
-                    v-if="
-                      hasCourseTimeConflict(record) && isSelectionPeriodActive
-                    "
-                    title="與已選課程時間衝突"
-                  >
-                    <a-button class="u-ml-2" size="small" type="text">
-                      <i class="fas fa-info-circle"></i>
-                    </a-button>
-                  </a-tooltip>
-                  <a-tooltip
-                    v-if="
-                      (hasReachedCreditLimit ||
-                        willExceedCreditLimit(record)) &&
-                      isSelectionPeriodActive
-                    "
-                    title="選課學分已達上限 (21學分)"
-                  >
-                    <a-button class="u-ml-2" size="small" type="text">
-                      <i class="fas fa-info-circle"></i>
-                    </a-button>
-                  </a-tooltip>
-                </template>
-              </template>
-            </a-table>
-          </a-spin>
-        </a-tab-pane>
-
-        <a-tab-pane key="selected" tab="已選課程">
-          <!-- 已選課程清單 -->
-          <div v-if="selectedCourses.length === 0" class="u-text-center u-p-10">
-            <a-empty description="尚未選擇任何課程" />
-          </div>
-
-          <div v-else>
-            <div class="u-bg-gray-50 u-p-4 u-rounded-lg u-mb-4">
-              <div class="u-flex u-justify-between u-items-center">
-                <div>
-                  <span class="u-font-bold">已選課程：</span>
-                  <span class="u-text-blue-500 u-font-bold">{{
-                    selectedCourses.length
-                  }}</span>
-                  <span class="u-ml-2 u-font-bold">總學分：</span>
-                  <span
-                    class="u-text-blue-500 u-font-bold"
-                    :class="{ 'u-text-red-500': hasReachedCreditLimit }"
-                    >{{ totalSelectedCredits }}</span
-                  >
-                  <span class="u-ml-1">/ 21</span>
-                </div>
-                <a-button
-                  type="primary"
-                  @click="handleSubmitSelection"
-                  :disabled="
-                    !isSelectionPeriodActive || selectedCourses.length === 0
-                  "
-                >
-                  確認送出選課
-                </a-button>
-              </div>
-            </div>
-
-            <a-table
-              :dataSource="selectedCourses"
-              :columns="selectedCoursesColumns"
-              rowKey="id"
-              :pagination="false"
-              size="middle"
-            >
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.dataIndex === 'action'">
-                  <a-button
-                    danger
-                    size="small"
-                    @click="handleRemoveCourse(record)"
-                    :disabled="!isSelectionPeriodActive"
-                  >
-                    退選
-                  </a-button>
-                </template>
-              </template>
-            </a-table>
-          </div>
-        </a-tab-pane>
-
-        <a-tab-pane key="schedule" tab="課表預覽">
-          <!-- 週課表預覽 -->
-          <div class="u-overflow-auto">
-            <div class="u-bg-gray-50 u-p-4 u-rounded-lg u-mb-4">
-              <div class="u-font-bold u-mb-2">
-                {{ currentSemester }} 課表預覽
-              </div>
-              <div class="u-text-sm u-text-gray-500">
-                僅顯示您已選的課程，可用來確認是否有時間衝突
-              </div>
-            </div>
-
-            <table class="timetable">
-              <thead>
-                <tr>
-                  <th class="time-column"></th>
-                  <th>星期一</th>
-                  <th>星期二</th>
-                  <th>星期三</th>
-                  <th>星期四</th>
-                  <th>星期五</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="time in timeSlots" :key="time.slot">
-                  <td class="time-column">{{ time.label }}</td>
-                  <td
-                    v-for="day in [
-                      'monday',
-                      'tuesday',
-                      'wednesday',
-                      'thursday',
-                      'friday',
-                    ]"
-                    :key="day"
-                  >
-                    <div
-                      v-for="course in getCoursesInTimeSlot(day, time.slot)"
-                      :key="course.id"
-                      class="course-cell"
-                      :style="{ backgroundColor: getCourseColor(course.id) }"
-                    >
-                      {{ course.courseName }}
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </a-tab-pane>
-      </a-tabs>
-    </div>
-  </div>
-</template>
-
 <script setup>
 import { ref, reactive, computed, onMounted, h } from "vue";
 import { message } from "ant-design-vue";
 import { useRouter } from "vue-router";
+import dayjs from "dayjs";
+
 import { RouterName } from "@/enums/appEnums";
 import { courseDetails, formatCourseTime } from "@/data/courseData";
 
@@ -296,8 +22,10 @@ const updateParams = (key, value) => {
 const CREDIT_LIMIT = 21;
 
 // 模擬資料
-const currentSemester = "2023-秋季學期";
-const selectionPeriod = "2023/08/15 09:00 - 2023/08/20 23:59";
+
+const selectionPeriod = `${dayjs().format("YYYY/MM/DD HH:mm:ss")} - ${dayjs()
+  .add(14, "day")
+  .format("YYYY/MM/DD HH:mm:ss")}`;
 const isSelectionPeriodActive = ref(true);
 const loading = ref(false);
 const activeTabKey = ref("available");
@@ -826,99 +554,282 @@ onMounted(() => {
 });
 </script>
 
-<style scoped>
-.u-p-4 {
-  padding: 1rem;
-}
-.u-p-6 {
-  padding: 1.5rem;
-}
-.u-p-10 {
-  padding: 2.5rem;
-}
-.u-w-full {
-  width: 100%;
-}
-.u-bg-white {
-  background-color: white;
-}
-.u-bg-gray-50 {
-  background-color: #f9fafb;
-}
-.u-rounded-lg {
-  border-radius: 0.5rem;
-}
-.u-shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-.u-text-2xl {
-  font-size: 1.5rem;
-}
-.u-text-lg {
-  font-size: 1.125rem;
-}
-.u-text-sm {
-  font-size: 0.875rem;
-}
-.u-text-xs {
-  font-size: 0.75rem;
-}
-.u-font-bold {
-  font-weight: bold;
-}
-.u-text-red-500 {
-  color: #f56c6c;
-}
-.u-text-blue-500 {
-  color: #1890ff;
-}
-.u-text-gray-500 {
-  color: #6b7280;
-}
-.u-mb-2 {
-  margin-bottom: 0.5rem;
-}
-.u-mb-4 {
-  margin-bottom: 1rem;
-}
-.u-mb-6 {
-  margin-bottom: 1.5rem;
-}
-.u-mr-2 {
-  margin-right: 0.5rem;
-}
-.u-ml-1 {
-  margin-left: 0.25rem;
-}
-.u-ml-2 {
-  margin-left: 0.5rem;
-}
-.u-c-blue {
-  color: #1890ff;
-}
-.u-flex {
-  display: flex;
-}
-.u-items-center {
-  align-items: center;
-}
-.u-justify-between {
-  justify-content: space-between;
-}
-.u-flex-wrap {
-  flex-wrap: wrap;
-}
-.u-gap-4 {
-  gap: 1rem;
-}
-.u-text-center {
-  text-align: center;
-}
-.u-overflow-auto {
-  overflow: auto;
-}
+<template>
+  <div class="u-p-4 u-w-full">
+    <div class="u-bg-white u-rounded-16px u-p24px u-shadow">
+      <!-- 頁面標題 -->
+      <div class="u-flex u-justify-between u-items-center u-mb16px">
+        <h1 class="u-text-24px u-font-bold u-c-blue">限時選課</h1>
 
+        <div class="u-flex u-items-center">
+          <span class="u-mr-2 u-font-bold u-text-red-500">選課開放時間：</span>
+          <a-tag color="red">
+            <span class="u-font-bold">{{ selectionPeriod }}</span>
+          </a-tag>
+          <a-tag color="green" v-if="isSelectionPeriodActive" class="u-ml-2">
+            <span class="u-font-bold">選課進行中</span>
+          </a-tag>
+          <a-tag color="default" v-else class="u-ml-2">
+            <span class="u-font-bold">選課未開放</span>
+          </a-tag>
+        </div>
+      </div>
+
+      <!-- 選課說明 -->
+      <!-- <a-alert
+        type="info"
+        showIcon
+        class="u-mb-6"
+        message="選課須知"
+        description="1. 限時選課僅開放指定時間內進行，請注意選課時間。 2. 選課有21學分的上限。 3. 部分課程有人數上限，先選先得。 4. 確認課程無時間衝突。"
+      /> -->
+
+      <!-- 分頁標籤 -->
+      <a-tabs v-model:activeKey="activeTabKey" class="u-mb-6">
+        <a-tab-pane key="available" tab="可選課程">
+          <!-- 搜尋區塊 -->
+          <div class="u-mb-6 u-bg-gray-50 u-p-4 u-rounded-lg">
+            <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
+              <a-form-item label="課程類別">
+                <a-select
+                  v-model:value="filters.category"
+                  style="width: 180px"
+                  placeholder="選擇類別"
+                  allow-clear
+                >
+                  <a-select-option
+                    v-for="category in categoryOptions"
+                    :key="category"
+                    :value="category"
+                  >
+                    {{ category }}
+                  </a-select-option>
+                </a-select>
+              </a-form-item>
+
+              <a-form-item label="課程名稱">
+                <a-input
+                  v-model:value="filters.keyword"
+                  placeholder="輸入課程名稱關鍵字"
+                  style="width: 200px"
+                  allow-clear
+                />
+              </a-form-item>
+
+              <a-form-item label="教師">
+                <a-select
+                  v-model:value="filters.teacher"
+                  style="width: 180px"
+                  placeholder="選擇教師"
+                  allow-clear
+                >
+                  <a-select-option
+                    v-for="teacher in teacherOptions"
+                    :key="teacher"
+                    :value="teacher"
+                  >
+                    {{ teacher }}
+                  </a-select-option>
+                </a-select>
+              </a-form-item>
+
+              <a-form-item>
+                <a-button type="primary" @click="handleSearch">查詢</a-button>
+                <a-button class="u-ml-2" @click="handleReset">重置</a-button>
+              </a-form-item>
+            </a-form>
+          </div>
+
+          <div class="u-mb-4 u-flex u-justify-between u-items-center">
+            <div>
+              <!-- 移除全選功能 -->
+            </div>
+            <!-- 移除批量選課按鈕 -->
+          </div>
+
+          <!-- 可選課程表格 -->
+          <a-spin :spinning="loading">
+            <a-table
+              :dataSource="filteredAvailableCourses"
+              :columns="availableCoursesColumns"
+              rowKey="id"
+              :pagination="{ pageSize: 10 }"
+              size="middle"
+            >
+              <!-- 剩餘名額顯示 -->
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.dataIndex === 'remainingSlots'">
+                  <span
+                    :class="{
+                      'u-text-red-500': record.remainingSlots < 5,
+                      'u-font-bold': record.remainingSlots < 5,
+                    }"
+                  >
+                    {{ record.remainingSlots }}/{{ record.enrollmentLimit }}
+                  </span>
+                </template>
+                <template v-if="column.dataIndex === 'action'">
+                  <a-button
+                    type="primary"
+                    size="small"
+                    @click="handleSelectCourse(record)"
+                    :disabled="
+                      !isSelectionPeriodActive ||
+                      isCourseFull(record) ||
+                      hasCourseTimeConflict(record) ||
+                      hasReachedCreditLimit ||
+                      willExceedCreditLimit(record)
+                    "
+                  >
+                    選課
+                  </a-button>
+                  <a-tooltip
+                    v-if="isCourseFull(record) && isSelectionPeriodActive"
+                    title="課程已額滿"
+                  >
+                    <a-button class="u-ml-2" size="small" type="text">
+                      <i class="fas fa-info-circle"></i>
+                    </a-button>
+                  </a-tooltip>
+                  <a-tooltip
+                    v-if="
+                      hasCourseTimeConflict(record) && isSelectionPeriodActive
+                    "
+                    title="與已選課程時間衝突"
+                  >
+                    <a-button class="u-ml-2" size="small" type="text">
+                      <i class="fas fa-info-circle"></i>
+                    </a-button>
+                  </a-tooltip>
+                  <a-tooltip
+                    v-if="
+                      (hasReachedCreditLimit ||
+                        willExceedCreditLimit(record)) &&
+                      isSelectionPeriodActive
+                    "
+                    title="選課學分已達上限 (21學分)"
+                  >
+                    <a-button class="u-ml-2" size="small" type="text">
+                      <i class="fas fa-info-circle"></i>
+                    </a-button>
+                  </a-tooltip>
+                </template>
+              </template>
+            </a-table>
+          </a-spin>
+        </a-tab-pane>
+
+        <a-tab-pane key="selected" tab="已選課程">
+          <!-- 已選課程清單 -->
+          <div v-if="selectedCourses.length === 0" class="u-text-center u-p-10">
+            <a-empty description="尚未選擇任何課程" />
+          </div>
+
+          <div v-else>
+            <div class="u-bg-gray-50 u-p-4 u-rounded-lg u-mb-4">
+              <div class="u-flex u-justify-between u-items-center">
+                <div>
+                  <span class="u-font-bold">已選課程：</span>
+                  <span class="u-text-blue-500 u-font-bold">{{
+                    selectedCourses.length
+                  }}</span>
+                  <span class="u-ml-2 u-font-bold">總學分：</span>
+                  <span
+                    class="u-text-blue-500 u-font-bold"
+                    :class="{ 'u-text-red-500': hasReachedCreditLimit }"
+                    >{{ totalSelectedCredits }}</span
+                  >
+                  <span class="u-ml-1">/ 21</span>
+                </div>
+                <a-button
+                  type="primary"
+                  @click="handleSubmitSelection"
+                  :disabled="
+                    !isSelectionPeriodActive || selectedCourses.length === 0
+                  "
+                >
+                  確認送出選課
+                </a-button>
+              </div>
+            </div>
+
+            <a-table
+              :dataSource="selectedCourses"
+              :columns="selectedCoursesColumns"
+              rowKey="id"
+              :pagination="false"
+              size="middle"
+            >
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.dataIndex === 'action'">
+                  <a-button
+                    danger
+                    size="small"
+                    @click="handleRemoveCourse(record)"
+                    :disabled="!isSelectionPeriodActive"
+                  >
+                    退選
+                  </a-button>
+                </template>
+              </template>
+            </a-table>
+          </div>
+        </a-tab-pane>
+
+        <a-tab-pane key="schedule" tab="課表預覽">
+          <!-- 週課表預覽 -->
+          <div class="u-overflow-auto">
+            <div class="u-bg-gray-50 u-p-4 u-rounded-lg u-mb-4">
+              <div class="u-font-bold u-mb-2">課表預覽</div>
+              <div class="u-text-sm u-text-gray-500">
+                僅顯示您已選的課程，可用來確認是否有時間衝突
+              </div>
+            </div>
+
+            <table class="timetable">
+              <thead>
+                <tr>
+                  <th class="time-column"></th>
+                  <th>星期一</th>
+                  <th>星期二</th>
+                  <th>星期三</th>
+                  <th>星期四</th>
+                  <th>星期五</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="time in timeSlots" :key="time.slot">
+                  <td class="time-column">{{ time.label }}</td>
+                  <td
+                    v-for="day in [
+                      'monday',
+                      'tuesday',
+                      'wednesday',
+                      'thursday',
+                      'friday',
+                    ]"
+                    :key="day"
+                  >
+                    <div
+                      v-for="course in getCoursesInTimeSlot(day, time.slot)"
+                      :key="course.id"
+                      class="course-cell"
+                      :style="{ backgroundColor: getCourseColor(course.id) }"
+                    >
+                      {{ course.courseName }}
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </a-tab-pane>
+      </a-tabs>
+    </div>
+  </div>
+</template>
+
+<style scoped>
 /* 課表樣式 */
 .timetable {
   width: 100%;
