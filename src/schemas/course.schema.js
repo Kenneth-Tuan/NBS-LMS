@@ -1,7 +1,3 @@
-import dayjs from "dayjs";
-
-import { dummyCourseData } from "@/data/dummy";
-
 const courseSchema = {
   title: {
     label: "課程名稱",
@@ -144,10 +140,7 @@ const courseSchema = {
   },
   prerequisites: {
     label: "先修課程",
-    options: dummyCourseData.map((course) => ({
-      label: course.title,
-      value: course.id,
-    })),
+    options: [],
     placeholder: "請選擇先修課程 (可多選)",
   },
   outlineFile: {

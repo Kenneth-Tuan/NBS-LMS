@@ -122,7 +122,7 @@ onUnmounted(() => {
       <div class="u-flex-1"></div>
 
       <!-- DEV ONLY: Role Switcher -->
-      <div v-if="isLoggedIn" class="u-mx-2">
+      <div v-if="false" class="u-mx-2">
         <a-select
           :value="userProfile.userRole"
           style="width: 120px"

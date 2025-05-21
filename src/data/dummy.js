@@ -1,5 +1,4 @@
 import dayjs from "dayjs"; // Import dayjs for date calculations
-import { UserRole } from "../enums/appEnums";
 
 const dummyNewsData = [
   {
@@ -1214,43 +1213,9 @@ const dummyCourseData = [
   },
 ];
 
-const dummyUserData = [
-  {
-    userEmail: "nightCat@mail.com",
-    password: "12345678",
-    userName: "夜喵",
-    userRole: UserRole.Admin,
-  },
-  {
-    userEmail: "admin@test.com",
-    password: "12345678",
-    userName: "院長",
-    userRole: UserRole.Admin,
-  },
-  {
-    userEmail: "manager@test.com",
-    password: "12345678",
-    userName: "管理員",
-    userRole: UserRole.Manager,
-  },
-  {
-    userEmail: "teacher@test.com",
-    password: "12345678",
-    userName: "老師",
-    userRole: UserRole.Teacher,
-  },
-  {
-    userEmail: "student@tests.com",
-    password: "12345678",
-    userName: "學生",
-    userRole: UserRole.Student,
-  },
-];
-
 export {
   dummyNewsData,
   dummyNoticeData,
   dummyAnnouncementData,
   dummyCourseData,
-  dummyUserData,
 };

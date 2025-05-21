@@ -7,7 +7,6 @@ import {
   BellOutlined,
 } from "@ant-design/icons-vue";
 
-// router name enums (using kebab-case strings consistent with router setup)
 export enum RouterName {
   LandingPage = "landing-page",
   Dashboard = "dashboard",
@@ -18,19 +17,20 @@ export enum RouterName {
   CourseList = "course-list",
   CourseCreate = "course-create",
   CourseReview = "course-review",
-  CourseAssignments = "course-assignments", // Added from JS
+  CourseAssignments = "course-assignments",
+  CourseManagementHub = "course-management-hub",
   InternshipApplication = "internship-application",
   LeaveApplication = "leave-application",
   SubsidyApplication = "subsidy-application",
   ApplicationRecord = "application-record",
-  CourseRecord = "course-record", // Added from JS
-  GradeDetail = "grade-detail", // Added from JS
-  TimedCourseSelection = "timed-course-selection", // Added from JS
-  TimedCourseSettings = "timed-course-settings", // Added from JS
-  CourseOverview = "course-overview", // Added New Overview Route
-  AdminCourseDetail = "admin-course-detail", // NEW Admin Detail Route
-  UserManagement = "user-management", // User Management Route
-  Notifications = "notifications", // 新增通知頁面 Route
+  CourseRecord = "course-record",
+  GradeDetail = "grade-detail",
+  TimedCourseSelection = "timed-course-selection",
+  TimedCourseSettings = "timed-course-settings",
+  CourseOverview = "course-overview",
+  AdminCourseDetail = "admin-course-detail",
+  UserManagement = "user-management",
+  Notifications = "notifications",
 }
 
 // user role enums
@@ -38,7 +38,7 @@ export enum UserRole {
   Creator = "creator",
   Admin = "admin",
   Manager = "manager",
-  Teacher = "teacher", // Swapped Teacher/Student order for consistency if needed, keeping JS values
+  Teacher = "teacher",
   Student = "student",
 }
 
@@ -127,11 +127,17 @@ export const MenuItems = [
         key: "course-assignments",
         label: "本期課程",
         route: { name: RouterName.CourseAssignments },
+        roles: [UserRole.Creator, UserRole.Teacher, UserRole.Student],
+      },
+      {
+        key: RouterName.CourseManagementHub,
+        label: "課程管理中心",
+        route: { name: RouterName.CourseManagementHub },
         roles: [
           UserRole.Creator,
+          UserRole.Admin,
           UserRole.Manager,
           UserRole.Teacher,
-          UserRole.Student,
         ],
       },
       // {

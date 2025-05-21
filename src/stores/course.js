@@ -187,6 +187,7 @@ export const useCourseStore = defineStore(
           throw error;
         } else {
           await courseService.getTeachers();
+          await courseService.getPrerequisites();
           resetForm();
           message.success("課程已成功建立");
         }

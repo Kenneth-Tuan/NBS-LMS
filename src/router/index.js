@@ -78,6 +78,21 @@ const routes = [
     },
   },
   {
+    path: "/courses/:id/manage",
+    name: RouterName.CourseManagementHub,
+    component: () => import("@/views/Courses/CourseManagementHub.vue"),
+    meta: {
+      title: "課程管理中心 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+      roles: [
+        UserRole.Teacher,
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Creator,
+      ],
+    },
+  },
+  {
     path: "/internship-application",
     name: RouterName.InternshipApplication,
     component: () => import("@/views/Applications/InternshipApplication.vue"),
@@ -211,28 +226,28 @@ router.beforeEach(async (to, from, next) => {
   document.title = to.meta.title || "拿撒勒人會神學院 選課系統";
 
   // Consolidated Role Check
-  // if (
-  //   to.meta.roles &&
-  //   Array.isArray(to.meta.roles) &&
-  //   to.meta.roles.length > 0
-  // ) {
-  //   const userStore = useUserStore();
-  //   const userRole = userStore.userProfile.userRole;
+  if (
+    to.meta.roles &&
+    Array.isArray(to.meta.roles) &&
+    to.meta.roles.length > 0
+  ) {
+    const userStore = useUserStore();
+    const userRole = userStore.userProfile.userRole;
 
-  //   // Check if user has one of the required roles
-  //   if (!to.meta.roles.includes(userRole)) {
-  //     console.warn(
-  //       `Access denied: Route ${String(
-  //         to.name
-  //       )} requires roles ${to.meta.roles.join(
-  //         ","
-  //       )}, but user has role ${userRole}.`
-  //     );
-  //     // Redirect to landing page or a suitable default page
-  //     next({ name: RouterName.LandingPage });
-  //     return; // Important to return after calling next() with a new route
-  //   }
-  // }
+    // Check if user has one of the required roles
+    if (!to.meta.roles.includes(userRole)) {
+      console.warn(
+        `Access denied: Route ${String(
+          to.name
+        )} requires roles ${to.meta.roles.join(
+          ","
+        )}, but user has role ${userRole}.`
+      );
+      // Redirect to landing page or a suitable default page
+      next({ name: RouterName.LandingPage });
+      return; // Important to return after calling next() with a new route
+    }
+  }
 
   // If no roles specified or user has the required role, proceed
   next();

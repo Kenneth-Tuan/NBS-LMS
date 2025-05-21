@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, reactive, onMounted } from "vue";
+import { v4 as uuidv4 } from "uuid";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { useRouter } from "vue-router";
@@ -10,28 +11,49 @@ import {
   handleFileSubmission,
   getSubmissionsByAssignment,
 } from "@/stores/course";
+import { useUserStore } from "@/stores/user";
 
-// 路由
 const router = useRouter();
-
-// 用戶角色 (模擬用)
-const userRole = ref(UserRole.Student);
+const { userProfile } = useUserStore();
 
 // 學期列表
-const semesterList = ["2022-秋季", "2023-春季", "2023-秋季", "2024-春季"];
 
-// 搜尋條件
 const searchSemester = ref("");
 const searchCourseName = ref("");
 
-// 加載狀態
 const loading = ref(false);
 
-// 用戶是否為教師
-const isTeacher = computed(() => userRole.value === UserRole.Teacher);
+const isTeacher = computed(() => userProfile.userRole === UserRole.Teacher);
 
 // 模擬課程資料
 const courses = ref([
+  {
+    id: uuidv4(),
+    name: "新約概論",
+    class_mode: "線上",
+    duration: 10,
+    credit: 3,
+    teacher: "王大明牧師",
+    start_date: "2025-04-30",
+    end_date: "2026-04-30",
+    enrollment_limit: 25,
+    weekly_schedule: [
+      {
+        week_day: "週一",
+        start_time: "10:00",
+        end_time: "12:00",
+      },
+      {
+        week_day: "週三",
+        start_time: "14:00",
+        end_time: "16:00",
+      },
+    ],
+    prerequisite_course_ids: [],
+    description: "新約概論, 王大明牧師. 線上課程, 10小時, 3學分",
+    outline_files: [],
+    assignments: [],
+  },
   {
     id: "1",
     courseName: "新約概論",
@@ -272,13 +294,6 @@ const handleReset = () => {
   searchSemester.value = "";
   searchCourseName.value = "";
   handleSearch();
-};
-
-// 切換角色
-const handleRoleChange = () => {
-  message.info(
-    `已切換為${userRole.value === UserRole.Teacher ? "教師" : "學生"}身份`
-  );
 };
 
 // 查看課程詳情
@@ -542,7 +557,7 @@ onMounted(() => {
       <!-- 搜尋區塊 -->
       <div class="u-mb16px u-bg-gray-50 u-p24px u-rounded-16px">
         <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
-          <a-form-item label="學期">
+          <!-- <a-form-item label="學期">
             <a-select
               v-model:value="searchSemester"
               style="width: 180px"
@@ -557,7 +572,7 @@ onMounted(() => {
                 {{ semesterInList }}
               </a-select-option>
             </a-select>
-          </a-form-item>
+          </a-form-item> -->
 
           <a-form-item label="課程名稱">
             <a-input
