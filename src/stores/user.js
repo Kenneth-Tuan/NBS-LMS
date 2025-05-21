@@ -1,10 +1,8 @@
-import { defineStore } from "pinia";
-
+import { defineStore, storeToRefs } from "pinia";
 import { ref, reactive, computed } from "vue";
 
 import { UserRole } from "../enums/appEnums";
-
-import userApi from "@/apis/user";
+import { useUserManagementStore } from "./userManagement";
 
 export const useUserStore = defineStore(
   "user",
@@ -27,15 +25,27 @@ export const useUserStore = defineStore(
       return $cookies.get("ApiToken");
     }
 
-    async function fetchUserProfile() {
-      try {
-        const {
-          data: { userProfile },
-        } = await userApi.getUserProfile();
-        setUserProfile(userProfile);
-      } catch (error) {
-        throw new Error("fetchUserProfile failed");
+    async function fetchUserProfile(userEmail) {
+      const userManagementStore = useUserManagementStore();
+      const { users } = storeToRefs(userManagementStore);
+
+      const user = users.value.find((user) => user.email === userEmail);
+
+      if (user) {
+        userProfile.userName = user.name;
+        userProfile.userEmail = user.email;
+        userProfile.userTel = user.telephone;
+      } else {
+        throw new Error("User not found");
       }
+      // try {
+      //   const {
+      //     data: { userProfile },
+      //   } = await userApi.getUserProfile();
+      //   setUserProfile(userProfile);
+      // } catch (error) {
+      //   throw new Error("fetchUserProfile failed");
+      // }
     }
 
     function setUserProfile(payload) {

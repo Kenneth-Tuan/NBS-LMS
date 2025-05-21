@@ -129,17 +129,6 @@ export const MenuItems = [
         route: { name: RouterName.CourseAssignments },
         roles: [UserRole.Creator, UserRole.Teacher, UserRole.Student],
       },
-      {
-        key: RouterName.CourseManagementHub,
-        label: "課程管理中心",
-        route: { name: RouterName.CourseManagementHub },
-        roles: [
-          UserRole.Creator,
-          UserRole.Admin,
-          UserRole.Manager,
-          UserRole.Teacher,
-        ],
-      },
       // {
       //   key: "course-record",
       //   label: "修課紀錄",

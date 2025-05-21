@@ -28,33 +28,6 @@ const isTeacher = computed(() => userProfile.userRole === UserRole.Teacher);
 // 模擬課程資料
 const courses = ref([
   {
-    id: uuidv4(),
-    name: "新約概論",
-    class_mode: "線上",
-    duration: 10,
-    credit: 3,
-    teacher: "王大明牧師",
-    start_date: "2025-04-30",
-    end_date: "2026-04-30",
-    enrollment_limit: 25,
-    weekly_schedule: [
-      {
-        week_day: "週一",
-        start_time: "10:00",
-        end_time: "12:00",
-      },
-      {
-        week_day: "週三",
-        start_time: "14:00",
-        end_time: "16:00",
-      },
-    ],
-    prerequisite_course_ids: [],
-    description: "新約概論, 王大明牧師. 線上課程, 10小時, 3學分",
-    outline_files: [],
-    assignments: [],
-  },
-  {
     id: "1",
     courseName: "新約概論",
     semester: "2024-春季",

@@ -7,10 +7,13 @@ import { useUserStore } from "../stores/user";
 import { storeToRefs } from "pinia";
 import { UserRole } from "../enums/appEnums";
 import { loginService } from "../services/login.service";
+import { useUserManagementStore } from "../stores/userManagement";
 
 const userStore = useUserStore();
 const { loginDialogOpen } = storeToRefs(userStore);
-const { updateLoginDialogOpen, setUserRole } = userStore;
+const { updateLoginDialogOpen, setUserRole, fetchUserProfile } = userStore;
+
+const userManagementStore = useUserManagementStore();
 
 const formState = reactive({
   userEmail: "",
@@ -52,7 +55,10 @@ const onFinish = async () => {
         key: "login",
         duration: 2,
       });
+
       setUserRole(formState.userRole);
+      await userManagementStore.fetchUsers();
+      fetchUserProfile(formState.userEmail);
       updateLoginDialogOpen(false);
     } else throw new Error("Login Failed!");
 

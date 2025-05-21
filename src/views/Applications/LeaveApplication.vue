@@ -1,3 +1,105 @@
+<script setup>
+import { ref, reactive } from "vue";
+import { UploadOutlined } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
+
+import { useApplicationStore } from "@/stores/application";
+import { useCourseStore } from "../../stores/course";
+import { courseSchema } from "../../schemas/course.schema";
+
+const applicationStore = useApplicationStore();
+const { applicationForm, leaveApplicationForm, resetForm, submitForm } =
+  applicationStore;
+
+const courseStore = useCourseStore();
+
+// 輔助函數來獲取表單欄位
+const formField = (fieldName) => {
+  return applicationForm[fieldName];
+};
+
+const formState = reactive({});
+
+const rangeConfig = {
+  rules: [
+    {
+      type: "array",
+      required: true,
+      message: "Please select time!",
+    },
+  ],
+};
+
+// 檔案上傳相關
+const fileList = ref([]);
+const handleFileChange = (info) => {
+  let fileList = [...info.fileList];
+
+  // 限制檔案數量
+  fileList = fileList.slice(-3);
+
+  // 更新檔案列表
+  fileList.value = fileList;
+
+  // 提取上傳檔案名稱並更新表單值
+  if (fileList.length > 0) {
+    const fileNames = fileList.map((file) => file.name).join(", ");
+    formField("supplementaryMaterials").value = fileNames;
+  } else {
+    formField("supplementaryMaterials").value = "";
+  }
+};
+
+const handlePreview = (file) => {
+  // 實際應用中，這裡可能會開啟檔案預覽
+  console.log("Preview file:", file);
+};
+
+// 狀態變量
+const submitting = ref(false);
+const successVisible = ref(false);
+const submittedId = ref("");
+
+// 提交表單
+const handleSubmit = async () => {
+  try {
+    submitting.value = true;
+
+    // 調用 store 中的提交函數
+    const result = await submitForm("leave");
+
+    // 提交成功處理
+    submittedId.value = result.id;
+    successVisible.value = true;
+  } catch (error) {
+    // 提交失敗處理
+    message.error(error.message || "表單提交失敗，請檢查填寫內容");
+  } finally {
+    submitting.value = false;
+  }
+};
+
+// 重置表單
+const handleReset = () => {
+  resetForm();
+  fileList.value = [];
+};
+
+// 成功提示框確認
+const handleSuccessOk = () => {
+  successVisible.value = false;
+};
+
+const filterOption = (input, option) => {
+  // Check if option.label exists and is a string before calling toLowerCase
+  return (
+    option.label &&
+    typeof option.label === "string" &&
+    option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
+  );
+};
+</script>
+
 <template>
   <div class="u-p-4 u-w-full">
     <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
@@ -64,29 +166,41 @@
         <a-row :gutter="16">
           <a-col :span="12">
             <a-form-item
-              label="請假開始日期"
-              :validateStatus="formField('leaveStartDate').err ? 'error' : ''"
-              :help="formField('leaveStartDate').errMsg"
+              name="range-time-picker"
+              label="請假時間"
+              v-bind="rangeConfig"
             >
-              <a-input
-                v-model:value="formField('leaveStartDate').value"
-                placeholder="YYYY/MM/DD"
-                v-mask="formField('leaveStartDate').mask"
+              <a-range-picker
+                v-model:value="formState['range-time-picker']"
+                show-time
+                format="YYYY-MM-DD HH:mm:ss"
+                value-format="YYYY-MM-DD HH:mm:ss"
+                class="u-w-full"
               />
             </a-form-item>
           </a-col>
 
           <a-col :span="12">
-            <a-form-item
-              label="請假結束日期"
-              :validateStatus="formField('leaveEndDate').err ? 'error' : ''"
-              :help="formField('leaveEndDate').errMsg"
-            >
-              <a-input
-                v-model:value="formField('leaveEndDate').value"
-                placeholder="YYYY/MM/DD"
-                v-mask="formField('leaveEndDate').mask"
-              />
+            <a-form-item label="請假課程" name="prerequisites">
+              <a-select
+                v-model:value="courseStore.courseForm.prerequisites"
+                mode="multiple"
+                placeholder="請選擇請假課程"
+                :options="courseStore.courseInfos.prerequisites"
+                allow-clear
+                class="u-w-full"
+                :filter-option="filterOption"
+              >
+                <!-- Optional: Customize tag rendering -->
+                <template #tagRender="{ label, closable, onClose }">
+                  <a-tag
+                    :closable="closable"
+                    @close="onClose"
+                    style="margin-right: 3px"
+                    >{{ label }}</a-tag
+                  >
+                </template>
+              </a-select>
             </a-form-item>
           </a-col>
 
@@ -161,110 +275,3 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, computed } from "vue";
-import { useApplicationStore } from "@/stores/application";
-import { message } from "ant-design-vue";
-import { UploadOutlined } from "@ant-design/icons-vue";
-
-const applicationStore = useApplicationStore();
-const { applicationForm, leaveApplicationForm, resetForm, submitForm } =
-  applicationStore;
-
-// 輔助函數來獲取表單欄位
-const formField = (fieldName) => {
-  return applicationForm[fieldName];
-};
-
-// 檔案上傳相關
-const fileList = ref([]);
-const handleFileChange = (info) => {
-  let fileList = [...info.fileList];
-
-  // 限制檔案數量
-  fileList = fileList.slice(-3);
-
-  // 更新檔案列表
-  fileList.value = fileList;
-
-  // 提取上傳檔案名稱並更新表單值
-  if (fileList.length > 0) {
-    const fileNames = fileList.map((file) => file.name).join(", ");
-    formField("supplementaryMaterials").value = fileNames;
-  } else {
-    formField("supplementaryMaterials").value = "";
-  }
-};
-
-const handlePreview = (file) => {
-  // 實際應用中，這裡可能會開啟檔案預覽
-  console.log("Preview file:", file);
-};
-
-// 狀態變量
-const submitting = ref(false);
-const successVisible = ref(false);
-const submittedId = ref("");
-
-// 提交表單
-const handleSubmit = async () => {
-  try {
-    submitting.value = true;
-
-    // 調用 store 中的提交函數
-    const result = await submitForm("leave");
-
-    // 提交成功處理
-    submittedId.value = result.id;
-    successVisible.value = true;
-  } catch (error) {
-    // 提交失敗處理
-    message.error(error.message || "表單提交失敗，請檢查填寫內容");
-  } finally {
-    submitting.value = false;
-  }
-};
-
-// 重置表單
-const handleReset = () => {
-  resetForm();
-  fileList.value = [];
-};
-
-// 成功提示框確認
-const handleSuccessOk = () => {
-  successVisible.value = false;
-};
-</script>
-
-<style scoped>
-.u-p-4 {
-  padding: 1rem;
-}
-.u-w-full {
-  width: 100%;
-}
-.u-bg-white {
-  background-color: white;
-}
-.u-rounded-lg {
-  border-radius: 0.5rem;
-}
-.u-p-6 {
-  padding: 1.5rem;
-}
-.u-shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-.u-text-2xl {
-  font-size: 1.5rem;
-}
-.u-font-bold {
-  font-weight: bold;
-}
-.u-mb-6 {
-  margin-bottom: 1.5rem;
-}
-</style>
