@@ -18,6 +18,7 @@ export enum RouterName {
   CourseCreate = "course-create",
   CourseReview = "course-review",
   CourseAssignments = "course-assignments",
+  CurrentCourses = "current-courses",
   CourseManagementHub = "course-management-hub",
   InternshipApplication = "internship-application",
   LeaveApplication = "leave-application",
@@ -124,9 +125,9 @@ export const MenuItems = [
         roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
       },
       {
-        key: "course-assignments",
+        key: "current-courses",
         label: "本期課程",
-        route: { name: RouterName.CourseAssignments },
+        route: { name: RouterName.CurrentCourses },
         roles: [UserRole.Creator, UserRole.Teacher, UserRole.Student],
       },
       // {

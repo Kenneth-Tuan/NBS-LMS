@@ -8,18 +8,15 @@ import {
   FilePdfOutlined,
   FileWordOutlined,
   FilePptOutlined,
-  FileExcelOutlined,
-  FileZipOutlined,
   FileTextOutlined,
   LinkOutlined,
   PlusOutlined,
   UploadOutlined,
-  EditOutlined,
-  DeleteOutlined,
 } from "@ant-design/icons-vue";
 
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
+import { dummyCourseData } from "@/data/dummy";
 
 const AssignmentStatus = {
   OPEN: "OPEN",
@@ -32,7 +29,7 @@ const AssignmentStatus = {
 const route = useRoute();
 const { userProfile } = useUserStore();
 
-const currentCourseId = ref(route.params.id || "mock-course-1");
+const currentCourseId = ref(route.params.id);
 const currentCourse = ref(null);
 const loading = ref(false);
 
@@ -47,23 +44,23 @@ const isTeacherOrCreator = computed(
 const isStudent = computed(() => userProfile.userRole === UserRole.Student);
 
 // --- Mock Data ---
-const mockCourses = [
-  {
-    id: "mock-course-1",
-    name: "新約概論 (示範課程)",
-    teacher: "王大明牧師",
-    description: "這是一個示範課程的管理中心。",
-  },
-  {
-    id: "mock-course-2",
-    name: "舊約歷史書研究 (示範課程)",
-    teacher: "李文清博士",
-    description: "舊約研究的管理中心。",
-  },
-];
+// const mockCourses = [
+//   {
+//     id: "mock-course-1",
+//     name: "新約概論 (示範課程)",
+//     teacher: "王大明牧師",
+//     description: "這是一個示範課程的管理中心。",
+//   },
+//   {
+//     id: "mock-course-2",
+//     name: "舊約歷史書研究 (示範課程)",
+//     teacher: "李文清博士",
+//     description: "舊約研究的管理中心。",
+//   },
+// ];
 
 const announcements = ref([]);
-const assignments = ref([]); // General assignment info
+const assignments = ref([]);
 const materials = ref([]);
 const students = ref([]); // Course student roster
 const grades = reactive({}); // { studentId: { assignmentId: score } } - Teacher's gradebook data
@@ -117,160 +114,93 @@ onMounted(() => {
 const loadCourseData = () => {
   loading.value = true;
   setTimeout(() => {
-    currentCourse.value = mockCourses.find(
-      (c) => c.id === currentCourseId.value
+    const foundCourse = dummyCourseData.find(
+      (c) => String(c.id) === String(currentCourseId.value)
     );
-    if (!currentCourse.value) {
+
+    if (!foundCourse) {
       message.error("找不到課程資料");
-      currentCourse.value = { name: "未知課程" };
+      currentCourse.value = {
+        name: "未知課程",
+        teacher: "N/A",
+        description: "無法載入課程詳細資訊。",
+      };
       loading.value = false;
       return;
     }
+    currentCourse.value = foundCourse;
 
-    announcements.value = [
-      {
-        id: uuidv4(),
-        courseId: currentCourseId.value,
-        title: `歡迎來到「${currentCourse.value.name}」`,
-        content: "請大家先閱讀課程大綱。",
-        date: dayjs().subtract(2, "day").format("YYYY-MM-DD HH:mm"),
-      },
-      {
-        id: uuidv4(),
-        courseId: currentCourseId.value,
-        title: "第一次作業已發布",
-        content: "截止日期為下週末，請注意時間。",
-        date: dayjs().subtract(1, "day").format("YYYY-MM-DD HH:mm"),
-      },
-    ].filter((a) => a.courseId === currentCourseId.value);
+    announcements.value = currentCourse.value.announcements_hub || [];
+    assignments.value = currentCourse.value.assignments_hub || [];
+    materials.value = currentCourse.value.materials_hub || [];
+    students.value = currentCourse.value.students_hub || [];
 
-    assignments.value = [
-      {
-        id: uuidv4(),
-        courseId: currentCourseId.value,
-        title: "書卷背景研究",
-        description: "選擇一卷書信，研究其歷史背景與寫作目的。",
-        dueDate: dayjs().add(7, "day").format("YYYY-MM-DD"),
-        status: AssignmentStatus.OPEN,
-      },
-      {
-        id: uuidv4(),
-        courseId: currentCourseId.value,
-        title: "主題報告：登山寶訓",
-        description: "分析登山寶訓的核心教導及其現代應用。",
-        dueDate: dayjs().add(14, "day").format("YYYY-MM-DD"),
-        status: AssignmentStatus.OPEN,
-      },
-      {
-        id: "old-assign-1",
-        courseId: currentCourseId.value,
-        title: "舊約歷史回顧",
-        description: "回顧士師時期的主要事件。",
-        dueDate: dayjs().subtract(5, "day").format("YYYY-MM-DD"),
-        status: AssignmentStatus.CLOSED,
-      },
-    ].filter((a) => a.courseId === currentCourseId.value);
+    // Initialize grades structure for all students and assignments from the course data
+    // Clear existing grades before populating
+    for (const key in grades) {
+      delete grades[key];
+    }
 
-    materials.value = [
-      {
-        id: uuidv4(),
-        courseId: currentCourseId.value,
-        name: "課程大綱.pdf",
-        type: "file",
-        fileType: "pdf",
-        url: "#",
-        uploadDate: dayjs().subtract(3, "day").format("YYYY-MM-DD"),
-      },
-      {
-        id: uuidv4(),
-        courseId: currentCourseId.value,
-        name: "第一週PPT.pptx",
-        type: "file",
-        fileType: "ppt",
-        url: "#",
-        uploadDate: dayjs().subtract(2, "day").format("YYYY-MM-DD"),
-      },
-    ].filter((m) => m.courseId === currentCourseId.value);
-
-    students.value = [
-      {
-        id: "s001",
-        courseId: currentCourseId.value,
-        name: "張小明",
-        studentId: "ST2024001",
-        email: "ming@example.com",
-      },
-      {
-        id: "s002",
-        courseId: currentCourseId.value,
-        name: "李大華",
-        studentId: "ST2024002",
-        email: "hua@example.com",
-      },
-      {
-        id: "s003",
-        courseId: currentCourseId.value,
-        name: "陳美麗",
-        studentId: "ST2024003",
-        email: "mei@example.com",
-      },
-    ].filter((s) => s.courseId === currentCourseId.value);
-
-    // Initialize grades structure for all students and assignments
-    students.value.forEach((student) => {
-      grades[student.id] = {};
-      assignments.value.forEach((assignment) => {
-        // Mock some grades for demo
-        if (student.id === "s001" && assignment.id === "old-assign-1") {
-          grades[student.id][assignment.id] = 88;
-        } else if (
-          Math.random() > 0.7 &&
-          assignment.status === AssignmentStatus.CLOSED
-        ) {
+    if (students.value.length > 0 && assignments.value.length > 0) {
+      students.value.forEach((student) => {
+        grades[student.id] = {}; // Initialize grade object for student
+        const studentGradesFromData =
+          currentCourse.value.grades_hub?.[student.id] || {};
+        assignments.value.forEach((assignment) => {
+          // Use grades from dummy data if available, otherwise null
           grades[student.id][assignment.id] =
-            Math.floor(Math.random() * 30) + 70;
-        } else {
-          grades[student.id][assignment.id] = null;
-        }
+            studentGradesFromData[assignment.id] === undefined
+              ? null
+              : studentGradesFromData[assignment.id];
+        });
       });
-    });
+    } else if (currentCourse.value.grades_hub) {
+      // If students or assignments are empty but grades_hub exists, copy it directly (less common case)
+      Object.assign(grades, currentCourse.value.grades_hub);
+    }
 
     // Initialize currentUserSubmissions if the user is a student
-    if (isStudent.value) {
-      currentUserSubmissions.value = assignments.value.map((assign) => {
-        const studentGrade = grades[currentUserStudentId.value]?.[assign.id];
-        if (studentGrade !== null && studentGrade !== undefined) {
-          return {
-            assignmentId: assign.id,
-            status: AssignmentStatus.GRADED,
-            fileName: `student_${
-              currentUserStudentId.value
-            }_${assign.id.substring(0, 3)}.pdf`,
-            grade: studentGrade,
-          };
-        }
-        // Mock some submitted but not graded for OPEN assignments
-        if (assign.status === AssignmentStatus.OPEN && Math.random() > 0.6) {
-          return {
-            assignmentId: assign.id,
-            status: AssignmentStatus.SUBMITTED,
-            fileName: `submitted_${
-              currentUserStudentId.value
-            }_${assign.id.substring(0, 3)}.docx`,
-            grade: null,
-          };
-        }
-        return {
-          assignmentId: assign.id,
-          status: AssignmentStatus.NOT_SUBMITTED,
-          fileName: null,
-          grade: null,
-        };
-      });
+    if (isStudent.value && currentUserStudentId.value) {
+      currentUserSubmissions.value = assignments.value
+        .map((assign) => {
+          const studentGradeInfo =
+            grades[currentUserStudentId.value]?.[assign.id];
+
+          // Check if there's a pre-existing submission mock or infer status
+          // This part might need more sophisticated logic if submissions are also in dummyCourseData
+          // For now, it primarily checks for graded status.
+          if (studentGradeInfo !== null && studentGradeInfo !== undefined) {
+            return {
+              assignmentId: assign.id,
+              status: AssignmentStatus.GRADED,
+              fileName: `submission_mock_${assign.id.substring(0, 4)}.pdf`, // Generic filename
+              grade: studentGradeInfo,
+            };
+          } else if (assign.status === AssignmentStatus.OPEN) {
+            // Default for open assignments not yet graded
+            return {
+              assignmentId: assign.id,
+              status: AssignmentStatus.NOT_SUBMITTED, // Or OPEN if preferred for student view
+              fileName: null,
+              grade: null,
+            };
+          } else {
+            // For CLOSED assignments not graded (e.g. missed deadline)
+            return {
+              assignmentId: assign.id,
+              status: AssignmentStatus.CLOSED,
+              fileName: null,
+              grade: null,
+            };
+          }
+        })
+        .filter((submission) => submission); // Filter out any undefined entries if logic changes
+    } else {
+      currentUserSubmissions.value = [];
     }
 
     loading.value = false;
-  }, 500);
+  }, 50); // Reduced timeout for faster loading from local data
 };
 
 // --- Helper ---
@@ -711,6 +641,17 @@ const studentRosterColumns = [
   { title: "學號", dataIndex: "studentId", key: "studentId" },
   { title: "Email", dataIndex: "email", key: "email" },
 ];
+
+// Helper to get a status tag for the header - can be more sophisticated
+const getCourseStatusTag = (course) => {
+  if (!course || !course.start_date || !course.end_date) return "未知";
+  const now = dayjs();
+  const start = dayjs(course.start_date);
+  const end = dayjs(course.end_date);
+  if (now.isBefore(start)) return "尚未開始";
+  if (now.isAfter(end)) return "已結束";
+  return "進行中";
+};
 </script>
 
 <template>

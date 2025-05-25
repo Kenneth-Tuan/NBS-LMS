@@ -50,30 +50,11 @@ const routes = [
     },
   },
   {
-    path: "/courses/:id",
-    name: RouterName.CourseDetail,
-    component: () => import("@/views/Courses/CourseDetail.vue"),
+    path: "/current-courses",
+    name: RouterName.CurrentCourses,
+    component: () => import("@/views/Courses/CurrentCourses.vue"),
     meta: {
-      title: "課程詳情 - 拿撒勒人會神學院 選課系統",
-      layout: DefaultLayout,
-    },
-  },
-  {
-    path: "/courses/:id/review",
-    name: RouterName.CourseReview,
-    component: () => import("@/views/Courses/components/CourseReview.vue"),
-    meta: {
-      title: "課程審核 - 拿撒勒人會神學院 選課系統",
-      layout: DefaultLayout,
-      roles: [UserRole.Creator, UserRole.Admin],
-    },
-  },
-  {
-    path: "/course-assignments",
-    name: RouterName.CourseAssignments,
-    component: () => import("@/views/Courses/CourseAndAssignments.vue"),
-    meta: {
-      title: "課程與作業 - 拿撒勒人會神學院 選課系統",
+      title: "本期課程 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
     },
   },
@@ -129,25 +110,6 @@ const routes = [
     },
   },
   {
-    path: "/course-record",
-    name: RouterName.CourseRecord,
-    component: () => import("@/views/Courses/CourseRecord.vue"),
-    meta: {
-      title: "修課紀錄 - 拿撒勒人會神學院 選課系統",
-      layout: DefaultLayout,
-      roles: [UserRole.Student, UserRole.Creator],
-    },
-  },
-  {
-    path: "/grade-detail/:id",
-    name: RouterName.GradeDetail,
-    component: () => import("@/views/Courses/GradeDetail.vue"),
-    meta: {
-      title: "成績詳情 - 拿撒勒人會神學院 選課系統",
-      layout: DefaultLayout,
-    },
-  },
-  {
     path: "/timed-course-selection",
     name: RouterName.TimedCourseSelection,
     component: () => import("@/views/Courses/TimedCourseSelection.vue"),
@@ -171,17 +133,6 @@ const routes = [
     component: () => import("@/views/Courses/CourseOverview.vue"),
     meta: {
       title: "課程總覽 - 拿撒勒人會神學院 選課系統",
-      layout: DefaultLayout,
-      roles: [UserRole.Creator, UserRole.Admin],
-    },
-  },
-  {
-    path: "/admin/courses/:id",
-    name: RouterName.AdminCourseDetail,
-    component: () => import("@/views/Admin/AdminCourseDetail.vue"),
-    props: true,
-    meta: {
-      title: "(管理)課程詳情 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
       roles: [UserRole.Creator, UserRole.Admin],
     },

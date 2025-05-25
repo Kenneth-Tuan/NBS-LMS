@@ -7,18 +7,49 @@ import {
   Space as ASpace,
   Button as AButton,
   Divider as ADivider,
+  Alert as AAlert,
+  Empty as AEmpty,
 } from "ant-design-vue";
 import dayjs from "dayjs";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 
 import { dummyCourseData } from "@/data/dummy";
-import { RouterName, UserRole } from "@/enums/appEnums";
+import { RouterName } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
+import { UserRole } from "@/enums/appEnums";
 import CourseFilterBar from "@/components/CourseFilterBar.vue";
 
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
+
 const router = useRouter();
-const loading = ref(false);
 const userStore = useUserStore();
-const courseData = ref(dummyCourseData);
+const loading = ref(false);
+const allCourses = ref([]); // Will be populated from dummyCourseData
+
+onMounted(() => {
+  loading.value = true;
+  setTimeout(() => {
+    allCourses.value = dummyCourseData;
+    loading.value = false;
+  }, 200);
+});
+
+const currentUser = computed(() => userStore.userProfile);
+const isCreator = computed(
+  () => currentUser.value?.userRole === UserRole.Creator
+);
+const isTeacher = computed(
+  () => currentUser.value?.userRole === UserRole.Teacher
+);
+const isStudent = computed(
+  () => currentUser.value?.userRole === UserRole.Student
+);
+
+const canViewPage = computed(
+  () => isCreator.value || isTeacher.value || isStudent.value
+);
 
 const columns = ref([
   {
@@ -64,9 +95,6 @@ const columns = ref([
     title: "人數",
     key: "enrollment",
     width: 100,
-    sorter: (a, b) =>
-      a.enrollment_actual / a.enrollment_limit -
-      b.enrollment_actual / b.enrollment_limit,
   },
   {
     title: "狀態",
@@ -116,21 +144,6 @@ const goToEditCourse = (id) => {
   router.push({ name: RouterName.UpdateCourse, params: { id } });
 };
 
-const pageTitle = computed(() => {
-  switch (userStore.userProfile?.userRole) {
-    case UserRole.Creator:
-    case UserRole.Admin:
-    case UserRole.Manager:
-      return "課程總覽";
-    case UserRole.Teacher:
-      return "開課記錄";
-    case UserRole.Student:
-      return "修課記錄";
-    default:
-      return "課程列表";
-  }
-});
-
 const filters = reactive({
   keyword: "",
   teacher: "",
@@ -138,7 +151,7 @@ const filters = reactive({
 
 const teacherOptions = computed(() => {
   const teachers = new Set();
-  courseData.value.forEach((course) => {
+  dummyCourseData.forEach((course) => {
     if (course.instructor_name) {
       teachers.add(course.instructor_name);
     }
@@ -146,8 +159,47 @@ const teacherOptions = computed(() => {
   return Array.from(teachers).sort();
 });
 
-const filteredCourseData = computed(() => {
-  return courseData.value.filter((course) => {
+const handleReset = () => {
+  filters.keyword = "";
+  filters.teacher = "";
+};
+
+const isCourseActive = (course) => {
+  const now = dayjs();
+  const start = dayjs(course.start_date, "YYYY-MM-DD");
+  const end = dayjs(course.end_date, "YYYY-MM-DD");
+  return (
+    start.isValid() &&
+    end.isValid() &&
+    now.isSameOrAfter(start, "day") &&
+    now.isSameOrBefore(end, "day")
+  );
+};
+
+const filteredCourses = computed(() => {
+  if (!canViewPage.value) return [];
+  loading.value = true;
+
+  let coursesToDisplay = [];
+  const currentUserId = currentUser.value?.id;
+
+  const activeCourses = allCourses.value.filter((course) =>
+    isCourseActive(course)
+  );
+
+  if (isCreator.value) {
+    coursesToDisplay = activeCourses;
+  } else if (isTeacher.value) {
+    coursesToDisplay = activeCourses.filter(
+      (course) => course.teacher_id === currentUserId
+    );
+  } else if (isStudent.value) {
+    coursesToDisplay = activeCourses.filter((course) =>
+      course.students_hub?.some((student) => student.id === currentUserId)
+    );
+  }
+
+  const result = coursesToDisplay.filter((course) => {
     const nameMatch = course.name
       ? course.name.toLowerCase().includes(filters.keyword.toLowerCase())
       : true;
@@ -156,20 +208,15 @@ const filteredCourseData = computed(() => {
       : true;
     return nameMatch && teacherMatch;
   });
-});
-
-onMounted(() => {
-  // Initial sort by start_date if needed
-  // courseData.value.sort((a, b) => dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf());
+  loading.value = false;
+  return result;
 });
 </script>
 
 <template>
   <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-16px u-p-6 u-shadow-lg">
-      <h1 class="u-text-2xl u-font-bold u-mb-4 u-c-gray-700">
-        {{ pageTitle }}
-      </h1>
+    <div v-if="canViewPage" class="u-bg-white u-rounded-16px u-p-6 u-shadow-lg">
+      <h1 class="u-text-2xl u-font-bold u-mb-4 u-c-gray-700">本期課程</h1>
 
       <ADivider class="u-my-4" />
 
@@ -181,7 +228,7 @@ onMounted(() => {
 
       <ATable
         :columns="columns"
-        :data-source="filteredCourseData"
+        :data-source="filteredCourses"
         row-key="id"
         :loading="loading"
         :pagination="{ pageSize: 10, hideOnSinglePage: true }"
@@ -230,8 +277,8 @@ onMounted(() => {
               </AButton>
               <AButton
                 v-if="
-                  userStore.userProfile?.userRole === UserRole.Creator ||
-                  userStore.userProfile?.userRole === UserRole.Teacher
+                  (isTeacher && record.teacher_id === currentUser.id) ||
+                  isCreator
                 "
                 type="default"
                 size="small"
@@ -242,7 +289,18 @@ onMounted(() => {
             </ASpace>
           </template>
         </template>
+        <template #emptyText>
+          <AEmpty description="沒有符合條件的本期課程。" />
+        </template>
       </ATable>
+    </div>
+    <div v-else class="u-p-4">
+      <AAlert
+        message="權限不足"
+        description="您沒有權限查看此頁面。此功能僅供教師、學生及系統建立者使用。"
+        type="warning"
+        show-icon
+      />
     </div>
   </div>
 </template>
