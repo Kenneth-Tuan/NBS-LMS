@@ -16,4 +16,8 @@ export default {
   uploadFile(formData) {
     return fileApiHelper.post("/upload", formData);
   },
+
+  getCourses(params) {
+    return baseApiHelper.post(`/course-management/get-list`, params);
+  },
 };

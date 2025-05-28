@@ -133,6 +133,36 @@ const courseService = {
       return [];
     }
   },
+
+  // {
+  //   "paged_info": {
+  //     "page": 1
+  //   },
+  //   "ordering": {
+  //     "direction": "asc 或是 desc",
+  //     "field": "credit, start_date, end_date 或是 enrollment_limit"
+  //   }
+  // }
+
+  getCourses: async () => {
+    const params = {
+      paged_info: {
+        page: 1,
+      },
+      ordering: {
+        direction: "asc",
+        field: "credit",
+      },
+    };
+
+    try {
+      const response = await courseApi.getCourses(params);
+      return response.data.data;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
 };
 
 export { courseService };
