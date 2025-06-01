@@ -157,10 +157,45 @@ const courseService = {
 
     try {
       const response = await courseApi.getCourses(params);
+
+      return response.data.data.courses;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
+
+  getCourse: async (courseId) => {
+    const params = {
+      course_id: courseId,
+    };
+
+    try {
+      const response = await courseApi.getOneCourse(params);
       return response.data.data;
     } catch (error) {
       console.error(error);
       return [];
+    }
+  },
+
+  updateCourse: async () => {
+    const courseStore = useCourseStore();
+    const { courseForm } = courseStore;
+    const { loading } = storeToRefs(courseStore);
+
+    loading.value = true;
+
+    const params = await courseService.getCourseFormParams(courseForm);
+
+    try {
+      const response = await courseApi.updateCourse(params);
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    } finally {
+      loading.value = false;
     }
   },
 };

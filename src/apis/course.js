@@ -20,4 +20,16 @@ export default {
   getCourses(params) {
     return baseApiHelper.post(`/course-management/get-list`, params);
   },
+
+  getOneCourse(params) {
+    return baseApiHelper.post(`/course-management/get-one`, params);
+  },
+
+  updateCourse(params) {
+    const { course_id, ...rest } = params;
+    return baseApiHelper.post(
+      `/course-management/update-one?course_id=${course_id}`,
+      rest
+    );
+  },
 };

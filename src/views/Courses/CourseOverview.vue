@@ -14,6 +14,7 @@ import { dummyCourseData } from "@/data/dummy";
 import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 import CourseFilterBar from "@/components/CourseFilterBar.vue";
+import { courseService } from "@/services/course.service";
 
 const router = useRouter();
 const loading = ref(false);
@@ -29,9 +30,12 @@ const columns = ref([
   },
   {
     title: "授課老師名稱",
-    dataIndex: "instructor_name",
-    key: "instructor_name",
+    dataIndex: "teacher",
+    key: "teacher",
     width: 150,
+    customRender: ({ text, record }) => {
+      return record.teacher || "未指定";
+    },
   },
   {
     title: "學分",
@@ -45,6 +49,9 @@ const columns = ref([
     dataIndex: "start_date",
     key: "start_date",
     width: 120,
+    customRender: ({ text, record }) => {
+      return dayjs(record.start_date).format("YYYY-MM-DD");
+    },
     sorter: (a, b) =>
       dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf(),
   },
@@ -53,20 +60,29 @@ const columns = ref([
     dataIndex: "end_date",
     key: "end_date",
     width: 120,
+    customRender: ({ text, record }) => {
+      return dayjs(record.end_date).format("YYYY-MM-DD");
+    },
     sorter: (a, b) => dayjs(a.end_date).valueOf() - dayjs(b.end_date).valueOf(),
   },
   {
     title: "上課時間",
     key: "weekly_schedule",
     width: 200,
+    customRender: ({ text, record }) => {
+      return formatWeeklySchedule(record.weekly_schedule);
+    },
   },
   {
     title: "人數",
     key: "enrollment",
     width: 100,
-    sorter: (a, b) =>
-      a.enrollment_actual / a.enrollment_limit -
-      b.enrollment_actual / b.enrollment_limit,
+    customRender: ({ text, record }) => {
+      return `${String(record.enrolled_count)} / ${record.enrollment_limit}`;
+    },
+    // sorter: (a, b) =>
+    //   a.enrolled_count / a.enrollment_limit -
+    //   b.enrolled_count / b.enrollment_limit,
   },
   {
     title: "狀態",
@@ -158,7 +174,8 @@ const filteredCourseData = computed(() => {
   });
 });
 
-onMounted(() => {
+onMounted(async () => {
+  courseData.value = await courseService.getCourses();
   // Initial sort by start_date if needed
   // courseData.value.sort((a, b) => dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf());
 });
@@ -189,30 +206,7 @@ onMounted(() => {
         size="small"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'name'">
-            {{ record.name }}
-          </template>
-          <template v-else-if="column.key === 'instructor_name'">
-            {{ record.instructor_name }}
-          </template>
-          <template v-else-if="column.key === 'credit'">
-            {{ record.credit }}
-          </template>
-          <template v-else-if="column.key === 'start_date'">
-            {{ dayjs(record.start_date).format("YYYY-MM-DD") }}
-          </template>
-          <template v-else-if="column.key === 'end_date'">
-            {{ dayjs(record.end_date).format("YYYY-MM-DD") }}
-          </template>
-          <template v-else-if="column.key === 'weekly_schedule'">
-            <span class="u-whitespace-pre-wrap">{{
-              formatWeeklySchedule(record.weekly_schedule)
-            }}</span>
-          </template>
-          <template v-else-if="column.key === 'enrollment'">
-            {{ record.enrollment_actual }} / {{ record.enrollment_limit }}
-          </template>
-          <template v-else-if="column.key === 'status'">
+          <template v-if="column.key === 'status'">
             <ATag
               :color="getCourseStatus(record.start_date, record.end_date).color"
             >
@@ -224,7 +218,7 @@ onMounted(() => {
               <AButton
                 type="primary"
                 size="small"
-                @click="goToCourseManagementHub(record.id)"
+                @click="goToCourseManagementHub(record.course_id)"
               >
                 詳細内容
               </AButton>
@@ -247,9 +241,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
-/* Add any specific styles if needed */
-.u-whitespace-pre-wrap {
-  white-space: pre-wrap;
-}
-</style>
+<style scoped></style>
