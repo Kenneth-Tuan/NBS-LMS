@@ -69,6 +69,44 @@ const grades = reactive({}); // { studentId: { assignmentId: score } } - Teacher
 // Student-specific submission tracking for the current student
 const currentUserSubmissions = ref([]); // [{ assignmentId, status, fileName, grade }]
 
+// === Helper: API -> Local Mapping ===
+function mapApiCourseToLocal(apiCourse) {
+  if (!apiCourse) return {};
+
+  // --- outline_files -> materials_hub ---
+  const materials_hub = (apiCourse.outline_files || []).map((url) => {
+    const filename = url.split("/").pop() || "檔案";
+    const fileTypeMatch = filename.split(".").pop();
+    return {
+      id: uuidv4(),
+      name: filename,
+      type: "file",
+      fileType: fileTypeMatch,
+      url,
+      uploadDate: dayjs().format("YYYY-MM-DD"), // 無日期資訊，暫以今天
+    };
+  });
+
+  return {
+    name: apiCourse.name,
+    teacher:
+      apiCourse.teacher_name || apiCourse.instructor_name || apiCourse.teacher,
+    teacher_id: apiCourse.teacher_id,
+    description: apiCourse.description,
+    class_mode: apiCourse.class_mode,
+    duration: apiCourse.duration,
+    credit: apiCourse.credit,
+    start_date: apiCourse.start_date,
+    end_date: apiCourse.end_date,
+    enrollment_limit: apiCourse.enrollment_limit,
+    weekly_schedule: apiCourse.weekly_schedule,
+    prerequisite_course_ids: apiCourse.prerequisite_course_ids,
+    cover_image: apiCourse.cover_image,
+    outline_files: apiCourse.outline_files,
+    ...(materials_hub.length && { materials_hub }),
+  };
+}
+
 // --- Modals State ---
 const announcementModal = reactive({
   visible: false,
@@ -110,10 +148,41 @@ onMounted(async () => {
     loadCourseData();
   }
 
-  const course = await courseService.getCourse(currentCourseId.value);
-  console.log("test course: ", course);
+  // After local dummy data is loaded, try to fetch real course data from API
+  try {
+    const apiCourse = await courseService.getCourse(currentCourseId.value);
+    const mappedData = mapApiCourseToLocal(apiCourse);
+    if (Object.keys(mappedData).length) {
+      // Merge API data into the currently displayed course (derived from dummy) so that
+      // already-implemented features (e.g. announcements) continue to work.
+      if (currentCourse.value) {
+        currentCourse.value = { ...currentCourse.value, ...mappedData };
+      } else {
+        // Edge case: dummy not found, create minimal course from API
+        currentCourse.value = { ...mappedData };
+      }
+
+      if (mappedData.materials_hub) {
+        // 避免重複加入同名 URL
+        const existingUrls = new Set(materials.value.map((m) => m.url));
+        const merged = mappedData.materials_hub.filter(
+          (m) => !existingUrls.has(m.url)
+        );
+        if (merged.length) {
+          materials.value = [...materials.value, ...merged];
+        }
+      }
+    }
+  } catch (err) {
+    // Keep silent failure – fall back to dummy data
+    console.error(
+      "[CourseManagementHub] Failed to fetch course data from API:",
+      err
+    );
+  }
 });
 
+// get course api response demo
 // {
 //     "teacher_name": "王曉明",
 //     "name": "基督門徒與領袖的養成與操練",
@@ -1107,7 +1176,7 @@ const getCourseStatusTag = (course) => {
                       </template>
                       <template #title>
                         <a
-                          :href="item.url"
+                          :href="item.name"
                           target="_blank"
                           class="u-text-md u-font-semibold u-c-blue-600 hover:u-underline"
                           >{{ item.name }}</a
