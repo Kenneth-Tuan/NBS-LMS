@@ -5,9 +5,10 @@ import { Divider } from "ant-design-vue";
 
 import { dummyCourseData } from "@/data/dummy";
 import { timeCourseSettingsSchema } from "@/schemas/timeCourseSettings.schema";
+import { courseService } from "@/services/course.service";
 
 const formState = reactive({
-  ["selectable-courses"]: [5128, 5122, 5301, 5169, 5199, 5302],
+  ["selectable-courses"]: [],
   ["range-time-picker"]: [
     dayjs().format("YYYY-MM-DD HH:mm:ss"),
     dayjs().add(14, "day").format("YYYY-MM-DD HH:mm:ss"),
@@ -34,10 +35,12 @@ const filterOption = (input, option) => {
   );
 };
 
-onMounted(() => {
-  selectableCourses.value = dummyCourseData.map((course) => ({
-    label: course.title,
-    value: course.id,
+onMounted(async () => {
+  const courses = await courseService.fetchCoursesForEnrollment();
+
+  selectableCourses.value = courses.map((course) => ({
+    label: course.name,
+    value: course.course_id,
   }));
 });
 </script>

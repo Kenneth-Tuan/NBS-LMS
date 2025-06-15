@@ -18,10 +18,7 @@ const updateParams = (key, value) => {
   // 3. 更新全局狀態
 };
 
-// 最大学分限制
 const CREDIT_LIMIT = 21;
-
-// 模擬資料
 
 const selectionPeriod = `${dayjs().format("YYYY/MM/DD HH:mm:ss")} - ${dayjs()
   .add(14, "day")
@@ -30,7 +27,6 @@ const isSelectionPeriodActive = ref(true);
 const loading = ref(false);
 const activeTabKey = ref("available");
 
-// 課程資料
 const coursesData = reactive([
   {
     id: "COURSE101",
@@ -184,22 +180,18 @@ const coursesData = reactive([
   },
 ]);
 
-// 已選課程
 const selectedCourses = ref([]);
 
-// 检查是否已达到学分上限
 const totalSelectedCredits = computed(() => {
   return selectedCourses.value.reduce((total, course) => {
     return total + (course.credits || 0);
   }, 0);
 });
 
-// 检查是否已达到学分上限
 const hasReachedCreditLimit = computed(() => {
   return totalSelectedCredits.value >= CREDIT_LIMIT;
 });
 
-// 检查是否会超出学分上限
 const willExceedCreditLimit = (course) => {
   const currentTotalCredits = selectedCourses.value.reduce(
     (total, selected) => total + selected.credits,
@@ -208,19 +200,16 @@ const willExceedCreditLimit = (course) => {
   return currentTotalCredits + course.credits > CREDIT_LIMIT;
 };
 
-// 剩余可选学分
 const remainingCredits = computed(() => {
   return Math.max(0, CREDIT_LIMIT - totalSelectedCredits.value);
 });
 
-// 篩選條件
 const filters = reactive({
   category: "",
   keyword: "",
   teacher: "",
 });
 
-// 課程類別
 const categoryOptions = computed(() => {
   const categories = new Set();
   coursesData.forEach((course) => {
@@ -229,7 +218,6 @@ const categoryOptions = computed(() => {
   return Array.from(categories).sort();
 });
 
-// 教師
 const teacherOptions = computed(() => {
   const teachers = new Set();
   coursesData.forEach((course) => {
@@ -238,7 +226,6 @@ const teacherOptions = computed(() => {
   return Array.from(teachers).sort();
 });
 
-// 時間表
 const timeSlots = [
   { slot: 1, label: "第1節 08:00-08:50" },
   { slot: 2, label: "第2節 09:00-09:50" },
@@ -254,7 +241,6 @@ const timeSlots = [
   { slot: 12, label: "第12節 21:00-21:50" },
 ];
 
-// 過濾後的可選課程
 const filteredAvailableCourses = computed(() => {
   return coursesData.filter((course) => {
     const matchCategory =
@@ -267,7 +253,6 @@ const filteredAvailableCourses = computed(() => {
   });
 });
 
-// 可選課程表格列
 const availableCoursesColumns = [
   {
     title: "課程編號",
@@ -332,7 +317,6 @@ const availableCoursesColumns = [
   },
 ];
 
-// 課程顏色
 const courseColors = [
   "#e6f7ff", // 淺藍
   "#f6ffed", // 淺綠
@@ -344,7 +328,6 @@ const courseColors = [
   "#fffbe6", // 淺黃
 ];
 
-// 搜尋課程
 const handleSearch = () => {
   loading.value = true;
   setTimeout(() => {
@@ -352,7 +335,6 @@ const handleSearch = () => {
   }, 300);
 };
 
-// 重置過濾條件
 const handleReset = () => {
   filters.category = "";
   filters.keyword = "";
@@ -360,12 +342,10 @@ const handleReset = () => {
   handleSearch();
 };
 
-// 確認課程是否額滿
 const isCourseFull = (course) => {
   return course.remainingSlots <= 0;
 };
 
-// 確認是否與已選課程時間衝突
 const hasCourseTimeConflict = (course) => {
   for (const selectedCourse of selectedCourses.value) {
     for (const timeSlot of course.timeSlots) {
@@ -378,7 +358,6 @@ const hasCourseTimeConflict = (course) => {
   return false;
 };
 
-// 選課
 const handleSelectCourse = async (course) => {
   try {
     if (loading.value) return;
@@ -431,7 +410,6 @@ const handleSelectCourse = async (course) => {
   }
 };
 
-// 退選
 const handleRemoveCourse = (course) => {
   // 從已選課程中移除
   selectedCourses.value = selectedCourses.value.filter(
@@ -448,7 +426,6 @@ const handleRemoveCourse = (course) => {
   message.success(`已退選 ${course.courseName}`);
 };
 
-// 確認送出選課
 const handleSubmitSelection = () => {
   if (selectedCourses.value.length === 0) {
     message.warning("您尚未選擇任何課程");
@@ -468,20 +445,17 @@ const handleSubmitSelection = () => {
   }, 1500);
 };
 
-// 獲取特定時間段的課程
 const getCoursesInTimeSlot = (day, slot) => {
   return selectedCourses.value.filter((course) =>
     course.timeSlots.some((ts) => ts.day === day && ts.slot === slot)
   );
 };
 
-// 獲取課程顏色
 const getCourseColor = (courseId) => {
   const index = selectedCourses.value.findIndex((c) => c.id === courseId);
   return courseColors[index % courseColors.length];
 };
 
-// 已選課程表格列
 const selectedCoursesColumns = [
   {
     title: "課程編號",
@@ -548,7 +522,6 @@ const selectedCoursesColumns = [
   },
 ];
 
-// 初始化
 onMounted(() => {
   handleSearch();
 });

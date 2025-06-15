@@ -116,6 +116,7 @@ const routes = [
     meta: {
       title: "限時選課 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
+      roles: [UserRole.Creator, UserRole.Student],
     },
   },
   {
@@ -125,6 +126,7 @@ const routes = [
     meta: {
       title: "限時選課設定 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
+      roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
     },
   },
   {
@@ -134,7 +136,13 @@ const routes = [
     meta: {
       title: "課程總覽 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Creator, UserRole.Admin],
+      roles: [
+        UserRole.Creator,
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Teacher,
+        UserRole.Student,
+      ],
     },
   },
   {

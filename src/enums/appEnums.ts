@@ -93,6 +93,7 @@ export const MenuItems = [
     label: "限時選課",
     icon: ClockCircleFilled,
     route: { name: RouterName.TimedCourseSelection },
+    roles: [UserRole.Creator, UserRole.Student],
     highlight: true,
   },
   {

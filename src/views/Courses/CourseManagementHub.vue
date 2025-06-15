@@ -17,6 +17,7 @@ import {
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
 import { dummyCourseData } from "@/data/dummy";
+import { courseService } from "@/services/course.service";
 
 const AssignmentStatus = {
   OPEN: "OPEN",
@@ -97,7 +98,7 @@ const materialModal = reactive({
 });
 
 // --- Lifecycle Hooks ---
-onMounted(() => {
+onMounted(async () => {
   // Ensure userProfile is loaded if it's initially null/undefined from the store
   if (!userProfile.value && userProfile.fetchUserProfile) {
     // Assuming store has a fetch method
@@ -108,7 +109,35 @@ onMounted(() => {
   } else {
     loadCourseData();
   }
+
+  const course = await courseService.getCourse(currentCourseId.value);
+  console.log("test course: ", course);
 });
+
+// {
+//     "teacher_name": "王曉明",
+//     "name": "基督門徒與領袖的養成與操練",
+//     "class_mode": "同步視訊",
+//     "duration": 1,
+//     "credit": 2,
+//     "teacher_id": "20dddeab-1bea-4370-b75f-e68041adcade",
+//     "start_date": "2025-09-10T08:00:00",
+//     "end_date": "2026-02-18T08:00:00",
+//     "enrollment_limit": 50,
+//     "weekly_schedule": [
+//         {
+//             "week_day": "週三",
+//             "start_time": "19:00",
+//             "end_time": "21:00"
+//         }
+//     ],
+//     "prerequisite_course_ids": [],
+//     "description": "從教牧書信看耶穌的門徒訓練",
+//     "cover_image": null,
+//     "outline_files": [
+//         "gs://campus-system-dev/uploads/2025-05/229912aa-656f-4f1a-aabd-c868e8e1c1d5_教牧書信.pdf"
+//     ]
+// }
 
 // --- Data Loading and Initialization ---
 const loadCourseData = () => {

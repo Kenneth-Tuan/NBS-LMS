@@ -32,4 +32,8 @@ export default {
       rest
     );
   },
+
+  getCoursesForEnrollment(params) {
+    return baseApiHelper.post(`/enrollment/get-course`, params);
+  },
 };

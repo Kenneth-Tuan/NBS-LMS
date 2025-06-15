@@ -1,5 +1,6 @@
 import courseApi from "@/apis/course";
 import { storeToRefs } from "pinia";
+import dayjs from "dayjs";
 
 import { useCourseStore } from "../stores/course";
 
@@ -196,6 +197,25 @@ const courseService = {
       return false;
     } finally {
       loading.value = false;
+    }
+  },
+
+  fetchCoursesForEnrollment: async () => {
+    const params = {
+      filter: {
+        start_time: dayjs().format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
+        end_time: dayjs()
+          .add(1, "year")
+          .format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
+      },
+    };
+
+    try {
+      const response = await courseApi.getCoursesForEnrollment(params);
+      return response.data.data.courses;
+    } catch (error) {
+      console.error(error);
+      return [];
     }
   },
 };
