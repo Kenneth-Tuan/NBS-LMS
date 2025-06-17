@@ -180,14 +180,16 @@ const courseService = {
     }
   },
 
-  updateCourse: async () => {
+  updateCourse: async (_courseForm) => {
     const courseStore = useCourseStore();
     const { courseForm } = courseStore;
     const { loading } = storeToRefs(courseStore);
 
     loading.value = true;
 
-    const params = await courseService.getCourseFormParams(courseForm);
+    const params = !!_courseForm
+      ? _courseForm
+      : await courseService.getCourseFormParams(courseForm);
 
     try {
       const response = await courseApi.updateCourse(params);

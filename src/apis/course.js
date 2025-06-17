@@ -27,8 +27,8 @@ export default {
 
   updateCourse(params) {
     const { course_id, ...rest } = params;
-    return baseApiHelper.post(
-      `/course-management/update-one?course_id=${course_id}`,
+    return baseApiHelper.patch(
+      `/course-management/replace-one?course_id=${course_id}`,
       rest
     );
   },

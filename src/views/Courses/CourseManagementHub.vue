@@ -130,9 +130,8 @@ const materialModal = reactive({
   isEdit: false,
   id: null,
   name: "",
-  type: "file",
-  url: "",
   file: null,
+  fileUrls: [],
 });
 
 // --- Lifecycle Hooks ---
@@ -646,8 +645,6 @@ const openAddMaterialModal = () => {
   materialModal.isEdit = false;
   materialModal.id = null;
   materialModal.name = "";
-  materialModal.type = "file";
-  materialModal.url = "";
   materialModal.file = null;
   materialModal.visible = true;
 };
@@ -655,79 +652,42 @@ const openEditMaterialModal = (material) => {
   materialModal.isEdit = true;
   materialModal.id = material.id;
   materialModal.name = material.name;
-  materialModal.type = material.type;
-  materialModal.url = material.type === "link" ? material.url : "";
   materialModal.file = null;
   materialModal.visible = true;
 };
-const handleMaterialFileChange = (info) => {
-  if (info.file.status === "done" || info.file.status === "uploading") {
-    materialModal.file = info.file;
-    if (!materialModal.name && info.file.name)
-      materialModal.name = info.file.name;
-  } else if (info.file.status === "error") {
-    message.error(`${info.file.name} 文件上傳失敗。`);
-    materialModal.file = null;
+const handleMaterialFileChange = async (info) => {
+  if (info.fileList.length > 0) {
+    materialModal.fileUrls = await courseService.uploadFile(info.fileList);
   }
 };
-const confirmMaterial = () => {
-  if (!materialModal.name) return message.error("請填寫教材名稱");
-  if (materialModal.type === "link" && !materialModal.url)
-    return message.error("請填寫連結網址");
-  if (
-    materialModal.type === "file" &&
-    !materialModal.isEdit &&
-    !materialModal.file
-  )
+
+const confirmMaterial = async (info) => {
+  if (!materialModal.isEdit && !materialModal.file)
     return message.error("請選擇要上傳的檔案");
 
-  let fileUrl = materialModal.type === "link" ? materialModal.url : "#";
-  let fileType = null;
-  if (materialModal.type === "file" && materialModal.file) {
-    fileUrl = URL.createObjectURL(
-      materialModal.file.originFileObj || materialModal.file
-    );
-    fileType = materialModal.file.name.split(".").pop();
-    message.info(`模擬上傳檔案: ${materialModal.file.name}`);
-  }
+  currentCourse.value.outline_files = currentCourse.value.outline_files.concat(
+    materialModal.fileUrls
+  );
 
-  const newMaterialData = {
-    name: materialModal.name,
-    type: materialModal.type,
-    url: fileUrl,
-    uploadDate: dayjs().format("YYYY-MM-DD"),
-    ...(materialModal.type === "file" && {
-      fileType:
-        fileType ||
-        (materialModal.isEdit
-          ? materials.value.find((m) => m.id === materialModal.id)?.fileType
-          : null),
-    }),
+  const params = {
+    course_id: currentCourseId.value,
+    ...currentCourse.value,
   };
 
-  if (materialModal.isEdit) {
-    const index = materials.value.findIndex((m) => m.id === materialModal.id);
-    if (index !== -1) {
-      if (materials.value[index].type === "file" && !materialModal.file) {
-        newMaterialData.url = materials.value[index].url;
-        newMaterialData.fileType = materials.value[index].fileType;
-      }
-      materials.value[index] = {
-        ...materials.value[index],
-        ...newMaterialData,
-      };
-      message.success("教材更新成功");
-    }
-  } else {
-    materials.value.push({
-      id: uuidv4(),
-      courseId: currentCourseId.value,
-      ...newMaterialData,
-    });
+  delete params.materials_hub;
+  delete params.teacher;
+
+  const result = await courseService.updateCourse(params);
+
+  if (materialModal.isEdit && result) {
+    message.success("教材更新成功");
+  } else if (!materialModal.isEdit && result) {
     message.success("教材新增成功");
   }
+
   materialModal.visible = false;
 };
+
 const deleteMaterial = (materialId) => {
   materials.value = materials.value.filter((m) => m.id !== materialId);
   message.success("教材刪除成功");
@@ -1304,40 +1264,19 @@ const getCourseStatusTag = (course) => {
       cancelText="取消"
     >
       <a-form layout="vertical">
-        <a-form-item
+        <!-- <a-form-item
           label="教材名稱"
           name="name"
           :rules="[{ required: true, message: '請輸入教材名稱!' }]"
         >
           <a-input v-model:value="materialModal.name" />
-        </a-form-item>
-        <a-form-item label="類型" name="type">
-          <a-radio-group v-model:value="materialModal.type">
-            <a-radio value="file">檔案</a-radio>
-            <a-radio value="link">外部連結</a-radio>
-          </a-radio-group>
-        </a-form-item>
-        <a-form-item
-          v-if="materialModal.type === 'link'"
-          label="連結網址"
-          name="url"
-          :rules="[{ required: true, message: '請輸入連結網址!' }]"
-        >
-          <a-input
-            v-model:value="materialModal.url"
-            placeholder="https://example.com"
-          />
-        </a-form-item>
-        <a-form-item
-          v-if="materialModal.type === 'file'"
-          label="選擇檔案"
-          name="file"
-          :rules="[{ required: !materialModal.isEdit, message: '請選擇檔案!' }]"
-        >
+        </a-form-item> -->
+        <a-form-item label="選擇檔案" name="file">
           <a-upload
-            :file-list="materialModal.file ? [materialModal.file] : []"
-            :before-upload="() => false"
+            v-model:file-list="materialModal.file"
             @change="handleMaterialFileChange"
+            :custom-request="() => {}"
+            :before-upload="() => false"
             :max-count="1"
           >
             <a-button> <UploadOutlined /> 點擊選擇檔案 </a-button>
