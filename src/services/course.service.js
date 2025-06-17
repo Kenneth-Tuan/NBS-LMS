@@ -151,8 +151,8 @@ const courseService = {
         page: 1,
       },
       ordering: {
-        direction: "asc",
-        field: "credit",
+        direction: "desc",
+        field: "start_date",
       },
     };
 
@@ -207,7 +207,7 @@ const courseService = {
       filter: {
         start_time: dayjs().format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
         end_time: dayjs()
-          .add(1, "year")
+          .add(6, "month")
           .format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
       },
     };

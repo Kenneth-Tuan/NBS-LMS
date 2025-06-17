@@ -66,6 +66,7 @@ const routes = [
       title: "課程管理中心 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
       roles: [
+        UserRole.Student,
         UserRole.Teacher,
         UserRole.Admin,
         UserRole.Manager,

@@ -225,95 +225,75 @@ onMounted(() => {
         layout="vertical"
         ref="formRef"
       >
-        <a-tabs>
-          <a-tab-pane key="basic" tab="基本資料">
-            <a-form-item label="姓名" name="name">
-              <a-input
-                v-model:value="userForm.name"
-                placeholder="請輸入姓名"
-                :disabled="store.formMode === 'edit'"
-              />
-            </a-form-item>
+        <a-form-item label="姓名" name="name">
+          <a-input
+            v-model:value="userForm.name"
+            placeholder="請輸入姓名"
+            :disabled="store.formMode === 'edit'"
+          />
+        </a-form-item>
 
-            <a-form-item label="電子郵件" name="email">
-              <a-input
-                v-model:value="userForm.email"
-                placeholder="請輸入電子郵件"
-                :disabled="store.formMode === 'edit'"
-              />
-            </a-form-item>
+        <a-form-item label="電子郵件" name="email">
+          <a-input
+            v-model:value="userForm.email"
+            placeholder="請輸入電子郵件"
+            :disabled="store.formMode === 'edit'"
+          />
+        </a-form-item>
 
-            <a-form-item label="電話" name="phone">
-              <a-input
-                v-model:value="userForm.phone"
-                placeholder="請輸入電話（選填）"
-                :disabled="store.formMode === 'edit'"
-              />
-            </a-form-item>
+        <a-form-item label="電話" name="phone">
+          <a-input
+            v-model:value="userForm.phone"
+            placeholder="請輸入電話（選填）"
+            :disabled="store.formMode === 'edit'"
+          />
+        </a-form-item>
 
-            <a-form-item label="角色" name="role">
-              <a-select
-                v-model:value="userForm.role"
-                placeholder="請選擇角色"
-                :options="roleOptions"
-              >
-              </a-select>
-            </a-form-item>
-
-            <a-form-item
-              v-if="store.formMode === 'edit'"
-              label="狀態"
-              name="status"
-            >
-              <a-select
-                v-model:value="userForm.status"
-                placeholder="請選擇狀態"
-                :options="statusOptions"
-              >
-              </a-select>
-            </a-form-item>
-          </a-tab-pane>
-
-          <a-tab-pane v-if="false" key="organization" tab="組織資訊">
-            <a-form-item label="備註" name="notes">
-              <a-textarea
-                v-model:value="userForm.notes"
-                placeholder="請輸入備註"
-                :rows="4"
-              />
-            </a-form-item>
-          </a-tab-pane>
-
-          <a-tab-pane
-            v-if="store.formMode === 'create'"
-            key="password"
-            tab="密碼設定"
+        <a-form-item label="角色" name="role">
+          <a-select
+            v-model:value="userForm.role"
+            placeholder="請選擇角色"
+            :options="roleOptions"
           >
-            <a-form-item
-              :label="
-                store.formMode === 'create'
-                  ? '密碼'
-                  : '新密碼（留空表示不修改）'
-              "
-              name="password"
-            >
-              <a-input-password
-                v-model:value="userForm.password"
-                placeholder="請輸入密碼"
-              />
-            </a-form-item>
+          </a-select>
+        </a-form-item>
 
-            <a-form-item
-              :label="store.formMode === 'create' ? '確認密碼' : '確認新密碼'"
-              name="confirmPassword"
-            >
-              <a-input-password
-                v-model:value="userForm.confirmPassword"
-                placeholder="請再次輸入密碼"
-              />
-            </a-form-item>
-          </a-tab-pane>
-        </a-tabs>
+        <a-form-item
+          v-if="store.formMode === 'edit'"
+          label="狀態"
+          name="status"
+        >
+          <a-select
+            v-model:value="userForm.status"
+            placeholder="請選擇狀態"
+            :options="statusOptions"
+          >
+          </a-select>
+        </a-form-item>
+
+        <template v-if="store.formMode === 'create'">
+          <a-form-item
+            :label="
+              store.formMode === 'create' ? '密碼' : '新密碼（留空表示不修改）'
+            "
+            name="password"
+          >
+            <a-input-password
+              v-model:value="userForm.password"
+              placeholder="請輸入密碼"
+            />
+          </a-form-item>
+
+          <a-form-item
+            :label="store.formMode === 'create' ? '確認密碼' : '確認新密碼'"
+            name="confirmPassword"
+          >
+            <a-input-password
+              v-model:value="userForm.confirmPassword"
+              placeholder="請再次輸入密碼"
+            />
+          </a-form-item>
+        </template>
       </a-form>
     </a-modal>
   </div>

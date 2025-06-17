@@ -187,7 +187,7 @@ const filteredCourses = computed(() => {
     isCourseActive(course)
   );
 
-  if (isCreator.value) {
+  if (isCreator.value || true) {
     coursesToDisplay = activeCourses;
   } else if (isTeacher.value) {
     coursesToDisplay = activeCourses.filter(
