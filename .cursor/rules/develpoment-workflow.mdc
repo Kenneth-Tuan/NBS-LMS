@@ -1,0 +1,203 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Development Workflow & Test Cases Rule
+
+## Architecture & Code Standards
+
+### **Component Architecture**
+- Use Vue.js Composition API with `<script setup>` syntax
+- Component-based architecture with clear separation of concerns
+- Atomic design for component organization
+- State management using Pinia stores
+- Modular routing with Vue Router
+
+### **Code Style Guidelines**
+- ESLint + Prettier with Airbnb style guide
+- 2-space indentation, 100 character line length
+- Named exports over default exports
+- Functional programming principles
+- JSDoc comments for complex logic
+- Use descriptive variable names with auxiliary verbs (isLoading, hasError)
+- Functions defined with `function` keyword for pure functions
+- Lowercase with dashes for directories (kebab-case)
+
+### **Performance Standards**
+- Code splitting and lazy loading for route-based components
+- Core Web Vitals optimization (LCP, FID, CLS)
+- Bundle size minimization and proper tree-shaking
+- Memoization for expensive computations
+- Virtual list rendering for large datasets
+- Dynamic loading for non-critical components
+- Optimized image handling (WebP, size data, lazy loading)
+
+## User Story Analysis Framework
+
+### **Step 1: Completeness Analysis**
+When analyzing a User Story, check for these essential elements:
+1. **Role**: Who is the user/actor?
+2. **Goal**: What does the user want to achieve?
+3. **Motivation**: Why does the user need this?
+4. **Scope**: Which pages/components are affected?
+5. **Boundary Conditions**: Edge cases and limitations
+6. **Error Handling**: What happens when things go wrong?
+7. **Non-functional Requirements**: Performance, security, accessibility
+8. **Acceptance Criteria**: Clear success metrics
+9. **Definition of Done**: When is the feature complete?
+
+### **Step 2: Task Breakdown Structure**
+Break down User Stories into technical tasks with:
+- **ID**: task-001, task-002, etc.
+- **Title**: Brief description
+- **Objective**: Purpose of the task
+- **Dependencies**: Prerequisite task IDs
+- **Deliverable**: Expected output
+- **Estimation**: Time/effort required
+- **Assignee**: Who will work on it
+
+### **Step 3: Acceptance Criteria & Test Cases**
+For each User Story, create:
+- Clear Acceptance Criteria
+- Comprehensive Test Cases following the table structure below
+- Coverage for positive, negative, and edge cases
+
+## Test Cases Creation Standards
+
+### **Table Structure**
+| Column Name | Required | Description |
+|-------------|----------|-------------|
+| Test Case ID | ✓ | Unique identifier following pattern: [CATEGORY]-[NUMBER] |
+| Test Description | ✓ | Clear, concise description of what is being tested |
+| Pre-condition | ✓ | System state/data required before test execution |
+| Action | ✓ | Step-by-step actions to perform the test |
+| Expected Result | ✓ | Clear description of expected outcome |
+| Test Type | ✓ | Classification: Unit/Integration/System/UI/API |
+
+### **Test Case ID Naming Convention**
+- **Format**: `[CATEGORY_CODE]-[SEQUENTIAL_NUMBER]`
+- **Examples**:
+  - `EMAIL-001` (Email validation functionality)
+  - `SPACE-001` (Space character support)
+  - `CUST-001` (Customer Table functionality)
+  - `ACAS-001` (ACAS data handling)
+  - `DATE-001` (Date format validation)
+
+### **Test Description Rules**
+- Start with action verb (Save, Verify, Display, Print, Send, Update, Show, Hide, etc.)
+- Be specific about the feature/functionality
+- Include context (which page/component)
+- Max 100 characters for readability
+- Use present tense
+
+### **Pre-condition Guidelines**
+- Describe the initial system state
+- Include required data setup
+- Mention user permissions/access level
+- Reference specific pages/components
+- Include any dependent features that must be working
+- Specify browser/environment requirements if relevant
+
+### **Action Steps Format**
+- Use numbered steps for multi-step actions (1. 2. 3.)
+- Use simple present tense verbs
+- Be specific about UI elements (buttons, fields, dropdowns)
+- Include exact data inputs where applicable
+- Keep steps atomic and clear
+- Use \n for line breaks in action steps
+
+### **Expected Result Criteria**
+- State the positive outcome clearly
+- Include both functional and UI expectations
+- Mention error messages if applicable
+- Specify data persistence requirements
+- Include performance expectations if relevant
+- Use \n for line breaks in expected results
+
+### **Test Type Classification**
+- **Unit**: Single component/function testing
+- **Integration**: Multiple components working together
+- **System**: End-to-end workflow testing
+- **UI**: User interface and user experience testing
+- **API**: Backend service testing
+- **Performance**: Load, stress, and timing tests
+
+### **Category Grouping Strategy**
+Group related test cases under logical categories:
+- **Feature-based**: Group by major feature (Email, Space, Customer)
+- **Page-based**: Group by application page/screen (Step1, Step2, etc.)
+- **Workflow-based**: Group by business process (FWB creation, validation)
+- **Component-based**: Group by UI component (Input fields, dialogs, tables)
+
+## Documentation Requirements
+
+### **Technical Design Documents**
+- Problem Statement with business context
+- Solution approach with alternatives considered
+- Implementation Plan with timeline
+- Success Metrics and monitoring
+- Architecture diagrams (UML, C4 model)
+- API contracts with OpenAPI/Swagger
+- Performance benchmarks and accessibility audits
+- Decision records (ADRs) for architectural choices
+
+### **Code Documentation**
+- JSDoc comments for complex functions
+- README files for major components
+- Changelog with semantic versioning
+- Technical debt documentation
+- Component interaction diagrams
+
+## Quality Assurance
+
+### **Test Case Quality Checklist**
+Before finalizing test cases, ensure:
+- [ ] Each test case has a unique, meaningful ID
+- [ ] Test description is clear and specific
+- [ ] Pre-conditions are complete and realistic
+- [ ] Actions are step-by-step and unambiguous
+- [ ] Expected results are measurable and specific
+- [ ] Test type is correctly classified
+- [ ] Coverage includes positive and negative scenarios
+- [ ] Edge cases are considered
+- [ ] Dependencies between test cases are documented
+- [ ] Line breaks use \n format for table compatibility
+
+### **Template for Test Cases**
+```
+| Test Case ID | Test Description | Pre-condition | Action | Expected Result | Test Type |
+|--------------|------------------|---------------|--------|-----------------|-----------|
+| [CAT]-[###] | [Verb] [what] [where] | [System state]\n[Required data] | 1. [Step 1]\n2. [Step 2]\n3. [Step 3] | [Positive outcome]\n[UI state]\n[Data state] | [Unit/Integration/System/UI/API] |
+```
+
+### **Best Practices**
+1. **Consistency**: Use same terminology across all test cases
+2. **Traceability**: Link test cases to user stories/requirements
+3. **Maintainability**: Keep descriptions clear for future updates
+4. **Coverage**: Ensure both happy path and error scenarios
+5. **Granularity**: One test case should test one specific behavior
+6. **Independence**: Each test case should be executable independently
+7. **Automation**: Design test cases with automation in mind
+8. **Accessibility**: Include accessibility testing considerations
+
+## Development Process Flow
+
+### **Story Implementation Steps**
+1. **Analysis**: Review user story for completeness
+2. **Planning**: Break down into technical tasks
+3. **Design**: Create technical design if needed
+4. **Implementation**: Code following standards
+5. **Testing**: Create and execute test cases
+6. **Review**: Code review and quality check
+7. **Documentation**: Update relevant documentation
+8. **Deployment**: Follow deployment guidelines
+
+### **Validation Requirements**
+- All test cases must pass
+- Code coverage requirements met
+- Performance benchmarks satisfied
+- Accessibility standards compliance
+- Security review completed
+- Documentation updated
+
