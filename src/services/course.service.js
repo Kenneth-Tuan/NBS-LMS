@@ -3,6 +3,7 @@ import { storeToRefs } from "pinia";
 import dayjs from "dayjs";
 
 import { useCourseStore } from "../stores/course";
+import courseAdapter from "@/adapters/course.adapter";
 
 const courseService = {
   getTeachers: async () => {
@@ -173,10 +174,12 @@ const courseService = {
 
     try {
       const response = await courseApi.getOneCourse(params);
-      return response.data.data;
+      // Apply adapter to convert API response to frontend format
+      const courseData = response.data.data;
+      return courseAdapter.apiToFrontend(courseData);
     } catch (error) {
       console.error(error);
-      return [];
+      return null;
     }
   },
 
@@ -202,7 +205,7 @@ const courseService = {
     }
   },
 
-  fetchCoursesForEnrollment: async () => {
+  fetchCoursesForEnrollmentSettings: async () => {
     const params = {
       filter: {
         start_time: dayjs().format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
@@ -213,8 +216,35 @@ const courseService = {
     };
 
     try {
-      const response = await courseApi.getCoursesForEnrollment(params);
+      const response = await courseApi.getCoursesForEnrollmentSettings(params);
       return response.data.data.courses;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
+
+  fetchCoursesForEnrollment: async () => {
+    try {
+      const response = await courseApi.getCoursesForEnrollment();
+      return response.data.data.courses;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
+
+  createEnrollment: async (course_ids, start_time, end_time, credit_limit) => {
+    const params = {
+      course_ids,
+      start_time,
+      end_time,
+      credit_limit,
+    };
+
+    try {
+      const response = await courseApi.createEnrollment(params);
+      return response.data.data;
     } catch (error) {
       console.error(error);
       return [];

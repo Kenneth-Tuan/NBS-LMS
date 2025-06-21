@@ -5,18 +5,9 @@ import { useRouter } from "vue-router";
 import dayjs from "dayjs";
 
 import { RouterName } from "@/enums/appEnums";
-import { courseDetails, formatCourseTime } from "@/data/courseData";
+import { courseService } from "@/services/course.service";
 
 const router = useRouter();
-
-// 定義updateParams函數 - 更新URL參數或保存狀態
-const updateParams = (key, value) => {
-  console.log(`Updating parameter: ${key}`, value);
-  // 根據需求實現:
-  // 1. 更新URL參數
-  // 2. 存儲到localStorage
-  // 3. 更新全局狀態
-};
 
 const CREDIT_LIMIT = 21;
 
@@ -27,164 +18,13 @@ const isSelectionPeriodActive = ref(true);
 const loading = ref(false);
 const activeTabKey = ref("available");
 
-const coursesData = reactive([
-  {
-    id: "COURSE101",
-    courseName: "新約概論",
-    category: "聖經研究",
-    credits: 3,
-    teacher: "王大明牧師",
-    enrollmentLimit: 30,
-    currentEnrollment: 18,
-    remainingSlots: 12,
-    timeSlots: [
-      { day: "monday", slot: 1 },
-      { day: "monday", slot: 2 },
-    ],
-    ...courseDetails["COURSE101"],
-  },
-  {
-    id: "COURSE102",
-    courseName: "舊約歷史書研究",
-    category: "聖經研究",
-    credits: 3,
-    teacher: "李文清博士",
-    enrollmentLimit: 25,
-    currentEnrollment: 20,
-    remainingSlots: 5,
-    timeSlots: [
-      { day: "tuesday", slot: 3 },
-      { day: "tuesday", slot: 4 },
-    ],
-    ...courseDetails["COURSE102"],
-  },
-  {
-    id: "COURSE201",
-    courseName: "教會歷史導論",
-    category: "教會歷史",
-    credits: 3,
-    teacher: "陳歷史教授",
-    enrollmentLimit: 40,
-    currentEnrollment: 25,
-    remainingSlots: 15,
-    timeSlots: [
-      { day: "wednesday", slot: 1 },
-      { day: "wednesday", slot: 2 },
-    ],
-    ...courseDetails["COURSE201"],
-  },
-  {
-    id: "COURSE301",
-    courseName: "講道學基礎",
-    category: "實踐神學",
-    credits: 2,
-    teacher: "張牧師",
-    enrollmentLimit: 20,
-    currentEnrollment: 12,
-    remainingSlots: 8,
-    timeSlots: [
-      { day: "thursday", slot: 5 },
-      { day: "thursday", slot: 6 },
-    ],
-    ...courseDetails["COURSE301"],
-  },
-  {
-    id: "COURSE401",
-    courseName: "系統神學導論",
-    category: "神學研究",
-    credits: 3,
-    teacher: "林博士",
-    enrollmentLimit: 35,
-    currentEnrollment: 30,
-    remainingSlots: 5,
-    timeSlots: [
-      { day: "friday", slot: 3 },
-      { day: "friday", slot: 4 },
-    ],
-    ...courseDetails["COURSE401"],
-  },
-  {
-    id: "COURSE501",
-    courseName: "教牧輔導",
-    category: "實踐神學",
-    credits: 3,
-    teacher: "黃心理博士",
-    enrollmentLimit: 15,
-    currentEnrollment: 15,
-    remainingSlots: 0,
-    timeSlots: [
-      { day: "monday", slot: 9 },
-      { day: "monday", slot: 10 },
-    ],
-    ...courseDetails["COURSE501"],
-  },
-  {
-    id: "COURSE601",
-    courseName: "新約希臘文（初級）",
-    category: "聖經語言",
-    credits: 3,
-    teacher: "吳語言教授",
-    enrollmentLimit: 30,
-    currentEnrollment: 25,
-    remainingSlots: 5,
-    timeSlots: [
-      { day: "tuesday", slot: 1 },
-      { day: "tuesday", slot: 2 },
-    ],
-    ...courseDetails["COURSE601"],
-  },
-  {
-    id: "COURSE701",
-    courseName: "宗教改革史",
-    category: "教會歷史",
-    credits: 3,
-    teacher: "陳歷史教授",
-    enrollmentLimit: 25,
-    currentEnrollment: 15,
-    remainingSlots: 10,
-    timeSlots: [
-      { day: "wednesday", slot: 11 },
-      { day: "wednesday", slot: 12 },
-    ],
-    ...courseDetails["COURSE701"],
-  },
-  {
-    id: "COURSE801",
-    courseName: "基督徒靈命塑造",
-    category: "靈修神學",
-    credits: 2,
-    teacher: "謝靈修牧師",
-    enrollmentLimit: 40,
-    currentEnrollment: 20,
-    remainingSlots: 20,
-    timeSlots: [
-      { day: "thursday", slot: 9 },
-      { day: "thursday", slot: 10 },
-    ],
-    ...courseDetails["COURSE801"],
-  },
-  {
-    id: "COURSE901",
-    courseName: "當代神學思潮",
-    category: "神學研究",
-    credits: 3,
-    teacher: "林博士",
-    enrollmentLimit: 20,
-    currentEnrollment: 18,
-    remainingSlots: 2,
-    timeSlots: [
-      { day: "friday", slot: 11 },
-      { day: "friday", slot: 12 },
-    ],
-    ...courseDetails["COURSE901"],
-  },
-]);
+const coursesData = reactive([]);
 
 const selectedCourses = ref([]);
 
 const totalSelectedCredits = computed(() => {
   return selectedCourses.value.reduce((total, course) => {
-    return total + (course.credits || 0);
+    return total + (course.credit || 0);
   }, 0);
 });
 
@@ -194,10 +34,10 @@ const hasReachedCreditLimit = computed(() => {
 
 const willExceedCreditLimit = (course) => {
   const currentTotalCredits = selectedCourses.value.reduce(
-    (total, selected) => total + selected.credits,
+    (total, selected) => total + selected.credit,
     0
   );
-  return currentTotalCredits + course.credits > CREDIT_LIMIT;
+  return currentTotalCredits + course.credit > CREDIT_LIMIT;
 };
 
 const remainingCredits = computed(() => {
@@ -213,7 +53,7 @@ const filters = reactive({
 const categoryOptions = computed(() => {
   const categories = new Set();
   coursesData.forEach((course) => {
-    categories.add(course.category);
+    if (course.category) categories.add(course.category);
   });
   return Array.from(categories).sort();
 });
@@ -221,7 +61,7 @@ const categoryOptions = computed(() => {
 const teacherOptions = computed(() => {
   const teachers = new Set();
   coursesData.forEach((course) => {
-    teachers.add(course.teacher);
+    if (course.teacher_name) teachers.add(course.teacher_name);
   });
   return Array.from(teachers).sort();
 });
@@ -246,8 +86,9 @@ const filteredAvailableCourses = computed(() => {
     const matchCategory =
       !filters.category || course.category === filters.category;
     const matchKeyword =
-      !filters.keyword || course.courseName.includes(filters.keyword);
-    const matchTeacher = !filters.teacher || course.teacher === filters.teacher;
+      !filters.keyword || course.course_name.includes(filters.keyword);
+    const matchTeacher =
+      !filters.teacher || course.teacher_name === filters.teacher;
 
     return matchCategory && matchKeyword && matchTeacher;
   });
@@ -255,26 +96,20 @@ const filteredAvailableCourses = computed(() => {
 
 const availableCoursesColumns = [
   {
-    title: "課程編號",
-    dataIndex: "id",
-    key: "id",
-    width: "10%",
-  },
-  {
     title: "課程名稱",
-    dataIndex: "courseName",
-    key: "courseName",
+    dataIndex: "course_name",
+    key: "course_name",
     width: "25%",
     customRender: ({ text, record }) => {
       return h(
         "a",
         {
           onClick: (e) => {
-            e.stopPropagation();
-            router.push({
-              name: RouterName.CourseDetail,
-              params: { id: record.id },
-            });
+            // e.stopPropagation();
+            // router.push({
+            //   name: RouterName.CourseDetail,
+            //   params: { id: record.course_id },
+            // });
           },
           style: "cursor: pointer; color: #1890ff;",
         },
@@ -283,36 +118,52 @@ const availableCoursesColumns = [
     },
   },
   {
-    title: "類別",
-    dataIndex: "category",
-    key: "category",
+    title: "教師",
+    dataIndex: "teacher_name",
+    key: "teacher_name",
     width: "15%",
   },
   {
+    title: "上課時間",
+    dataIndex: "timeDisplay",
+    key: "timeDisplay",
+    width: "15%",
+    customRender: ({ record }) => {
+      // 格式化週課表時間
+      if (record.weekly_schedule && record.weekly_schedule.length > 0) {
+        return record.weekly_schedule
+          .map(
+            (schedule) =>
+              `${schedule.week_day} ${schedule.start_time}-${schedule.end_time}`
+          )
+          .join(", ");
+      }
+      return "-";
+    },
+  },
+  {
     title: "學分",
-    dataIndex: "credits",
-    key: "credits",
+    dataIndex: "credit",
+    key: "credit",
     width: "5%",
     align: "center",
   },
   {
-    title: "教師",
-    dataIndex: "teacher",
-    key: "teacher",
-    width: "15%",
-  },
-  {
-    title: "剩餘名額",
-    dataIndex: "remainingSlots",
-    key: "remainingSlots",
+    title: "報名情況",
+    dataIndex: "enrollment_count",
+    key: "enrollment_count",
     width: "15%",
     align: "center",
+    customRender: ({ record }) => {
+      const remaining = record.enrollment_limit - record.enrollment_count;
+      return `${remaining}/${record.enrollment_limit}`;
+    },
   },
   {
     title: "操作",
     dataIndex: "action",
     key: "action",
-    width: "15%",
+    width: "5%",
     align: "center",
   },
 ];
@@ -343,16 +194,31 @@ const handleReset = () => {
 };
 
 const isCourseFull = (course) => {
-  return course.remainingSlots <= 0;
+  return course.enrollment_count >= course.enrollment_limit;
 };
 
 const hasCourseTimeConflict = (course) => {
   for (const selectedCourse of selectedCourses.value) {
-    for (const timeSlot of course.timeSlots) {
-      const conflict = selectedCourse.timeSlots.some(
-        (st) => st.day === timeSlot.day && st.slot === timeSlot.slot
-      );
-      if (conflict) return true;
+    if (!selectedCourse.weekly_schedule || !course.weekly_schedule) continue;
+
+    for (const newSchedule of course.weekly_schedule) {
+      for (const existingSchedule of selectedCourse.weekly_schedule) {
+        if (newSchedule.week_day === existingSchedule.week_day) {
+          // 檢查時間是否重疊
+          const newStart = newSchedule.start_time;
+          const newEnd = newSchedule.end_time;
+          const existingStart = existingSchedule.start_time;
+          const existingEnd = existingSchedule.end_time;
+
+          if (
+            (newStart >= existingStart && newStart < existingEnd) ||
+            (newEnd > existingStart && newEnd <= existingEnd) ||
+            (newStart <= existingStart && newEnd >= existingEnd)
+          ) {
+            return true;
+          }
+        }
+      }
     }
   }
   return false;
@@ -363,7 +229,9 @@ const handleSelectCourse = async (course) => {
     if (loading.value) return;
 
     // 检查是否已选择该课程
-    if (selectedCourses.value.some((item) => item.id === course.id)) {
+    if (
+      selectedCourses.value.some((item) => item.course_id === course.course_id)
+    ) {
       message.warning("該課程已被選擇");
       return;
     }
@@ -384,23 +252,18 @@ const handleSelectCourse = async (course) => {
       return;
     }
 
-    // 检查是否已经选择了该课程
-    if (selectedCourses.value.some((item) => item.id === course.id)) {
-      message.error("You have already selected this course");
-      return;
-    }
-
     // 添加课程
     selectedCourses.value.push(course);
 
     // 更新剩余名额
-    const index = coursesData.findIndex((c) => c.id === course.id);
+    const index = coursesData.findIndex(
+      (c) => c.course_id === course.course_id
+    );
     if (index !== -1) {
-      coursesData[index].remainingSlots--;
-      coursesData[index].currentEnrollment++;
+      coursesData[index].enrollment_count++;
     }
 
-    message.success(`Course selected successfully: ${course.courseName}`);
+    message.success(`Course selected successfully: ${course.course_name}`);
     // 自动切换到已选课程页面
     activeTabKey.value = "selected";
   } catch (error) {
@@ -413,17 +276,16 @@ const handleSelectCourse = async (course) => {
 const handleRemoveCourse = (course) => {
   // 從已選課程中移除
   selectedCourses.value = selectedCourses.value.filter(
-    (c) => c.id !== course.id
+    (c) => c.course_id !== course.course_id
   );
 
   // 恢復名額
-  const index = coursesData.findIndex((c) => c.id === course.id);
+  const index = coursesData.findIndex((c) => c.course_id === course.course_id);
   if (index !== -1) {
-    coursesData[index].remainingSlots++;
-    coursesData[index].currentEnrollment--;
+    coursesData[index].enrollment_count--;
   }
 
-  message.success(`已退選 ${course.courseName}`);
+  message.success(`已退選 ${course.course_name}`);
 };
 
 const handleSubmitSelection = () => {
@@ -446,38 +308,72 @@ const handleSubmitSelection = () => {
 };
 
 const getCoursesInTimeSlot = (day, slot) => {
-  return selectedCourses.value.filter((course) =>
-    course.timeSlots.some((ts) => ts.day === day && ts.slot === slot)
-  );
+  // 將週幾對應轉換
+  const dayMap = {
+    monday: "週一",
+    tuesday: "週二",
+    wednesday: "週三",
+    thursday: "週四",
+    friday: "週五",
+  };
+
+  const weekDay = dayMap[day];
+  if (!weekDay) return [];
+
+  // 將時段轉換為時間範圍
+  const timeSlotMap = {
+    1: { start: "08:00", end: "08:50" },
+    2: { start: "09:00", end: "09:50" },
+    3: { start: "10:10", end: "11:00" },
+    4: { start: "11:10", end: "12:00" },
+    5: { start: "13:10", end: "14:00" },
+    6: { start: "14:10", end: "15:00" },
+    7: { start: "15:10", end: "16:00" },
+    8: { start: "16:10", end: "17:00" },
+    9: { start: "18:00", end: "18:50" },
+    10: { start: "19:00", end: "19:50" },
+    11: { start: "20:00", end: "20:50" },
+    12: { start: "21:00", end: "21:50" },
+  };
+
+  const slotTime = timeSlotMap[slot];
+  if (!slotTime) return [];
+
+  return selectedCourses.value.filter((course) => {
+    if (!course.weekly_schedule) return false;
+
+    return course.weekly_schedule.some(
+      (schedule) =>
+        schedule.week_day === weekDay &&
+        schedule.start_time <= slotTime.start &&
+        schedule.end_time >= slotTime.end
+    );
+  });
 };
 
 const getCourseColor = (courseId) => {
-  const index = selectedCourses.value.findIndex((c) => c.id === courseId);
+  const index = selectedCourses.value.findIndex(
+    (c) => c.course_id === courseId
+  );
   return courseColors[index % courseColors.length];
 };
 
 const selectedCoursesColumns = [
   {
-    title: "課程編號",
-    dataIndex: "id",
-    key: "id",
-    width: "10%",
-  },
-  {
     title: "課程名稱",
-    dataIndex: "courseName",
-    key: "courseName",
+    dataIndex: "course_name",
+    key: "course_name",
     width: "25%",
     customRender: ({ text, record }) => {
       return h(
         "a",
         {
           onClick: (e) => {
-            e.stopPropagation();
-            router.push({
-              name: RouterName.CourseDetail,
-              params: { id: record.id },
-            });
+            // e.stopPropagation();
+            // router.push({
+            //   name: RouterName.CourseDetail,
+            //   params: { id: record.course_id },
+            // });
           },
           style: "cursor: pointer; color: #1890ff;",
         },
@@ -486,22 +382,9 @@ const selectedCoursesColumns = [
     },
   },
   {
-    title: "類別",
-    dataIndex: "category",
-    key: "category",
-    width: "15%",
-  },
-  {
-    title: "學分",
-    dataIndex: "credits",
-    key: "credits",
-    width: "10%",
-    align: "center",
-  },
-  {
     title: "教師",
-    dataIndex: "teacher",
-    key: "teacher",
+    dataIndex: "teacher_name",
+    key: "teacher_name",
     width: "15%",
   },
   {
@@ -510,8 +393,24 @@ const selectedCoursesColumns = [
     key: "timeDisplay",
     width: "15%",
     customRender: ({ record }) => {
-      return formatCourseTime(record);
+      // 格式化週課表時間
+      if (record.weekly_schedule && record.weekly_schedule.length > 0) {
+        return record.weekly_schedule
+          .map(
+            (schedule) =>
+              `${schedule.week_day} ${schedule.start_time}-${schedule.end_time}`
+          )
+          .join(", ");
+      }
+      return "-";
     },
+  },
+  {
+    title: "學分",
+    dataIndex: "credit",
+    key: "credit",
+    width: "10%",
+    align: "center",
   },
   {
     title: "操作",
@@ -522,8 +421,35 @@ const selectedCoursesColumns = [
   },
 ];
 
-onMounted(() => {
+const tooltipTitle = (record) => {
+  if (isCourseFull(record) && isSelectionPeriodActive) {
+    return "課程已額滿";
+  }
+  if (hasCourseTimeConflict(record) && isSelectionPeriodActive) {
+    return "與已選課程時間衝突";
+  }
+  if (
+    (hasReachedCreditLimit || willExceedCreditLimit(record)) &&
+    isSelectionPeriodActive
+  ) {
+    return "選課學分已達上限 (21學分)";
+  }
+  return "";
+};
+
+onMounted(async () => {
   handleSearch();
+  try {
+    const courses = await courseService.fetchCoursesForEnrollment();
+    console.log(courses);
+
+    // 將 API 回傳的資料填入 coursesData
+    coursesData.length = 0; // 清空陣列
+    coursesData.push(...courses);
+  } catch (error) {
+    console.error("Failed to fetch courses:", error);
+    message.error("無法載入課程資料");
+  }
 });
 </script>
 
@@ -613,77 +539,44 @@ onMounted(() => {
             </a-form>
           </div>
 
-          <div class="u-mb-4 u-flex u-justify-between u-items-center">
-            <div>
-              <!-- 移除全選功能 -->
-            </div>
-            <!-- 移除批量選課按鈕 -->
-          </div>
-
           <!-- 可選課程表格 -->
           <a-spin :spinning="loading">
             <a-table
               :dataSource="filteredAvailableCourses"
               :columns="availableCoursesColumns"
-              rowKey="id"
+              rowKey="course_id"
               :pagination="{ pageSize: 10 }"
               size="middle"
             >
               <!-- 剩餘名額顯示 -->
               <template #bodyCell="{ column, record }">
-                <template v-if="column.dataIndex === 'remainingSlots'">
+                <template v-if="column.dataIndex === 'enrollment_count'">
                   <span
                     :class="{
-                      'u-text-red-500': record.remainingSlots < 5,
-                      'u-font-bold': record.remainingSlots < 5,
+                      'u-text-red-500':
+                        record.enrollment_limit - record.enrollment_count < 5,
+                      'u-font-bold':
+                        record.enrollment_limit - record.enrollment_count < 5,
                     }"
                   >
-                    {{ record.remainingSlots }}/{{ record.enrollmentLimit }}
+                    {{ record.enrollment_count }}/{{ record.enrollment_limit }}
                   </span>
                 </template>
                 <template v-if="column.dataIndex === 'action'">
-                  <a-button
-                    type="primary"
-                    size="small"
-                    @click="handleSelectCourse(record)"
-                    :disabled="
-                      !isSelectionPeriodActive ||
-                      isCourseFull(record) ||
-                      hasCourseTimeConflict(record) ||
-                      hasReachedCreditLimit ||
-                      willExceedCreditLimit(record)
-                    "
-                  >
-                    選課
-                  </a-button>
-                  <a-tooltip
-                    v-if="isCourseFull(record) && isSelectionPeriodActive"
-                    title="課程已額滿"
-                  >
-                    <a-button class="u-ml-2" size="small" type="text">
-                      <i class="fas fa-info-circle"></i>
-                    </a-button>
-                  </a-tooltip>
-                  <a-tooltip
-                    v-if="
-                      hasCourseTimeConflict(record) && isSelectionPeriodActive
-                    "
-                    title="與已選課程時間衝突"
-                  >
-                    <a-button class="u-ml-2" size="small" type="text">
-                      <i class="fas fa-info-circle"></i>
-                    </a-button>
-                  </a-tooltip>
-                  <a-tooltip
-                    v-if="
-                      (hasReachedCreditLimit ||
-                        willExceedCreditLimit(record)) &&
-                      isSelectionPeriodActive
-                    "
-                    title="選課學分已達上限 (21學分)"
-                  >
-                    <a-button class="u-ml-2" size="small" type="text">
-                      <i class="fas fa-info-circle"></i>
+                  <a-tooltip :title="tooltipTitle(record)">
+                    <a-button
+                      type="primary"
+                      size="small"
+                      @click="handleSelectCourse(record)"
+                      :disabled="
+                        !isSelectionPeriodActive ||
+                        isCourseFull(record) ||
+                        hasCourseTimeConflict(record) ||
+                        hasReachedCreditLimit ||
+                        willExceedCreditLimit(record)
+                      "
+                    >
+                      選課
                     </a-button>
                   </a-tooltip>
                 </template>
@@ -729,7 +622,7 @@ onMounted(() => {
             <a-table
               :dataSource="selectedCourses"
               :columns="selectedCoursesColumns"
-              rowKey="id"
+              rowKey="course_id"
               :pagination="false"
               size="middle"
             >
@@ -772,7 +665,7 @@ onMounted(() => {
               </thead>
               <tbody>
                 <tr v-for="time in timeSlots" :key="time.slot">
-                  <td class="time-column">{{ time.label }}</td>
+                  <td class="time-column u-text-nowrap">{{ time.label }}</td>
                   <td
                     v-for="day in [
                       'monday',
@@ -785,11 +678,13 @@ onMounted(() => {
                   >
                     <div
                       v-for="course in getCoursesInTimeSlot(day, time.slot)"
-                      :key="course.id"
+                      :key="course.course_id"
                       class="course-cell"
-                      :style="{ backgroundColor: getCourseColor(course.id) }"
+                      :style="{
+                        backgroundColor: getCourseColor(course.course_id),
+                      }"
                     >
-                      {{ course.courseName }}
+                      {{ course.course_name }}
                     </div>
                   </td>
                 </tr>

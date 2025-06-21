@@ -33,7 +33,15 @@ export default {
     );
   },
 
-  getCoursesForEnrollment(params) {
+  getCoursesForEnrollmentSettings(params) {
     return baseApiHelper.post(`/enrollment/get-course`, params);
+  },
+
+  getCoursesForEnrollment() {
+    return baseApiHelper.get(`/enrollment`);
+  },
+
+  createEnrollment(params) {
+    return baseApiHelper.post(`/enrollment/create-one`, params);
   },
 };

@@ -20,6 +20,8 @@
 
     "遵循前端架構：Component-based + Atomic Design；ESLint+Prettier(Airbnb)；2-space indent；kebab-case；API-first；Code Splitting；Core Web Vitals 優化；OpenAPI/Swagger 文件；ADR 決策記錄；**TDD 開發流程**。",
 
-    "所有輸出使用 Markdown，並分段 (Integrity、Matrix、Blast Radius、TDD Specs、Tasks、Criteria & Tests、**Unit Tests**、Standards)，段落前加 ###。若遇歧義，先以 `> [Question]: ...` 詢問。偵測到 `:export-tasks` 時，輸出可貼入 tasks.json 的 JSON 結構。偵測到 `:export-tests` 時，輸出完整的 Vitest 測試檔案。"
+    "所有輸出使用 Markdown，並分段 (Integrity、Matrix、Blast Radius、TDD Specs、Tasks、Criteria & Tests、**Unit Tests**、Standards)，段落前加 ###。若遇歧義，先以 `> [Question]: ...` 詢問。偵測到 `:export-tasks` 時，輸出可貼入 tasks.json 的 JSON 結構。偵測到 `:export-tests` 時，輸出完整的 Vitest 測試檔案。",
+
+    "如果有任何不明白或是不清楚的地方請提出疑問，不要自己猜測"
   ]
 }

@@ -247,6 +247,22 @@ export const useCourseStore = defineStore(
       courseForm.weeklySchedule.splice(index, 1);
     };
 
+    const getCourseHandler = async (courseId) => {
+      try {
+        const response = await courseService.getCourse(courseId);
+
+        console.log("Course data:", response);
+
+        Object.keys(courseForm).forEach((key) => {
+          if (response.hasOwnProperty(key)) {
+            courseForm[key] = response[key];
+          }
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
     return {
       courseForm,
       loading,
@@ -259,6 +275,7 @@ export const useCourseStore = defineStore(
       setCourseInfos,
       addWeeklySchedule,
       removeWeeklySchedule,
+      getCourseHandler,
     };
   },
   {

@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted, onBeforeMount, h } from "vue";
+import { ref, onMounted, onBeforeMount, h, computed } from "vue";
 import { message } from "ant-design-vue";
 
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { Divider } from "ant-design-vue";
 import {
   InboxOutlined,
@@ -13,15 +13,15 @@ import {
 import { useCourseStore } from "@/stores/course";
 import { courseSchema } from "@/schemas/course.schema";
 import { courseService } from "@/services/course.service";
+import { RouterName } from "@/enums/appEnums";
 
-const props = defineProps({
-  isEdit: {
-    type: Boolean,
-    default: false,
-  },
-  courseId: {
-    type: Number,
-  },
+const route = useRoute();
+const isEdit = computed(() => {
+  return route.name === RouterName.UpdateCourse;
+});
+
+const courseId = computed(() => {
+  return route.params.id;
 });
 
 const courseStore = useCourseStore();
@@ -83,23 +83,10 @@ onBeforeMount(() => {
 });
 
 // Fetch and populate data on mount if editing
-onMounted(() => {
-  // if (props.isEdit && props.courseId) {
-  //   console.log("Edit mode detected, course ID:", props.courseId);
-  //   // Find the course data (using dummy data for now)
-  //   const courseToEdit = dummyCourseData.find(
-  //     (c) => c.id === Number(props.courseId)
-  //   );
-  //   if (courseToEdit) {
-  //   } else {
-  //     message.error(`找不到 ID 為 ${props.courseId} 的課程資料`);
-  //     // Optionally redirect back or handle error
-  //     router.push("/course-overview");
-  //   }
-  // } else {
-  //   // If in create mode, ensure form is reset
-  //   courseStore.resetForm();
-  // }
+onMounted(async () => {
+  if (isEdit.value && courseId.value) {
+    const courseData = await courseStore.getCourseHandler(courseId.value);
+  }
 });
 </script>
 

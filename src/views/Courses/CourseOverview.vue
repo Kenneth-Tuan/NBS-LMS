@@ -229,7 +229,7 @@ onMounted(async () => {
                 "
                 type="default"
                 size="small"
-                @click="goToEditCourse(record.id)"
+                @click="goToEditCourse(record.course_id)"
               >
                 編輯
               </AButton>

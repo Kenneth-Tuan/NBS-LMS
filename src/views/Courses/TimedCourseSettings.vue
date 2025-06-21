@@ -1,9 +1,8 @@
 <script setup>
 import { reactive, onMounted, ref } from "vue";
 import dayjs from "dayjs";
-import { Divider } from "ant-design-vue";
+import { Divider, message } from "ant-design-vue";
 
-import { dummyCourseData } from "@/data/dummy";
 import { timeCourseSettingsSchema } from "@/schemas/timeCourseSettings.schema";
 import { courseService } from "@/services/course.service";
 
@@ -18,8 +17,27 @@ const formState = reactive({
 
 const selectableCourses = ref([]);
 
-const onFinish = (values) => {
-  console.log("Success:", values, formState);
+const onFinish = async (values) => {
+  try {
+    const {
+      "selectable-courses": courseIds,
+      "range-time-picker": timeRange,
+      "courses-credit": creditLimit,
+    } = values;
+    const [startTime, endTime] = timeRange;
+
+    const result = await courseService.createEnrollment(
+      courseIds,
+      startTime,
+      endTime,
+      creditLimit
+    );
+
+    console.log("Result:", result);
+    message.success("設定成功");
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const onFinishFailed = (errorInfo) => {
@@ -36,7 +54,7 @@ const filterOption = (input, option) => {
 };
 
 onMounted(async () => {
-  const courses = await courseService.fetchCoursesForEnrollment();
+  const courses = await courseService.fetchCoursesForEnrollmentSettings();
 
   selectableCourses.value = courses.map((course) => ({
     label: course.name,
