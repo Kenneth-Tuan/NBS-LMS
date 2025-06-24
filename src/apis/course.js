@@ -44,4 +44,16 @@ export default {
   createEnrollment(params) {
     return baseApiHelper.post(`/enrollment/create-one`, params);
   },
+
+  pickCourse(params) {
+    return baseApiHelper.post(`/enrollment/pick-course`, params);
+  },
+
+  dropCourse(params) {
+    return baseApiHelper.post(`/enrollment/drop-course`, params);
+  },
+
+  myCourseSchedule() {
+    return baseApiHelper.get(`/enrollment/my-schedule`);
+  },
 };

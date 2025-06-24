@@ -250,6 +250,44 @@ const courseService = {
       return [];
     }
   },
+
+  pickCourse: async (course_ids) => {
+    const params = {
+      course_ids,
+    };
+
+    try {
+      const response = await courseApi.pickCourse(params);
+      return response.data.data;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
+
+  dropCourse: async (course_id) => {
+    const params = {
+      course_id,
+    };
+
+    try {
+      const response = await courseApi.dropCourse(params);
+      return response.data.data;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
+
+  getMyCourseSchedule: async () => {
+    try {
+      const response = await courseApi.myCourseSchedule();
+      return response.data.data;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
 };
 
 export { courseService };

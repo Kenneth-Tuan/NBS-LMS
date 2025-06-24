@@ -1,20 +1,15 @@
 <script setup>
-import { ref, reactive, computed, onMounted, h } from "vue";
+import { ref, reactive, computed, onMounted, h, unref } from "vue";
 import { message } from "ant-design-vue";
-import { useRouter } from "vue-router";
 import dayjs from "dayjs";
 
-import { RouterName } from "@/enums/appEnums";
 import { courseService } from "@/services/course.service";
-
-const router = useRouter();
 
 const CREDIT_LIMIT = 21;
 
 const selectionPeriod = `${dayjs().format("YYYY/MM/DD HH:mm:ss")} - ${dayjs()
   .add(14, "day")
   .format("YYYY/MM/DD HH:mm:ss")}`;
-const isSelectionPeriodActive = ref(true);
 const loading = ref(false);
 const activeTabKey = ref("available");
 
@@ -40,22 +35,9 @@ const willExceedCreditLimit = (course) => {
   return currentTotalCredits + course.credit > CREDIT_LIMIT;
 };
 
-const remainingCredits = computed(() => {
-  return Math.max(0, CREDIT_LIMIT - totalSelectedCredits.value);
-});
-
 const filters = reactive({
-  category: "",
   keyword: "",
   teacher: "",
-});
-
-const categoryOptions = computed(() => {
-  const categories = new Set();
-  coursesData.forEach((course) => {
-    if (course.category) categories.add(course.category);
-  });
-  return Array.from(categories).sort();
 });
 
 const teacherOptions = computed(() => {
@@ -83,14 +65,12 @@ const timeSlots = [
 
 const filteredAvailableCourses = computed(() => {
   return coursesData.filter((course) => {
-    const matchCategory =
-      !filters.category || course.category === filters.category;
     const matchKeyword =
       !filters.keyword || course.course_name.includes(filters.keyword);
     const matchTeacher =
       !filters.teacher || course.teacher_name === filters.teacher;
 
-    return matchCategory && matchKeyword && matchTeacher;
+    return matchKeyword && matchTeacher;
   });
 });
 
@@ -187,7 +167,6 @@ const handleSearch = () => {
 };
 
 const handleReset = () => {
-  filters.category = "";
   filters.keyword = "";
   filters.teacher = "";
   handleSearch();
@@ -198,25 +177,60 @@ const isCourseFull = (course) => {
 };
 
 const hasCourseTimeConflict = (course) => {
+  // 將時間字串轉換為分鐘數，方便比較
+  const timeToMinutes = (timeStr) => {
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // 檢查兩個時間段是否有重疊
+  const hasOverlap = (start1, end1, start2, end2) => {
+    return start1 < end2 && start2 < end1;
+  };
+
+  // 檢查新課程是否與任何已選課程有時間衝突
   for (const selectedCourse of selectedCourses.value) {
-    if (!selectedCourse.weekly_schedule || !course.weekly_schedule) continue;
+    // 確保已選課程有必要的時間資料
+    if (
+      !selectedCourse.week_day ||
+      !selectedCourse.start_time ||
+      !selectedCourse.end_time
+    )
+      continue;
 
-    for (const newSchedule of course.weekly_schedule) {
-      for (const existingSchedule of selectedCourse.weekly_schedule) {
-        if (newSchedule.week_day === existingSchedule.week_day) {
-          // 檢查時間是否重疊
-          const newStart = newSchedule.start_time;
-          const newEnd = newSchedule.end_time;
-          const existingStart = existingSchedule.start_time;
-          const existingEnd = existingSchedule.end_time;
+    // 新課程可能有 weekly_schedule 陣列
+    if (course.weekly_schedule && course.weekly_schedule.length > 0) {
+      for (const newSchedule of course.weekly_schedule) {
+        // 只有在同一天才需要檢查時間衝突
+        if (newSchedule.week_day === selectedCourse.week_day) {
+          // 將時間轉換為分鐘數
+          const newStart = timeToMinutes(newSchedule.start_time);
+          const newEnd = timeToMinutes(newSchedule.end_time);
+          const existingStart = timeToMinutes(selectedCourse.start_time);
+          const existingEnd = timeToMinutes(selectedCourse.end_time);
 
-          if (
-            (newStart >= existingStart && newStart < existingEnd) ||
-            (newEnd > existingStart && newEnd <= existingEnd) ||
-            (newStart <= existingStart && newEnd >= existingEnd)
-          ) {
+          // 檢查是否有時間重疊
+          if (hasOverlap(newStart, newEnd, existingStart, existingEnd)) {
+            console.log(
+              `時間衝突: ${selectedCourse.course_name} (${selectedCourse.week_day} ${selectedCourse.start_time}-${selectedCourse.end_time}) 與 ${course.course_name} (${newSchedule.week_day} ${newSchedule.start_time}-${newSchedule.end_time})`
+            );
             return true;
           }
+        }
+      }
+    } else if (course.week_day && course.start_time && course.end_time) {
+      // 新課程也可能直接有時間屬性
+      if (course.week_day === selectedCourse.week_day) {
+        const newStart = timeToMinutes(course.start_time);
+        const newEnd = timeToMinutes(course.end_time);
+        const existingStart = timeToMinutes(selectedCourse.start_time);
+        const existingEnd = timeToMinutes(selectedCourse.end_time);
+
+        if (hasOverlap(newStart, newEnd, existingStart, existingEnd)) {
+          console.log(
+            `時間衝突: ${selectedCourse.course_name} (${selectedCourse.week_day} ${selectedCourse.start_time}-${selectedCourse.end_time}) 與 ${course.course_name} (${course.week_day} ${course.start_time}-${course.end_time})`
+          );
+          return true;
         }
       }
     }
@@ -252,18 +266,11 @@ const handleSelectCourse = async (course) => {
       return;
     }
 
-    // 添加课程
-    selectedCourses.value.push(course);
+    await courseService.pickCourse([course.course_id]);
+    fetchMyCourseData();
+    fetchCourseData();
 
-    // 更新剩余名额
-    const index = coursesData.findIndex(
-      (c) => c.course_id === course.course_id
-    );
-    if (index !== -1) {
-      coursesData[index].enrollment_count++;
-    }
-
-    message.success(`Course selected successfully: ${course.course_name}`);
+    message.success(`已選擇 ${course.course_name}`);
     // 自动切换到已选课程页面
     activeTabKey.value = "selected";
   } catch (error) {
@@ -273,19 +280,21 @@ const handleSelectCourse = async (course) => {
   }
 };
 
-const handleRemoveCourse = (course) => {
-  // 從已選課程中移除
-  selectedCourses.value = selectedCourses.value.filter(
-    (c) => c.course_id !== course.course_id
-  );
+const handleRemoveCourse = async (course) => {
+  try {
+    loading.value = true;
 
-  // 恢復名額
-  const index = coursesData.findIndex((c) => c.course_id === course.course_id);
-  if (index !== -1) {
-    coursesData[index].enrollment_count--;
+    await courseService.dropCourse(course.course_id);
+    fetchMyCourseData();
+    fetchCourseData();
+
+    message.success(`已退選 ${course.course_name}`);
+  } catch (error) {
+    console.error("Failed to drop course:", error);
+    message.error("退選時發生錯誤，請稍後再試");
+  } finally {
+    loading.value = false;
   }
-
-  message.success(`已退選 ${course.course_name}`);
 };
 
 const handleSubmitSelection = () => {
@@ -340,13 +349,13 @@ const getCoursesInTimeSlot = (day, slot) => {
   if (!slotTime) return [];
 
   return selectedCourses.value.filter((course) => {
-    if (!course.weekly_schedule) return false;
+    if (!course.week_day || !course.start_time || !course.end_time)
+      return false;
 
-    return course.weekly_schedule.some(
-      (schedule) =>
-        schedule.week_day === weekDay &&
-        schedule.start_time <= slotTime.start &&
-        schedule.end_time >= slotTime.end
+    return (
+      course.week_day === weekDay &&
+      course.start_time <= slotTime.start &&
+      course.end_time >= slotTime.end
     );
   });
 };
@@ -394,13 +403,8 @@ const selectedCoursesColumns = [
     width: "15%",
     customRender: ({ record }) => {
       // 格式化週課表時間
-      if (record.weekly_schedule && record.weekly_schedule.length > 0) {
-        return record.weekly_schedule
-          .map(
-            (schedule) =>
-              `${schedule.week_day} ${schedule.start_time}-${schedule.end_time}`
-          )
-          .join(", ");
+      if (record.week_day && record.start_time && record.end_time) {
+        return `${record.week_day} ${record.start_time}-${record.end_time}`;
       }
       return "-";
     },
@@ -422,30 +426,60 @@ const selectedCoursesColumns = [
 ];
 
 const tooltipTitle = (record) => {
-  if (isCourseFull(record) && isSelectionPeriodActive) {
-    return "課程已額滿";
-  }
-  if (hasCourseTimeConflict(record) && isSelectionPeriodActive) {
-    return "與已選課程時間衝突";
-  }
   if (
-    (hasReachedCreditLimit || willExceedCreditLimit(record)) &&
-    isSelectionPeriodActive
-  ) {
-    return "選課學分已達上限 (21學分)";
-  }
+    selectedCourses.value.some(
+      (selectedCourse) => selectedCourse.course_id === record.course_id
+    )
+  )
+    return "該課程已被選擇";
+
+  if (isCourseFull(record)) return "課程已額滿";
+
+  if (hasCourseTimeConflict(record)) return "與已選課程時間衝突";
+
+  if (unref(hasReachedCreditLimit)) return "選課學分已達上限 (21學分)";
+
   return "";
 };
+
+const isCourseDisabledToSelect = (course) => {
+  return (
+    isCourseFull(course) ||
+    hasCourseTimeConflict(course) ||
+    unref(hasReachedCreditLimit) ||
+    selectedCourses.value.some(
+      (selectedCourse) => selectedCourse.course_id === course.course_id
+    )
+  );
+};
+
+async function fetchCourseData() {
+  try {
+    const courses = await courseService.fetchCoursesForEnrollment();
+    coursesData.length = 0; // 清空陣列
+    coursesData.push(...courses);
+  } catch (error) {
+    console.error("Failed to fetch courses:", error);
+    message.error("無法載入課程資料");
+  }
+}
+
+async function fetchMyCourseData() {
+  try {
+    const { slots } = await courseService.getMyCourseSchedule();
+    console.log("test", slots);
+    selectedCourses.value = [...slots];
+  } catch (error) {
+    console.error("Failed to fetch my courses:", error);
+    message.error("無法載入我的課程資料");
+  }
+}
 
 onMounted(async () => {
   handleSearch();
   try {
-    const courses = await courseService.fetchCoursesForEnrollment();
-    console.log(courses);
-
-    // 將 API 回傳的資料填入 coursesData
-    coursesData.length = 0; // 清空陣列
-    coursesData.push(...courses);
+    await fetchCourseData();
+    await fetchMyCourseData();
   } catch (error) {
     console.error("Failed to fetch courses:", error);
     message.error("無法載入課程資料");
@@ -465,12 +499,12 @@ onMounted(async () => {
           <a-tag color="red">
             <span class="u-font-bold">{{ selectionPeriod }}</span>
           </a-tag>
-          <a-tag color="green" v-if="isSelectionPeriodActive" class="u-ml-2">
+          <!-- <a-tag color="green" v-if="true" class="u-ml-2">
             <span class="u-font-bold">選課進行中</span>
           </a-tag>
           <a-tag color="default" v-else class="u-ml-2">
             <span class="u-font-bold">選課未開放</span>
-          </a-tag>
+          </a-tag> -->
         </div>
       </div>
 
@@ -489,23 +523,6 @@ onMounted(async () => {
           <!-- 搜尋區塊 -->
           <div class="u-mb-6 u-bg-gray-50 u-p-4 u-rounded-lg">
             <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
-              <a-form-item label="課程類別">
-                <a-select
-                  v-model:value="filters.category"
-                  style="width: 180px"
-                  placeholder="選擇類別"
-                  allow-clear
-                >
-                  <a-select-option
-                    v-for="category in categoryOptions"
-                    :key="category"
-                    :value="category"
-                  >
-                    {{ category }}
-                  </a-select-option>
-                </a-select>
-              </a-form-item>
-
               <a-form-item label="課程名稱">
                 <a-input
                   v-model:value="filters.keyword"
@@ -533,7 +550,7 @@ onMounted(async () => {
               </a-form-item>
 
               <a-form-item>
-                <a-button type="primary" @click="handleSearch">查詢</a-button>
+                <!-- <a-button type="primary" @click="handleSearch">查詢</a-button> -->
                 <a-button class="u-ml-2" @click="handleReset">重置</a-button>
               </a-form-item>
             </a-form>
@@ -568,13 +585,7 @@ onMounted(async () => {
                       type="primary"
                       size="small"
                       @click="handleSelectCourse(record)"
-                      :disabled="
-                        !isSelectionPeriodActive ||
-                        isCourseFull(record) ||
-                        hasCourseTimeConflict(record) ||
-                        hasReachedCreditLimit ||
-                        willExceedCreditLimit(record)
-                      "
+                      :disabled="isCourseDisabledToSelect(record)"
                     >
                       選課
                     </a-button>
@@ -607,15 +618,13 @@ onMounted(async () => {
                   >
                   <span class="u-ml-1">/ 21</span>
                 </div>
-                <a-button
+                <!-- <a-button
                   type="primary"
                   @click="handleSubmitSelection"
-                  :disabled="
-                    !isSelectionPeriodActive || selectedCourses.length === 0
-                  "
+                  :disabled="selectedCourses.length === 0"
                 >
                   確認送出選課
-                </a-button>
+                </a-button> -->
               </div>
             </div>
 
@@ -625,6 +634,7 @@ onMounted(async () => {
               rowKey="course_id"
               :pagination="false"
               size="middle"
+              class="u-mb-4"
             >
               <template #bodyCell="{ column, record }">
                 <template v-if="column.dataIndex === 'action'">
@@ -632,25 +642,12 @@ onMounted(async () => {
                     danger
                     size="small"
                     @click="handleRemoveCourse(record)"
-                    :disabled="!isSelectionPeriodActive"
                   >
                     退選
                   </a-button>
                 </template>
               </template>
             </a-table>
-          </div>
-        </a-tab-pane>
-
-        <a-tab-pane key="schedule" tab="課表預覽">
-          <!-- 週課表預覽 -->
-          <div class="u-overflow-auto">
-            <div class="u-bg-gray-50 u-p-4 u-rounded-lg u-mb-4">
-              <div class="u-font-bold u-mb-2">課表預覽</div>
-              <div class="u-text-sm u-text-gray-500">
-                僅顯示您已選的課程，可用來確認是否有時間衝突
-              </div>
-            </div>
 
             <table class="timetable">
               <thead>
