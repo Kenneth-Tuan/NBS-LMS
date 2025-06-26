@@ -132,8 +132,8 @@ const courseSchema = {
     rules: [
       {
         type: "string",
-        required: true,
-        message: "請輸入課程簡介",
+        required: false,
+        message: "請輸入課程簡介(可不填)",
       },
     ],
     placeholder: "請輸入課程簡介",
@@ -148,8 +148,8 @@ const courseSchema = {
     rules: [
       {
         type: "array",
-        required: true,
-        message: "請上傳課程大綱附件",
+        required: false,
+        message: "請上傳課程大綱附件(可不填)",
       },
     ],
     placeholder: "請上傳課程大綱附件",
