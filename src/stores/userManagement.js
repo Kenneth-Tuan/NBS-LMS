@@ -11,14 +11,14 @@ import { UserRole } from "@/enums/appEnums";
 export const useUserManagementStore = defineStore("userManagement", () => {
   // === State ===
   const users = ref([]);
-  const totalUsers = ref(0);
   const loading = ref(false);
   const formLoading = ref(false);
   const exportLoading = ref(false);
 
   const pagination = reactive({
     currentPage: 1,
-    pageSize: 10,
+    pageSize: 30,
+    total: 0,
   });
 
   const filters = reactive({
@@ -39,9 +39,11 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   async function fetchUsers() {
     loading.value = true;
     try {
-      const response = await userService.getUserList();
+      const response = await userService.getUserList(pagination);
       users.value = [...response.data.data.users];
-      totalUsers.value = response.data.total;
+      pagination.total = response.data.total_page;
+      pagination.pageSize = response.data.page_size;
+      pagination.currentPage = response.data.page;
       // Clear selection when data is refreshed
       selectedRowKeys.value = [];
     } catch (error) {
@@ -249,7 +251,6 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   return {
     // State
     users,
-    totalUsers,
     loading,
     formLoading,
     exportLoading,

@@ -21,9 +21,7 @@ const store = useUserManagementStore();
 
 // Setup Table Logic
 const {
-  users,
   filteredUsers,
-  totalUsers,
   loading,
   exportLoading,
   pagination,
@@ -165,7 +163,7 @@ onMounted(() => {
         :pagination="{
           current: pagination.currentPage,
           pageSize: pagination.pageSize,
-          total: totalUsers,
+          total: pagination.total * pagination.pageSize,
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: (total) => `共 ${total} 條記錄`,

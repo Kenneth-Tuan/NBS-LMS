@@ -11,8 +11,8 @@ const userService = {
     try {
       const params = {
         paged_info: {
-          page: 1,
-          ...pageInfo,
+          page: pageInfo.currentPage,
+          page_size: pageInfo.pageSize,
         },
       };
       const result = await userApi.userList(params);
