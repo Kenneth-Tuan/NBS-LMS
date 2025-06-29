@@ -18,6 +18,7 @@ import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
 import { dummyCourseData } from "@/data/dummy";
 import { courseService } from "@/services/course.service";
+import CourseAssignments from "./CourseAssignments.vue";
 
 const AssignmentStatus = {
   OPEN: "OPEN",
@@ -114,15 +115,6 @@ const announcementModal = reactive({
   id: null,
   title: "",
   content: "",
-});
-
-const assignmentModal = reactive({
-  visible: false,
-  isEdit: false,
-  id: null,
-  title: "",
-  description: "",
-  dueDate: null,
 });
 
 const materialModal = reactive({
@@ -384,140 +376,13 @@ const deleteAnnouncement = (annId) => {
   message.success("公告刪除成功");
 };
 
-// --- Assignments (Teacher/Creator controls + Student Submission Logic) ---
-const openAddAssignmentModal = () => {
-  assignmentModal.isEdit = false;
-  assignmentModal.id = null;
-  assignmentModal.title = "";
-  assignmentModal.description = "";
-  assignmentModal.dueDate = null;
-  assignmentModal.visible = true;
-};
-const openEditAssignmentModal = (assign) => {
-  assignmentModal.isEdit = true;
-  assignmentModal.id = assign.id;
-  assignmentModal.title = assign.title;
-  assignmentModal.description = assign.description;
-  assignmentModal.dueDate = dayjs(assign.dueDate);
-  assignmentModal.visible = true;
-};
-const confirmAssignment = () => {
-  // For Teacher/Creator
-  if (!assignmentModal.title || !assignmentModal.dueDate) {
-    message.error("請填寫作業標題和截止日期");
-    return;
-  }
-  const assignmentData = {
-    title: assignmentModal.title,
-    description: assignmentModal.description,
-    dueDate: dayjs(assignmentModal.dueDate).format("YYYY-MM-DD"),
-    status: AssignmentStatus.OPEN, // New assignments are OPEN
-  };
-
-  if (assignmentModal.isEdit) {
-    const index = assignments.value.findIndex(
-      (a) => a.id === assignmentModal.id
-    );
-    if (index !== -1) {
-      assignments.value[index] = {
-        ...assignments.value[index],
-        ...assignmentData,
-      };
-      message.success("作業更新成功");
-    }
-  } else {
-    const newAssignment = {
-      id: uuidv4(),
-      courseId: currentCourseId.value,
-      ...assignmentData,
-    };
-    assignments.value.push(newAssignment);
-    // For new assignments, ensure all students have a grade entry (null) and students have a NOT_SUBMITTED entry
-    students.value.forEach((student) => {
-      if (!grades[student.id]) grades[student.id] = {};
-      grades[student.id][newAssignment.id] = null;
-    });
-    if (isStudent.value) {
-      // Though student can't create, this ensures data structure if roles change dynamically
-      currentUserSubmissions.value.push({
-        assignmentId: newAssignment.id,
-        status: AssignmentStatus.NOT_SUBMITTED,
-        fileName: null,
-        grade: null,
-      });
-    } else {
-      // If teacher adds an assignment, all students get a NOT_SUBMITTED status for it in their view if they were to switch
-      // This part needs careful handling if we are aiming for a global student submission state.
-      // For this component's mock, `currentUserSubmissions` is specific to the *viewing* student.
-      // So, if a teacher adds an assignment, a student viewing this page later will have it initialized in loadCourseData.
-    }
-    message.success("作業新增成功");
-  }
-  assignmentModal.visible = false;
-};
-const deleteAssignment = (assignId) => {
-  // For Teacher/Creator
-  assignments.value = assignments.value.filter((a) => a.id !== assignId);
-  students.value.forEach((student) => {
-    if (grades[student.id] && grades[student.id][assignId] !== undefined) {
-      delete grades[student.id][assignId];
-    }
-  });
-  if (isStudent.value) {
-    currentUserSubmissions.value = currentUserSubmissions.value.filter(
-      (s) => s.assignmentId !== assignId
-    );
-  }
-  message.success("作業刪除成功");
-};
-
-// --- Student Assignment Interaction ---
+// --- Assignments (Handled by CourseAssignments component) ---
+// Helper method needed for gradebook
 const getStudentSubmissionForAssignment = (assignmentId) => {
   if (!isStudent.value) return null;
   return currentUserSubmissions.value.find(
     (s) => s.assignmentId === assignmentId
   );
-};
-
-const handleStudentMockUpload = (assignment, file) => {
-  const submission = currentUserSubmissions.value.find(
-    (s) => s.assignmentId === assignment.id
-  );
-  if (submission) {
-    submission.status = AssignmentStatus.SUBMITTED;
-    submission.fileName = file.name;
-    submission.grade = null; // Reset grade if re-submitting
-    message.success(`作業 "${assignment.title}" 已成功模擬繳交: ${file.name}`);
-  } else {
-    // Should be initialized
-    currentUserSubmissions.value.push({
-      assignmentId: assignment.id,
-      status: AssignmentStatus.SUBMITTED,
-      fileName: file.name,
-      grade: null,
-    });
-    message.success(
-      `作業 "${assignment.title}" 已成功模擬繳交 (新紀錄): ${file.name}`
-    );
-  }
-  return false; // Prevent Ant Design's default upload
-};
-
-const prepareResubmit = (assignment) => {
-  const submission = currentUserSubmissions.value.find(
-    (s) => s.assignmentId === assignment.id
-  );
-  if (
-    submission &&
-    submission.status !== AssignmentStatus.GRADED &&
-    assignment.status === AssignmentStatus.OPEN
-  ) {
-    submission.status = AssignmentStatus.NOT_SUBMITTED; // Or a specific "READY_TO_RESUBMIT"
-    submission.fileName = null;
-    message.info(`請重新上傳作業 "${assignment.title}"`);
-  } else {
-    message.warn("此作業無法重新繳交。");
-  }
 };
 
 // --- Gradebook (Teacher/Creator + Student View) ---
@@ -696,7 +561,6 @@ const deleteMaterial = (materialId) => {
 // --- Student Roster (View only for all) ---
 const studentRosterColumns = [
   { title: "學生姓名", dataIndex: "name", key: "name" },
-  { title: "學號", dataIndex: "studentId", key: "studentId" },
   { title: "Email", dataIndex: "email", key: "email" },
 ];
 
@@ -787,224 +651,19 @@ const getCourseStatusTag = (course) => {
 
             <!-- Assignments Tab -->
             <a-tab-pane key="assignments" tab="作業管理">
-              <div class="u-mb-4 u-flex u-justify-end">
-                <a-button
-                  v-if="isTeacherOrCreator"
-                  type="primary"
-                  @click="openAddAssignmentModal"
-                >
-                  <template #icon><PlusOutlined /></template> 新增作業
-                </a-button>
-              </div>
-              <a-list
-                :data-source="assignments"
-                item-layout="horizontal"
-                :bordered="false"
-              >
-                <template #renderItem="{ item }">
-                  <a-list-item
-                    class="u-bg-gray-50 u-p-4 u-rounded-md u-mb-3 hover:u-shadow-md u-transition-shadow"
-                  >
-                    <a-list-item-meta>
-                      <template #title>
-                        <span class="u-text-lg u-font-semibold u-c-gray-800">{{
-                          item.title
-                        }}</span>
-                      </template>
-                      <template #description>
-                        <div class="u-text-xs u-c-gray-500">
-                          截止日期: {{ item.dueDate }}
-                        </div>
-                        <div
-                          class="u-text-sm u-c-gray-600 u-mt-1 u-whitespace-pre-line"
-                        >
-                          {{ item.description }}
-                        </div>
-                      </template>
-                    </a-list-item-meta>
-                    <template #extra>
-                      <a-tag :color="getStatusColor(item.status)"
-                        >{{ getStatusText(item.status) }} (總體)</a-tag
-                      >
-                      <a-tag
-                        v-if="
-                          isStudent &&
-                          getStudentSubmissionForAssignment(item.id)
-                        "
-                        :color="
-                          getStatusColor(
-                            getStudentSubmissionForAssignment(item.id).status
-                          )
-                        "
-                        class="u-ml-1"
-                      >
-                        我:
-                        {{
-                          getStatusText(
-                            getStudentSubmissionForAssignment(item.id).status
-                          )
-                        }}
-                      </a-tag>
-                    </template>
-
-                    <!-- Teacher/Creator Actions -->
-                    <template v-if="isTeacherOrCreator" #actions>
-                      <a-button
-                        type="link"
-                        size="small"
-                        @click="openEditAssignmentModal(item)"
-                        >編輯</a-button
-                      >
-                      <a-popconfirm
-                        title="確定刪除此作業嗎?"
-                        @confirm="deleteAssignment(item.id)"
-                      >
-                        <a-button type="link" size="small" danger
-                          >刪除</a-button
-                        >
-                      </a-popconfirm>
-                      <a-button
-                        type="link"
-                        size="small"
-                        @click="message.info('查看所有學生繳交狀況功能待實現')"
-                        >查看繳交</a-button
-                      >
-                    </template>
-
-                    <!-- Student Actions & Info -->
-                    <div
-                      v-if="isStudent"
-                      class="u-mt-3 u-pt-2 u-border-t u-border-gray-200"
-                    >
-                      <template
-                        v-if="getStudentSubmissionForAssignment(item.id)"
-                      >
-                        <div v-if="item.status === AssignmentStatus.OPEN">
-                          <div
-                            v-if="
-                              getStudentSubmissionForAssignment(item.id)
-                                .status === AssignmentStatus.SUBMITTED ||
-                              getStudentSubmissionForAssignment(item.id)
-                                .status === AssignmentStatus.GRADED
-                            "
-                            class="u-flex u-items-center u-gap-2"
-                          >
-                            <span class="u-text-sm u-c-green-600">
-                              已繳交:
-                              {{
-                                getStudentSubmissionForAssignment(item.id)
-                                  .fileName
-                              }}
-                              <span
-                                v-if="
-                                  getStudentSubmissionForAssignment(item.id)
-                                    .status === AssignmentStatus.GRADED
-                                "
-                              >
-                                (成績:
-                                {{
-                                  getStudentSubmissionForAssignment(item.id)
-                                    .grade !== null
-                                    ? getStudentSubmissionForAssignment(item.id)
-                                        .grade
-                                    : "N/A"
-                                }})</span
-                              >
-                            </span>
-                            <a-button
-                              v-if="
-                                getStudentSubmissionForAssignment(item.id)
-                                  .status !== AssignmentStatus.GRADED
-                              "
-                              type="link"
-                              size="small"
-                              @click="() => prepareResubmit(item)"
-                              >重新繳交</a-button
-                            >
-                          </div>
-                          <a-upload
-                            v-else
-                            :show-upload-list="false"
-                            :before-upload="
-                              (file) => handleStudentMockUpload(item, file)
-                            "
-                          >
-                            <a-button type="primary" size="small"
-                              >繳交作業</a-button
-                            >
-                          </a-upload>
-                        </div>
-                        <div
-                          v-else-if="
-                            getStudentSubmissionForAssignment(item.id)
-                              .status === AssignmentStatus.SUBMITTED ||
-                            getStudentSubmissionForAssignment(item.id)
-                              .status === AssignmentStatus.GRADED
-                          "
-                          class="u-text-sm"
-                        >
-                          已繳交:
-                          {{
-                            getStudentSubmissionForAssignment(item.id).fileName
-                          }}
-                          ({{
-                            getStatusText(
-                              getStudentSubmissionForAssignment(item.id).status
-                            )
-                          }})
-                          <span
-                            v-if="
-                              getStudentSubmissionForAssignment(item.id)
-                                .status === AssignmentStatus.GRADED
-                            "
-                          >
-                            - 成績:
-                            {{
-                              getStudentSubmissionForAssignment(item.id)
-                                .grade !== null
-                                ? getStudentSubmissionForAssignment(item.id)
-                                    .grade
-                                : "N/A"
-                            }}</span
-                          >
-                        </div>
-                        <div
-                          v-else-if="
-                            getStudentSubmissionForAssignment(item.id)
-                              .status === AssignmentStatus.NOT_SUBMITTED &&
-                            item.status === AssignmentStatus.CLOSED
-                          "
-                          class="u-text-sm u-c-red-500"
-                        >
-                          作業已截止，您未繳交。
-                        </div>
-                        <div
-                          v-else-if="
-                            getStudentSubmissionForAssignment(item.id)
-                              .status === AssignmentStatus.NOT_SUBMITTED
-                          "
-                          class="u-text-sm u-c-orange-500"
-                        >
-                          您尚未繳交此作業。
-                        </div>
-                      </template>
-                      <div
-                        v-else-if="item.status === AssignmentStatus.CLOSED"
-                        class="u-text-sm u-c-red-500"
-                      >
-                        作業已截止
-                      </div>
-                      <div v-else class="u-text-sm u-c-gray-500">
-                        作業狀態待確認
-                      </div>
-                      <!-- Should not happen with proper init -->
-                    </div>
-                  </a-list-item>
-                </template>
-                <template #empty>
-                  <a-empty description="暫無作業" />
-                </template>
-              </a-list>
+              <CourseAssignments
+                :current-course-id="currentCourseId"
+                :is-teacher-or-creator="isTeacherOrCreator"
+                :is-student="isStudent"
+                :current-user-student-id="currentUserStudentId"
+                :assignments="assignments"
+                :students="students"
+                :grades="grades"
+                :current-user-submissions="currentUserSubmissions"
+                @update:assignments="assignments = $event"
+                @update:grades="Object.assign(grades, $event)"
+                @update:currentUserSubmissions="currentUserSubmissions = $event"
+              />
             </a-tab-pane>
 
             <!-- Gradebook Tab -->
@@ -1218,39 +877,6 @@ const getCourseStatusTag = (course) => {
           :rules="[{ required: true, message: '請輸入內容!' }]"
         >
           <a-textarea v-model:value="announcementModal.content" :rows="5" />
-        </a-form-item>
-      </a-form>
-    </a-modal>
-
-    <!-- Assignment Modal -->
-    <a-modal
-      v-model:visible="assignmentModal.visible"
-      :title="assignmentModal.isEdit ? '編輯作業' : '新增作業'"
-      @ok="confirmAssignment"
-      okText="確認"
-      cancelText="取消"
-    >
-      <a-form layout="vertical">
-        <a-form-item
-          label="作業標題"
-          name="title"
-          :rules="[{ required: true, message: '請輸入作業標題!' }]"
-        >
-          <a-input v-model:value="assignmentModal.title" />
-        </a-form-item>
-        <a-form-item label="作業描述" name="description">
-          <a-textarea v-model:value="assignmentModal.description" :rows="4" />
-        </a-form-item>
-        <a-form-item
-          label="截止日期"
-          name="dueDate"
-          :rules="[{ required: true, message: '請選擇截止日期!' }]"
-        >
-          <a-date-picker
-            v-model:value="assignmentModal.dueDate"
-            format="YYYY-MM-DD"
-            style="width: 100%"
-          />
         </a-form-item>
       </a-form>
     </a-modal>
