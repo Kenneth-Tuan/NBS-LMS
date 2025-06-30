@@ -2,14 +2,10 @@ import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { Modal } from "ant-design-vue";
 import { useUserManagementStore } from "@/stores/userManagement";
-import { useUserStore } from "@/stores/user";
-import { UserRole } from "@/enums/appEnums";
 import { getRoleText, getStatusText } from "@/utils/mappers";
-import { formatLocaleDateTime } from "@/utils/formatters";
 
 export function useUserManagementTable() {
   const store = useUserManagementStore();
-  const userStore = useUserStore();
 
   const {
     users,

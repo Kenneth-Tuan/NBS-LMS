@@ -54,4 +54,16 @@ export default {
     const { id, ...rest } = params;
     return baseApiHelper.patch(`/user-management/edit-one?user_id=${id}`, rest);
   },
+
+  deleteUser(id) {
+    return baseApiHelper.delete(`/user-management/delete-one?user_id=${id}`);
+  },
+
+  resetPassword(params) {
+    const { id, ...rest } = params;
+    return baseApiHelper.post(
+      `/user-management/reset-password?user_id=${id}`,
+      rest
+    );
+  },
 };

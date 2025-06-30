@@ -57,7 +57,12 @@ const onFinish = async () => {
       });
 
       setUserRole(formState.userRole);
-      await userManagementStore.fetchUsers();
+      if (
+        formState.userRole === UserRole.Creator ||
+        formState.userRole === UserRole.Admin
+      ) {
+        await userManagementStore.fetchUsers();
+      }
       fetchUserProfile(formState.userEmail);
       updateLoginDialogOpen(false);
     } else throw new Error("Login Failed!");

@@ -65,6 +65,31 @@ const userService = {
       throw error;
     }
   },
+
+  async deleteUser(id) {
+    try {
+      const result = await userApi.deleteUser(id);
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
+
+  // request body
+  // {
+  //   "password": "string"
+  // }
+
+  async resetPassword(params) {
+    try {
+      const result = await userApi.resetPassword(params);
+      return result;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  },
 };
 
 export { userService };

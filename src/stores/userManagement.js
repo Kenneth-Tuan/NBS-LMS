@@ -147,7 +147,7 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   // --- CRUD Operations ---
   async function deleteUser(userId, userName) {
     try {
-      await userApi.deleteUser(userId);
+      await userService.deleteUser(userId);
       message.success(`使用者 "${userName}" 刪除成功`);
       fetchUsers(); // Refresh list
     } catch (error) {

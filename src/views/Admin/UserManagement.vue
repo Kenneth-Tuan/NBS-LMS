@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from "vue";
+import { onMounted, ref, reactive } from "vue";
 import { useUserManagementStore } from "@/stores/userManagement";
 import { useUserManagementTable } from "@/composables/useUserManagementTable";
 import { useUserManagementForm } from "@/composables/useUserManagementForm";
@@ -15,6 +15,8 @@ import {
   DownloadOutlined,
 } from "@ant-design/icons-vue";
 import { UserStatus } from "@/enums/appEnums";
+import { message } from "ant-design-vue";
+import userApi from "@/apis/user";
 
 // Initialize Store
 const store = useUserManagementStore();
@@ -52,6 +54,88 @@ const {
   handleFormSubmit,
   handleFormCancel,
 } = useUserManagementForm();
+
+// Reset Password Dialog State
+const resetPasswordVisible = ref(false);
+const resetPasswordLoading = ref(false);
+const resetPasswordFormRef = ref();
+const selectedUser = ref(null);
+
+const resetPasswordForm = reactive({
+  password: "",
+  confirmPassword: "",
+});
+
+// Password validation rules for reset password
+const resetPasswordRules = {
+  password: [
+    { required: true, message: "請輸入新密碼", trigger: "blur" },
+    { min: 6, message: "密碼長度至少6位", trigger: "blur" },
+  ],
+  confirmPassword: [
+    { required: true, message: "請確認密碼", trigger: "blur" },
+    {
+      validator: (rule, value) => {
+        if (value !== resetPasswordForm.password) {
+          return Promise.reject("兩次輸入的密碼不一致");
+        }
+        return Promise.resolve();
+      },
+      trigger: ["blur", "change"],
+    },
+  ],
+};
+
+// Reset Password Functions
+const confirmSingleResetPassword = (record) => {
+  selectedUser.value = record;
+  resetPasswordForm.password = "";
+  resetPasswordForm.confirmPassword = "";
+  resetPasswordVisible.value = true;
+
+  // Clear form validation
+  setTimeout(() => {
+    resetPasswordFormRef.value?.clearValidate();
+  }, 0);
+};
+
+const handleResetPasswordSubmit = async () => {
+  try {
+    // Validate form
+    await resetPasswordFormRef.value.validateFields();
+  } catch (error) {
+    console.log("Validation failed:", error);
+    return;
+  }
+
+  resetPasswordLoading.value = true;
+  try {
+    await userApi.resetPassword({
+      id: selectedUser.value.id,
+      password: resetPasswordForm.password,
+    });
+
+    message.success(`用戶 "${selectedUser.value.name}" 密碼重設成功`);
+    resetPasswordVisible.value = false;
+
+    // Reset form
+    resetPasswordForm.password = "";
+    resetPasswordForm.confirmPassword = "";
+    resetPasswordFormRef.value.resetFields();
+  } catch (error) {
+    console.error("Reset password failed:", error);
+    message.error("密碼重設失敗，請稍後再試");
+  } finally {
+    resetPasswordLoading.value = false;
+  }
+};
+
+const handleResetPasswordCancel = () => {
+  resetPasswordVisible.value = false;
+  resetPasswordForm.password = "";
+  resetPasswordForm.confirmPassword = "";
+  resetPasswordFormRef.value?.clearValidate();
+};
 
 // Fetch initial data on mount
 onMounted(() => {
@@ -190,13 +274,23 @@ onMounted(() => {
           </template>
           <template v-else-if="column.key === 'action'">
             <span>
-              <a-button type="link" @click="showEditForm(record)"
+              <a-button
+                type="link"
+                style="padding: 0 0 0 0"
+                @click="showEditForm(record)"
                 >編輯</a-button
               >
-              <a-divider v-if="false" type="vertical" />
+              <a-divider type="vertical" />
               <a-button
-                v-if="false"
                 type="link"
+                style="padding: 0 0 0 0"
+                @click="confirmSingleResetPassword(record)"
+                >重設密碼</a-button
+              >
+              <a-divider type="vertical" />
+              <a-button
+                type="link"
+                style="padding: 0 0 0 0"
                 danger
                 @click="confirmSingleDelete(record)"
                 >刪除</a-button
@@ -292,6 +386,38 @@ onMounted(() => {
             />
           </a-form-item>
         </template>
+      </a-form>
+    </a-modal>
+
+    <!-- Reset Password Dialog -->
+    <a-modal
+      :visible="resetPasswordVisible"
+      :title="`重設密碼 - ${selectedUser?.name}`"
+      :confirm-loading="resetPasswordLoading"
+      @ok="handleResetPasswordSubmit"
+      @cancel="handleResetPasswordCancel"
+      width="600px"
+      :destroyOnClose="true"
+    >
+      <a-form
+        :model="resetPasswordForm"
+        :rules="resetPasswordRules"
+        layout="vertical"
+        ref="resetPasswordFormRef"
+      >
+        <a-form-item label="新密碼" name="password">
+          <a-input-password
+            v-model:value="resetPasswordForm.password"
+            placeholder="請輸入新密碼"
+          />
+        </a-form-item>
+
+        <a-form-item label="確認密碼" name="confirmPassword">
+          <a-input-password
+            v-model:value="resetPasswordForm.confirmPassword"
+            placeholder="請再次輸入密碼"
+          />
+        </a-form-item>
       </a-form>
     </a-modal>
   </div>
