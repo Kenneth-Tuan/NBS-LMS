@@ -290,4 +290,94 @@ const courseService = {
   },
 };
 
-export { courseService };
+const assignmentService = {
+  // request body（老師）新增作業
+  // {
+  //   "title": "課程標題",
+  //   "description": "課程描述",
+  //   "exp_date": "2025-09-19T00:00:00.000+08:00"
+  // }
+  create: async (params) => {
+    const response = await courseApi.assignments.create(params);
+    return response.data.data;
+  },
+
+  // request body（老師）編輯作業
+  // {
+  //   "title": "課程標題",
+  //   "description": "課程描述",
+  //   "exp_date": "2025-09-19T00:00:00.000+08:00"
+  // }
+  edit: async (params) => {
+    const response = await courseApi.assignments.edit(params);
+    return response.data.data;
+  },
+
+  //（老師）刪除作業
+  delete: async (assignment_id) => {
+    const response = await courseApi.assignments.delete(assignment_id);
+    return response.data.data;
+  },
+
+  // 列出所有作業
+  // response
+  // {
+  //   "data": {
+  //     "assignments": [
+  //       {
+  //         "id": "string",
+  //         "title": "string",
+  //         "description": "string",
+  //         "expDate": "2025-06-30T14:37:23.340Z"
+  //       }
+  //     ]
+  //   }
+  // }
+  list: async (course_id) => {
+    const response = await courseApi.assignments.list(course_id);
+    return response.data.data;
+  },
+
+  // 學生繳交作業
+  // request body
+  // {
+  //   "files": [
+  //     {
+  //       "file_name": "string",
+  //       "url": "string"
+  //     }
+  //   ]
+  // }
+  submit: async (params) => {
+    const response = await courseApi.assignments.submit(params);
+    return response.data.data;
+  },
+
+  // 學生取得指定課程的所有作業，含繳交狀態
+  // response
+  // {
+  //   "data": {
+  //     "assignments": [
+  //       {
+  //         "assignment_id": "string",
+  //         "title": "string",
+  //         "description": "string",
+  //         "exp_date": "2025-06-30T14:38:03.876Z",
+  //         "is_submitted": true,
+  //         "submitted_files": [
+  //           {
+  //             "file_name": "string",
+  //             "url": "string"
+  //           }
+  //         ]
+  //       }
+  //     ]
+  //   }
+  // }
+  listByCourse: async (course_id) => {
+    const response = await courseApi.assignments.listByCourse(course_id);
+    return response.data.data;
+  },
+};
+
+export { courseService, assignmentService };

@@ -89,21 +89,20 @@ function mapApiCourseToLocal(apiCourse) {
   });
 
   return {
-    name: apiCourse.name,
-    teacher:
-      apiCourse.teacher_name || apiCourse.instructor_name || apiCourse.teacher,
-    teacher_id: apiCourse.teacher_id,
+    name: apiCourse.title,
+    teacher: apiCourse.teacher_name,
+    teacher_id: apiCourse.instructor,
     description: apiCourse.description,
     class_mode: apiCourse.class_mode,
     duration: apiCourse.duration,
     credit: apiCourse.credit,
-    start_date: apiCourse.start_date,
-    end_date: apiCourse.end_date,
-    enrollment_limit: apiCourse.enrollment_limit,
-    weekly_schedule: apiCourse.weekly_schedule,
-    prerequisite_course_ids: apiCourse.prerequisite_course_ids,
+    start_date: apiCourse.startDate,
+    end_date: apiCourse.endDate,
+    enrollment_limit: apiCourse.enrollmentLimit,
+    weekly_schedule: apiCourse.weeklySchedule,
+    prerequisite_course_ids: apiCourse.prerequisites,
     cover_image: apiCourse.cover_image,
-    outline_files: apiCourse.outline_files,
+    outline_files: apiCourse.outlineFile,
     ...(materials_hub.length && { materials_hub }),
   };
 }
@@ -128,21 +127,12 @@ const materialModal = reactive({
 
 // --- Lifecycle Hooks ---
 onMounted(async () => {
-  // Ensure userProfile is loaded if it's initially null/undefined from the store
-  if (!userProfile.value && userProfile.fetchUserProfile) {
-    // Assuming store has a fetch method
-    userProfile.fetchUserProfile().then(() => {
-      currentUserStudentId.value = userProfile.value?.id || "s001"; // Re-assign after fetch
-      loadCourseData();
-    });
-  } else {
-    loadCourseData();
-  }
-
   // After local dummy data is loaded, try to fetch real course data from API
   try {
     const apiCourse = await courseService.getCourse(currentCourseId.value);
     const mappedData = mapApiCourseToLocal(apiCourse);
+
+    console.log("mappedData", mappedData, apiCourse);
     if (Object.keys(mappedData).length) {
       // Merge API data into the currently displayed course (derived from dummy) so that
       // already-implemented features (e.g. announcements) continue to work.
@@ -198,99 +188,6 @@ onMounted(async () => {
 //         "gs://campus-system-dev/uploads/2025-05/229912aa-656f-4f1a-aabd-c868e8e1c1d5_教牧書信.pdf"
 //     ]
 // }
-
-// --- Data Loading and Initialization ---
-const loadCourseData = () => {
-  loading.value = true;
-  setTimeout(() => {
-    const foundCourse = dummyCourseData.find(
-      (c) => String(c.id) === String(currentCourseId.value)
-    );
-
-    if (!foundCourse) {
-      message.error("找不到課程資料");
-      currentCourse.value = {
-        name: "未知課程",
-        teacher: "N/A",
-        description: "無法載入課程詳細資訊。",
-      };
-      loading.value = false;
-      return;
-    }
-    currentCourse.value = foundCourse;
-
-    announcements.value = currentCourse.value.announcements_hub || [];
-    assignments.value = currentCourse.value.assignments_hub || [];
-    materials.value = currentCourse.value.materials_hub || [];
-    students.value = currentCourse.value.students_hub || [];
-
-    // Initialize grades structure for all students and assignments from the course data
-    // Clear existing grades before populating
-    for (const key in grades) {
-      delete grades[key];
-    }
-
-    if (students.value.length > 0 && assignments.value.length > 0) {
-      students.value.forEach((student) => {
-        grades[student.id] = {}; // Initialize grade object for student
-        const studentGradesFromData =
-          currentCourse.value.grades_hub?.[student.id] || {};
-        assignments.value.forEach((assignment) => {
-          // Use grades from dummy data if available, otherwise null
-          grades[student.id][assignment.id] =
-            studentGradesFromData[assignment.id] === undefined
-              ? null
-              : studentGradesFromData[assignment.id];
-        });
-      });
-    } else if (currentCourse.value.grades_hub) {
-      // If students or assignments are empty but grades_hub exists, copy it directly (less common case)
-      Object.assign(grades, currentCourse.value.grades_hub);
-    }
-
-    // Initialize currentUserSubmissions if the user is a student
-    if (isStudent.value && currentUserStudentId.value) {
-      currentUserSubmissions.value = assignments.value
-        .map((assign) => {
-          const studentGradeInfo =
-            grades[currentUserStudentId.value]?.[assign.id];
-
-          // Check if there's a pre-existing submission mock or infer status
-          // This part might need more sophisticated logic if submissions are also in dummyCourseData
-          // For now, it primarily checks for graded status.
-          if (studentGradeInfo !== null && studentGradeInfo !== undefined) {
-            return {
-              assignmentId: assign.id,
-              status: AssignmentStatus.GRADED,
-              fileName: `submission_mock_${assign.id.substring(0, 4)}.pdf`, // Generic filename
-              grade: studentGradeInfo,
-            };
-          } else if (assign.status === AssignmentStatus.OPEN) {
-            // Default for open assignments not yet graded
-            return {
-              assignmentId: assign.id,
-              status: AssignmentStatus.NOT_SUBMITTED, // Or OPEN if preferred for student view
-              fileName: null,
-              grade: null,
-            };
-          } else {
-            // For CLOSED assignments not graded (e.g. missed deadline)
-            return {
-              assignmentId: assign.id,
-              status: AssignmentStatus.CLOSED,
-              fileName: null,
-              grade: null,
-            };
-          }
-        })
-        .filter((submission) => submission); // Filter out any undefined entries if logic changes
-    } else {
-      currentUserSubmissions.value = [];
-    }
-
-    loading.value = false;
-  }, 50); // Reduced timeout for faster loading from local data
-};
 
 // --- Helper ---
 const getStatusText = (status) => {

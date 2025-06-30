@@ -56,4 +56,45 @@ export default {
   myCourseSchedule() {
     return baseApiHelper.get(`/enrollment/my-schedule`);
   },
+
+  get assignments() {
+    return {
+      create: (params) => {
+        const { course_id, ...rest } = params;
+        return baseApiHelper.post(
+          `/assignment/create-one?course_id=${course_id}`,
+          rest
+        );
+      },
+      edit: (params) => {
+        const { assignment_id, ...rest } = params;
+        return baseApiHelper.post(
+          `/assignment/edit-one?assignment_id=${assignment_id}`,
+          rest
+        );
+      },
+      delete: (params) => {
+        const { assignment_id, ...rest } = params;
+        return baseApiHelper.delete(
+          `/assignment/delete-one?assignment_id=${assignment_id}`,
+          rest
+        );
+      },
+      list: (course_id) => {
+        return baseApiHelper.get(`/assignment/list?course_id=${course_id}`);
+      },
+      submit: (params) => {
+        const { assignment_id, ...rest } = params;
+        return baseApiHelper.put(
+          `/assignment/submit?assignment_id=${assignment_id}`,
+          rest
+        );
+      },
+      listByCourse: (course_id) => {
+        return baseApiHelper.get(
+          `/assignment/student/list-by-course?course_id=${course_id}`
+        );
+      },
+    };
+  },
 };
