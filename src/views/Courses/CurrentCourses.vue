@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, reactive } from "vue";
+import { ref, onMounted, computed, reactive, unref } from "vue";
 import { useRouter } from "vue-router";
 import {
   Tag as ATag,
@@ -14,11 +14,11 @@ import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 
-import { dummyCourseData } from "@/data/dummy";
 import { RouterName } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
 import CourseFilterBar from "@/components/CourseFilterBar.vue";
+import { courseService } from "@/services/course.service";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -28,18 +28,7 @@ const userStore = useUserStore();
 const loading = ref(false);
 const allCourses = ref([]); // Will be populated from dummyCourseData
 
-onMounted(() => {
-  loading.value = true;
-  setTimeout(() => {
-    allCourses.value = dummyCourseData;
-    loading.value = false;
-  }, 200);
-});
-
 const currentUser = computed(() => userStore.userProfile);
-const isCreator = computed(
-  () => currentUser.value?.userRole === UserRole.Creator
-);
 const isTeacher = computed(
   () => currentUser.value?.userRole === UserRole.Teacher
 );
@@ -47,67 +36,88 @@ const isStudent = computed(
   () => currentUser.value?.userRole === UserRole.Student
 );
 
-const canViewPage = computed(
-  () => isCreator.value || isTeacher.value || isStudent.value
-);
+const canViewPage = computed(() => isTeacher.value || isStudent.value);
 
-const columns = ref([
-  {
-    title: "課程名稱",
-    dataIndex: "name",
-    key: "name",
-    ellipsis: true,
-  },
-  {
-    title: "授課老師名稱",
-    dataIndex: "instructor_name",
-    key: "instructor_name",
-    width: 150,
-  },
-  {
-    title: "學分",
-    dataIndex: "credit",
-    key: "credit",
-    width: 80,
-    sorter: (a, b) => a.credit - b.credit,
-  },
-  {
-    title: "開課時間",
-    dataIndex: "start_date",
-    key: "start_date",
-    width: 120,
-    sorter: (a, b) =>
-      dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf(),
-  },
-  {
-    title: "結課時間",
-    dataIndex: "end_date",
-    key: "end_date",
-    width: 120,
-    sorter: (a, b) => dayjs(a.end_date).valueOf() - dayjs(b.end_date).valueOf(),
-  },
-  {
-    title: "上課時間",
-    key: "weekly_schedule",
-    width: 200,
-  },
-  {
-    title: "人數",
-    key: "enrollment",
-    width: 100,
-  },
-  {
-    title: "狀態",
-    key: "status",
-    width: 100,
-  },
-  {
-    title: "操作",
-    key: "actions",
-    width: 200,
-    fixed: "right",
-  },
-]);
+const filteredColumns = computed(() => {
+  return [
+    {
+      title: "課程名稱",
+      dataIndex: "course_name",
+      key: "course_name",
+      ellipsis: true,
+      visible: true,
+    },
+    {
+      title: "授課老師名稱",
+      dataIndex: "teacher_name",
+      key: "teacher_name",
+      width: 150,
+      visible: unref(isStudent),
+    },
+    {
+      title: "學分",
+      dataIndex: "credit",
+      key: "credit",
+      width: 80,
+      sorter: (a, b) => a.credit - b.credit,
+      visible: true,
+    },
+    {
+      title: "開課時間",
+      dataIndex: "start_date",
+      key: "start_date",
+      width: 120,
+      sorter: (a, b) =>
+        dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf(),
+      visible: false,
+    },
+    {
+      title: "結課時間",
+      dataIndex: "end_date",
+      key: "end_date",
+      width: 120,
+      sorter: (a, b) =>
+        dayjs(a.end_date).valueOf() - dayjs(b.end_date).valueOf(),
+      visible: false,
+    },
+    {
+      title: "上課時間",
+      key: "weekly_schedule",
+      width: 200,
+      customRender: ({ text, record }) => {
+        return formatWeeklySchedule(record.weekly_schedule);
+      },
+      visible: true,
+    },
+    {
+      title: "人數",
+      key: "enrollment",
+      width: 100,
+      customRender: ({ text, record }) => {
+        return `${String(record.enrollment_count)} / ${
+          record.enrollment_limit
+        }`;
+      },
+      visible: true,
+    },
+    {
+      title: "狀態",
+      key: "status",
+      width: 100,
+      visible: false,
+    },
+    {
+      title: "操作",
+      key: "actions",
+      width: 200,
+      fixed: "right",
+      visible: true,
+    },
+  ].filter((column) => {
+    if (column.visible) return true;
+    return false;
+  });
+});
 
 const getCourseStatus = (startDate, endDate) => {
   const now = dayjs();
@@ -140,10 +150,6 @@ const goToCourseManagementHub = (id) => {
   router.push({ name: RouterName.CourseManagementHub, params: { id: id } });
 };
 
-const goToEditCourse = (id) => {
-  router.push({ name: RouterName.UpdateCourse, params: { id } });
-};
-
 const filters = reactive({
   keyword: "",
   teacher: "",
@@ -151,9 +157,9 @@ const filters = reactive({
 
 const teacherOptions = computed(() => {
   const teachers = new Set();
-  dummyCourseData.forEach((course) => {
-    if (course.instructor_name) {
-      teachers.add(course.instructor_name);
+  allCourses.value.forEach((course) => {
+    if (course.teacher_name) {
+      teachers.add(course.teacher_name);
     }
   });
   return Array.from(teachers).sort();
@@ -177,39 +183,23 @@ const isCourseActive = (course) => {
 };
 
 const filteredCourses = computed(() => {
-  if (!canViewPage.value) return [];
-  loading.value = true;
+  return allCourses.value;
+});
 
-  let coursesToDisplay = [];
-  const currentUserId = currentUser.value?.id;
+onMounted(async () => {
+  if (!canViewPage.value) return;
 
-  const activeCourses = allCourses.value.filter((course) =>
-    isCourseActive(course)
-  );
-
-  if (isCreator.value || true) {
-    coursesToDisplay = activeCourses;
-  } else if (isTeacher.value) {
-    coursesToDisplay = activeCourses.filter(
-      (course) => course.teacher_id === currentUserId
+  try {
+    loading.value = true;
+    const courses = await courseService.getCurrentTermCourses(
+      currentUser.value.userRole
     );
-  } else if (isStudent.value) {
-    coursesToDisplay = activeCourses.filter((course) =>
-      course.students_hub?.some((student) => student.id === currentUserId)
-    );
+    allCourses.value = courses;
+    loading.value = false;
+  } catch (error) {
+    console.error(error);
+    loading.value = false;
   }
-
-  const result = coursesToDisplay.filter((course) => {
-    const nameMatch = course.name
-      ? course.name.toLowerCase().includes(filters.keyword.toLowerCase())
-      : true;
-    const teacherMatch = filters.teacher
-      ? course.instructor_name === filters.teacher
-      : true;
-    return nameMatch && teacherMatch;
-  });
-  loading.value = false;
-  return result;
 });
 </script>
 
@@ -227,7 +217,7 @@ const filteredCourses = computed(() => {
       />
 
       <ATable
-        :columns="columns"
+        :columns="filteredColumns"
         :data-source="filteredCourses"
         row-key="id"
         :loading="loading"
@@ -236,58 +226,30 @@ const filteredCourses = computed(() => {
         size="small"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'name'">
-            {{ record.name }}
+          <template v-if="column.key === 'actions'">
+            <ASpace>
+              <AButton
+                type="primary"
+                size="small"
+                @click="goToCourseManagementHub(record.course_id)"
+              >
+                詳細内容
+              </AButton>
+            </ASpace>
           </template>
-          <template v-else-if="column.key === 'instructor_name'">
-            {{ record.instructor_name }}
-          </template>
-          <template v-else-if="column.key === 'credit'">
-            {{ record.credit }}
-          </template>
-          <template v-else-if="column.key === 'start_date'">
+          <!-- <template v-else-if="column.key === 'start_date'">
             {{ dayjs(record.start_date).format("YYYY-MM-DD") }}
           </template>
           <template v-else-if="column.key === 'end_date'">
             {{ dayjs(record.end_date).format("YYYY-MM-DD") }}
-          </template>
-          <template v-else-if="column.key === 'weekly_schedule'">
-            <span class="u-whitespace-pre-wrap">{{
-              formatWeeklySchedule(record.weekly_schedule)
-            }}</span>
-          </template>
-          <template v-else-if="column.key === 'enrollment'">
-            {{ record.enrollment_actual }} / {{ record.enrollment_limit }}
-          </template>
-          <template v-else-if="column.key === 'status'">
+          </template> -->
+          <!-- <template v-else-if="column.key === 'status'">
             <ATag
               :color="getCourseStatus(record.start_date, record.end_date).color"
             >
               {{ getCourseStatus(record.start_date, record.end_date).text }}
             </ATag>
-          </template>
-          <template v-else-if="column.key === 'actions'">
-            <ASpace>
-              <AButton
-                type="primary"
-                size="small"
-                @click="goToCourseManagementHub(record.id)"
-              >
-                詳細内容
-              </AButton>
-              <AButton
-                v-if="
-                  (isTeacher && record.teacher_id === currentUser.id) ||
-                  isCreator
-                "
-                type="default"
-                size="small"
-                @click="goToEditCourse(record.id)"
-              >
-                編輯
-              </AButton>
-            </ASpace>
-          </template>
+          </template> -->
         </template>
         <template #emptyText>
           <AEmpty description="沒有符合條件的本期課程。" />
@@ -304,10 +266,3 @@ const filteredCourses = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-/* Add any specific styles if needed */
-.u-whitespace-pre-wrap {
-  white-space: pre-wrap;
-}
-</style>

@@ -1,5 +1,7 @@
 import { baseApiHelper, fileApiHelper } from "@/utils/axios";
 
+import { UserRole } from "@/enums/appEnums";
+
 export default {
   getTeachers() {
     return baseApiHelper.get("/course-management/teachers");
@@ -15,6 +17,10 @@ export default {
 
   uploadFile(formData) {
     return fileApiHelper.post("/upload", formData);
+  },
+
+  downloadFile(link) {
+    return fileApiHelper.get("/download?link=" + link);
   },
 
   getCourses(params) {
@@ -55,6 +61,17 @@ export default {
 
   myCourseSchedule() {
     return baseApiHelper.get(`/enrollment/my-schedule`);
+  },
+
+  get getCurrentTermCourses() {
+    return {
+      [UserRole.Teacher]: () => {
+        return baseApiHelper.get(`/course-management/teacher/get-current-term`);
+      },
+      [UserRole.Student]: () => {
+        return baseApiHelper.get(`/course-management/student/get-current-term`);
+      },
+    };
   },
 
   get assignments() {

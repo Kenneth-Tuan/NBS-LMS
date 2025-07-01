@@ -9,8 +9,7 @@ import {
   FileOutlined,
   DeleteOutlined,
 } from "@ant-design/icons-vue";
-import { assignmentService } from "@/services/course.service";
-import { courseService } from "@/services/course.service";
+import { assignmentService, courseService } from "@/services/course.service";
 
 // Props
 const props = defineProps({
@@ -49,11 +48,7 @@ const props = defineProps({
 });
 
 // Emits
-const emit = defineEmits([
-  "update:assignments",
-  "update:grades",
-  "update:currentUserSubmissions",
-]);
+const emit = defineEmits(["update"]);
 
 // Assignment Status Constants
 const AssignmentStatus = {
@@ -204,8 +199,10 @@ const fetchAssignments = async () => {
       }));
     }
 
-    emit("update:assignments", localAssignments.value);
-    emit("update:currentUserSubmissions", localCurrentUserSubmissions.value);
+    emit("update", {
+      assignments: localAssignments.value,
+      currentUserSubmissions: localCurrentUserSubmissions.value,
+    });
   } catch (error) {
     console.error("Failed to fetch assignments:", error);
     message.error("無法載入作業列表");

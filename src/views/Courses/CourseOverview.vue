@@ -10,7 +10,6 @@ import {
 } from "ant-design-vue";
 import dayjs from "dayjs";
 
-import { dummyCourseData } from "@/data/dummy";
 import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 import CourseFilterBar from "@/components/CourseFilterBar.vue";
@@ -19,7 +18,7 @@ import { courseService } from "@/services/course.service";
 const router = useRouter();
 const loading = ref(false);
 const userStore = useUserStore();
-const courseData = ref(dummyCourseData);
+const courseData = ref([]);
 
 const columns = ref([
   {
@@ -174,6 +173,15 @@ const filteredCourseData = computed(() => {
   });
 });
 
+const canEditCourse = computed(() => {
+  return (
+    userStore.userProfile?.userRole === UserRole.Creator ||
+    userStore.userProfile?.userRole === UserRole.Admin ||
+    userStore.userProfile?.userRole === UserRole.Manager ||
+    userStore.userProfile?.userRole === UserRole.Teacher
+  );
+});
+
 onMounted(async () => {
   courseData.value = await courseService.getCourses();
   // Initial sort by start_date if needed
@@ -223,10 +231,7 @@ onMounted(async () => {
                 詳細内容
               </AButton>
               <AButton
-                v-if="
-                  userStore.userProfile?.userRole === UserRole.Creator ||
-                  userStore.userProfile?.userRole === UserRole.Teacher
-                "
+                v-if="canEditCourse"
                 type="default"
                 size="small"
                 @click="goToEditCourse(record.course_id)"

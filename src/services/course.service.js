@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 
 import { useCourseStore } from "../stores/course";
 import courseAdapter from "@/adapters/course.adapter";
+import { UserRole } from "@/enums/appEnums";
 
 const courseService = {
   getTeachers: async () => {
@@ -73,7 +74,8 @@ const courseService = {
 
     loading.value = true;
 
-    const params = await courseService.getCourseFormParams(courseForm);
+    const params = courseService.getCourseFormParams(courseForm);
+    delete params.course_id;
 
     try {
       const data = await courseApi.createCourse(params);
@@ -86,11 +88,11 @@ const courseService = {
     }
   },
 
-  getCourseFormParams: async (courseForm) => {
+  getCourseFormParams: (courseForm) => {
     try {
-      const outline_files = await courseService.uploadFile(
-        courseForm.outlineFile
-      );
+      const outline_files = courseForm.outlineFile.map((file) => {
+        return file.url;
+      });
 
       const weekly_schedule = courseForm.weeklySchedule.map((schedule) => {
         delete schedule.id;
@@ -98,6 +100,7 @@ const courseService = {
       });
 
       return {
+        course_id: courseForm.course_id,
         name: courseForm.title,
         class_mode: courseForm.classMode,
         duration: courseForm.duration,
@@ -133,6 +136,16 @@ const courseService = {
     } catch (error) {
       console.error("Upload error:", error);
       return [];
+    }
+  },
+
+  downloadFile: async (file) => {
+    try {
+      const response = await courseApi.downloadFile(file);
+      return response.data.data.link;
+    } catch (error) {
+      console.error(error);
+      return null;
     }
   },
 
@@ -176,6 +189,22 @@ const courseService = {
       const response = await courseApi.getOneCourse(params);
       // Apply adapter to convert API response to frontend format
       const courseData = response.data.data;
+
+      courseData.outline_files = courseData.outline_files.map((file) => {
+        if (!file) return null;
+        const fileName = file?.split("_").pop();
+        const fileType = fileName?.split(".").pop();
+
+        return {
+          uid: "-1",
+          name: fileName,
+          status: "done",
+          url: file,
+          fileType,
+          isUploaded: true,
+        };
+      });
+
       return courseAdapter.apiToFrontend(courseData);
     } catch (error) {
       console.error(error);
@@ -192,7 +221,7 @@ const courseService = {
 
     const params = !!_courseForm
       ? _courseForm
-      : await courseService.getCourseFormParams(courseForm);
+      : courseService.getCourseFormParams(courseForm);
 
     try {
       const response = await courseApi.updateCourse(params);
@@ -283,6 +312,43 @@ const courseService = {
     try {
       const response = await courseApi.myCourseSchedule();
       return response.data.data;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
+
+  // response
+  // {
+  //   "data": {
+  //     "courses": [
+  //       {
+  //         "course_id": "string",
+  //         "course_name": "string",
+  //         "enrollment_count": 0,
+  //         "enrollment_limit": 0,
+  //         "teacher_name": "string",
+  //         "credit": 0,
+  //         "weekly_schedule": [
+  //           {
+  //             "week_day": "string",
+  //             "start_time": "string",
+  //             "end_time": "string"
+  //           }
+  //         ]
+  //       }
+  //     ]
+  //   }
+  // }
+
+  getCurrentTermCourses: async (userRole) => {
+    if (!userRole) return [];
+    if (userRole !== UserRole.Student && userRole !== UserRole.Teacher)
+      return [];
+
+    try {
+      const response = await courseApi.getCurrentTermCourses[userRole]();
+      return response.data.data.courses;
     } catch (error) {
       console.error(error);
       return [];
