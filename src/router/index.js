@@ -35,7 +35,7 @@ const routes = [
     meta: {
       title: "新增課程 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Creator, UserRole.Admin],
+      roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
     },
   },
   {
@@ -46,7 +46,12 @@ const routes = [
     meta: {
       title: "編輯課程 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
-      roles: [UserRole.Creator, UserRole.Admin],
+      roles: [
+        UserRole.Creator,
+        UserRole.Admin,
+        UserRole.Manager,
+        UserRole.Teacher,
+      ],
     },
   },
   {
