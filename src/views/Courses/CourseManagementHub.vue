@@ -16,7 +16,6 @@ import {
 
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
-import { dummyCourseData } from "@/data/dummy";
 import { courseService } from "@/services/course.service";
 import CourseAssignments from "./CourseAssignments.vue";
 
@@ -44,22 +43,6 @@ const isTeacherOrCreator = computed(
     userProfile.userRole === UserRole.Creator
 );
 const isStudent = computed(() => userProfile.userRole === UserRole.Student);
-
-// --- Mock Data ---
-// const mockCourses = [
-//   {
-//     id: "mock-course-1",
-//     name: "新約概論 (示範課程)",
-//     teacher: "王大明牧師",
-//     description: "這是一個示範課程的管理中心。",
-//   },
-//   {
-//     id: "mock-course-2",
-//     name: "舊約歷史書研究 (示範課程)",
-//     teacher: "李文清博士",
-//     description: "舊約研究的管理中心。",
-//   },
-// ];
 
 const announcements = ref([]);
 const assignments = ref([]);
@@ -132,7 +115,6 @@ onMounted(async () => {
     const apiCourse = await courseService.getCourse(currentCourseId.value);
     const mappedData = mapApiCourseToLocal(apiCourse);
 
-    console.log("mappedData", mappedData, apiCourse);
     if (Object.keys(mappedData).length) {
       // Merge API data into the currently displayed course (derived from dummy) so that
       // already-implemented features (e.g. announcements) continue to work.
@@ -484,7 +466,9 @@ const getCourseStatusTag = (course) => {
           <h2 class="u-text-xl u-font-semibold u-mb-4 u-c-blue-600">
             {{ currentCourse.name }}
           </h2>
-          <p class="u-text-gray-600 u-mb-6">{{ currentCourse.description }}</p>
+          <p class="u-text-gray-600 u-mb-6">
+            {{ currentCourse.description || "-" }}
+          </p>
 
           <a-tabs default-active-key="announcements" type="card">
             <!-- Announcements Tab -->

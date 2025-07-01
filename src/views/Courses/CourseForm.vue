@@ -77,6 +77,15 @@ const handleFileChange = () => {
   );
 };
 
+const handlePreview = async (file) => {
+  try {
+    const url = await courseService.downloadFile(file.url);
+    window.open(url, "_blank");
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 onBeforeMount(() => {
   courseService.getTeachers();
   courseService.getPrerequisites();
@@ -367,6 +376,7 @@ onMounted(async () => {
               :custom-request="() => {}"
               :before-upload="beforeOutlineUpload"
               :placeholder="courseSchema.outlineFile.placeholder"
+              @preview="handlePreview"
             >
               <p class="ant-upload-drag-icon">
                 <InboxOutlined />

@@ -4,6 +4,7 @@ import dayjs from "dayjs";
 
 import { useCourseStore } from "../stores/course";
 import courseAdapter from "@/adapters/course.adapter";
+import { UserRole } from "@/enums/appEnums";
 
 const courseService = {
   getTeachers: async () => {
@@ -136,6 +137,16 @@ const courseService = {
     }
   },
 
+  downloadFile: async (file) => {
+    try {
+      const response = await courseApi.downloadFile(file);
+      return response.data.data.link;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
+  },
+
   // {
   //   "paged_info": {
   //     "page": 1
@@ -176,6 +187,18 @@ const courseService = {
       const response = await courseApi.getOneCourse(params);
       // Apply adapter to convert API response to frontend format
       const courseData = response.data.data;
+
+      courseData.outline_files = courseData.outline_files.map((file) => {
+        const fileName = file.split("_").pop();
+
+        return {
+          uid: "-1",
+          name: fileName,
+          status: "done",
+          url: file,
+        };
+      });
+
       return courseAdapter.apiToFrontend(courseData);
     } catch (error) {
       console.error(error);
@@ -283,6 +306,43 @@ const courseService = {
     try {
       const response = await courseApi.myCourseSchedule();
       return response.data.data;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
+  },
+
+  // response
+  // {
+  //   "data": {
+  //     "courses": [
+  //       {
+  //         "course_id": "string",
+  //         "course_name": "string",
+  //         "enrollment_count": 0,
+  //         "enrollment_limit": 0,
+  //         "teacher_name": "string",
+  //         "credit": 0,
+  //         "weekly_schedule": [
+  //           {
+  //             "week_day": "string",
+  //             "start_time": "string",
+  //             "end_time": "string"
+  //           }
+  //         ]
+  //       }
+  //     ]
+  //   }
+  // }
+
+  getCurrentTermCourses: async (userRole) => {
+    if (!userRole) return [];
+    if (userRole !== UserRole.Student && userRole !== UserRole.Teacher)
+      return [];
+
+    try {
+      const response = await courseApi.getCurrentTermCourses[userRole]();
+      return response.data.data.courses;
     } catch (error) {
       console.error(error);
       return [];
