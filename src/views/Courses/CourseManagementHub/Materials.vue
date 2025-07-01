@@ -117,7 +117,7 @@ const confirmMaterial = async () => {
   }
 
   try {
-    const result = await courseService.updateCourse(params);
+    const result = await courseService.updateCourse();
 
     if (result) {
       // Add new materials to the list

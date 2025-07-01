@@ -104,7 +104,7 @@ const handleGradesUpdate = (newGrades) => {
             課程管理中心
           </h1>
           <h2 class="u-text-xl u-font-semibold u-mb-4 u-c-blue-600">
-            {{ currentCourse.name }}
+            {{ currentCourse.title }}
           </h2>
           <p class="u-text-gray-600 u-mb-6">
             {{ currentCourse.description || "-" }}
