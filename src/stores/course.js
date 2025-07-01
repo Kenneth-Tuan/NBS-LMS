@@ -19,6 +19,7 @@ export const useCourseStore = defineStore(
   "course",
   () => {
     const courseForm = reactive({
+      course_id: "",
       title: "",
       classMode: "",
       duration: 120,
@@ -99,13 +100,9 @@ export const useCourseStore = defineStore(
       try {
         loading.value = true;
 
-        const response = await courseService.updateCourse();
+        await courseService.updateCourse();
 
-        if (response.status !== 200) {
-          throw error;
-        } else {
-          message.success("課程已成功更新");
-        }
+        message.success("課程已成功更新");
       } catch (error) {
         message.error("課程更新失敗，請稍後再試");
         throw error;
@@ -138,6 +135,7 @@ export const useCourseStore = defineStore(
     const getCourseHandler = async (courseId) => {
       try {
         const response = await courseService.getCourse(courseId);
+        courseForm.course_id = courseId;
 
         Object.keys(courseForm).forEach((key) => {
           if (response.hasOwnProperty(key)) {
@@ -156,6 +154,7 @@ export const useCourseStore = defineStore(
 
       resetForm,
       createCourse,
+      updateCourse,
       setCourseInfos,
       addWeeklySchedule,
       removeWeeklySchedule,

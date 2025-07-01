@@ -74,7 +74,8 @@ const courseService = {
 
     loading.value = true;
 
-    const params = await courseService.getCourseFormParams(courseForm);
+    const params = courseService.getCourseFormParams(courseForm);
+    delete params.course_id;
 
     try {
       const data = await courseApi.createCourse(params);
@@ -87,11 +88,11 @@ const courseService = {
     }
   },
 
-  getCourseFormParams: async (courseForm) => {
+  getCourseFormParams: (courseForm) => {
     try {
-      const outline_files = await courseService.uploadFile(
-        courseForm.outlineFile
-      );
+      const outline_files = courseForm.outlineFile.map((file) => {
+        return file.url;
+      });
 
       const weekly_schedule = courseForm.weeklySchedule.map((schedule) => {
         delete schedule.id;
@@ -99,6 +100,7 @@ const courseService = {
       });
 
       return {
+        course_id: courseForm.course_id,
         name: courseForm.title,
         class_mode: courseForm.classMode,
         duration: courseForm.duration,
@@ -189,13 +191,17 @@ const courseService = {
       const courseData = response.data.data;
 
       courseData.outline_files = courseData.outline_files.map((file) => {
-        const fileName = file.split("_").pop();
+        if (!file) return null;
+        const fileName = file?.split("_").pop();
+        const fileType = fileName?.split(".").pop();
 
         return {
           uid: "-1",
           name: fileName,
           status: "done",
           url: file,
+          fileType,
+          isUploaded: true,
         };
       });
 
@@ -215,7 +221,7 @@ const courseService = {
 
     const params = !!_courseForm
       ? _courseForm
-      : await courseService.getCourseFormParams(courseForm);
+      : courseService.getCourseFormParams(courseForm);
 
     try {
       const response = await courseApi.updateCourse(params);

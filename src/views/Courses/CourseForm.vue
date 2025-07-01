@@ -30,7 +30,7 @@ const loading = ref(false);
 const formRef = ref(null);
 
 // 上傳課程大綱前檢查
-const beforeOutlineUpload = (file) => {
+const beforeOutlineUpload = async (file) => {
   console.log("beforeOutlineUpload called with file:", file);
   // Check file type
   const isPDF = file.type === "application/pdf";
@@ -71,9 +71,23 @@ const filterOption = (input, option) => {
   );
 };
 
-const handleFileChange = () => {
-  courseStore.courseForm.outlineFile = courseStore.courseForm.outlineFile.map(
-    (file) => ({ ...file, status: "done" })
+const handleFileChange = async () => {
+  courseStore.courseForm.outlineFile = await Promise.all(
+    courseStore.courseForm.outlineFile.map(async (file) => {
+      try {
+        if (!file?.isUploaded) {
+          const fileUrl = await courseService.uploadFile([file]);
+          file.url = fileUrl[0];
+          file.fileType = file.name.split(".").pop();
+          file.isUploaded = true;
+        }
+        file.status = "done";
+        return file;
+      } catch (error) {
+        console.error(error);
+        return file;
+      }
+    })
   );
 };
 
@@ -86,15 +100,33 @@ const handlePreview = async (file) => {
   }
 };
 
-onBeforeMount(() => {
-  courseService.getTeachers();
-  courseService.getPrerequisites();
+const handleSubmit = async () => {
+  try {
+    if (isEdit.value) {
+      await courseStore.updateCourse();
+    } else {
+      await courseStore.createCourse();
+    }
+
+    router.push({
+      name: RouterName.CourseOverview,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+onBeforeMount(async () => {
+  await Promise.all([
+    courseService.getTeachers(),
+    courseService.getPrerequisites(),
+  ]);
 });
 
 // Fetch and populate data on mount if editing
 onMounted(async () => {
   if (isEdit.value && courseId.value) {
-    const courseData = await courseStore.getCourseHandler(courseId.value);
+    await courseStore.getCourseHandler(courseId.value);
   }
 });
 </script>
@@ -116,7 +148,7 @@ onMounted(async () => {
         ref="formRef"
         :model="courseStore.courseForm"
         layout="vertical"
-        @finish="courseStore.createCourse"
+        @finish="handleSubmit"
       >
         <!-- 基本信息 -->
         <div class="u-mb-6">
