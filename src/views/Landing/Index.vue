@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { cloneDeep } from "lodash-es";
 import { message } from "ant-design-vue"; // Import message for feedback
 
@@ -24,6 +24,7 @@ import {
 
 import { useUserStore } from "@/stores/user"; // Import user store
 import { UserRole } from "@/enums/appEnums"; // Import UserRole enum
+import { announcementService } from "@/services/announcement.service";
 
 // --- Store and User Role ---
 const userStore = useUserStore();
@@ -306,6 +307,11 @@ const otherColumns = [
     key: "publisher",
   },
 ];
+
+onMounted(async () => {
+  const announcements = await announcementService.getAnnouncements();
+  console.log(announcements);
+});
 </script>
 
 <template>
