@@ -1,6 +1,5 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
-import { cloneDeep } from "lodash-es";
 import { message } from "ant-design-vue"; // Import message for feedback
 
 import {
@@ -30,6 +29,30 @@ const isAdmin = computed(
   () =>
     userProfile.userRole === UserRole.Admin ||
     userProfile.userRole === UserRole.Creator
+);
+
+// --- Loading States ---
+const isLoading = ref(false); // 整體載入狀態
+const newsLoadingStates = reactive({}); // 新聞行的 loading 狀態
+const isAnnouncementModalLoading = ref(false); // 公告 modal 的 loading 狀態
+const isNoticeModalLoading = ref(false); // 注意事項 modal 的 loading 狀態
+const announcementActionLoading = reactive({}); // 公告操作的 loading 狀態
+const noticeActionLoading = reactive({}); // 注意事項操作的 loading 狀態
+
+// --- News Modal States ---
+const isNewsModalVisible = ref(false);
+const newsModalMode = ref("add"); // 'add' or 'edit'
+const isNewsModalLoading = ref(false);
+const currentEditingNews = reactive({
+  $id: null,
+  date: "",
+  content: "",
+  publisher: "",
+  announcementDateTime: null,
+});
+
+const newsModalTitle = computed(() =>
+  newsModalMode.value === "add" ? "新增最新消息" : "編輯最新消息"
 );
 
 // --- Latest News Table Data and Logic ---
@@ -63,7 +86,6 @@ const operationColumn = {
 
 // Make data source reactive
 const newsDataSource = ref([]);
-const editableNewsData = reactive({});
 
 const computedColumns = computed(() => {
   return isAdmin.value ? [...baseColumns, operationColumn] : baseColumns;
@@ -72,6 +94,7 @@ const computedColumns = computed(() => {
 // Load all announcements from API and filter by type
 const loadAllAnnouncements = async () => {
   try {
+    isLoading.value = true;
     const allAnnouncements = await announcementService.getAnnouncements();
 
     // Filter and map news
@@ -122,78 +145,97 @@ const loadAllAnnouncements = async () => {
   } catch (error) {
     console.error("Failed to load announcements:", error);
     message.error("載入公告失敗");
+  } finally {
+    isLoading.value = false;
   }
-};
-
-const editNews = (key) => {
-  editableNewsData[key] = cloneDeep(
-    newsDataSource.value.find((item) => key === item.key)
-  );
-};
-
-const saveNews = async (key) => {
-  const editedItem = editableNewsData[key];
-  if (!editedItem) return;
-
-  try {
-    // Convert date string back to ISO format if it's been edited
-    const announcementDateTime = editedItem.date
-      ? dayjs(editedItem.date).toISOString()
-      : new Date().toISOString();
-
-    await announcementService.updateAnnouncement({
-      $id: editedItem.$id,
-      announcementDateTime,
-      description: editedItem.content,
-      department: editedItem.publisher,
-      type: "news",
-    });
-
-    // Reload news after successful update
-    await loadAllAnnouncements();
-    delete editableNewsData[key];
-  } catch (error) {
-    console.error("Failed to save news:", error);
-    delete editableNewsData[key];
-  }
-};
-
-const cancelNews = (key) => {
-  delete editableNewsData[key];
 };
 
 const deleteNewsRow = async (key) => {
   try {
+    newsLoadingStates[key] = { deleting: true };
     const newsItem = newsDataSource.value.find((item) => item.key === key);
     if (newsItem) {
       await announcementService.deleteAnnouncement({ $id: newsItem.$id });
       await loadAllAnnouncements();
+      message.success("刪除成功");
     }
   } catch (error) {
     console.error("Failed to delete news:", error);
+    message.error("刪除失敗");
+  } finally {
+    delete newsLoadingStates[key];
   }
 };
 
-const addNewsRow = async () => {
-  try {
-    await announcementService.createAnnouncement({
-      announcementDateTime: new Date().toISOString(),
-      description: "新消息內容",
-      department: userProfile.userName || "Admin",
-      type: "news",
-    });
+const showAddNewsModal = () => {
+  newsModalMode.value = "add";
+  currentEditingNews.$id = null;
+  currentEditingNews.date = dayjs().format("YYYY-MM-DD");
+  currentEditingNews.content = "";
+  currentEditingNews.publisher = "";
+  currentEditingNews.announcementDateTime = new Date().toISOString();
+  isNewsModalVisible.value = true;
+};
 
-    // Reload news after creation
-    await loadAllAnnouncements();
+const showEditNewsModal = (item) => {
+  newsModalMode.value = "edit";
+  currentEditingNews.$id = item.$id;
+  currentEditingNews.date = item.date;
+  currentEditingNews.content = item.content;
+  currentEditingNews.publisher = item.publisher;
+  currentEditingNews.announcementDateTime = item.announcementDateTime;
+  isNewsModalVisible.value = true;
+};
 
-    // Find the newly created item and enter edit mode
-    const newItem = newsDataSource.value[0]; // Assuming newest items are first
-    if (newItem) {
-      editNews(newItem.key);
-    }
-  } catch (error) {
-    console.error("Failed to add news:", error);
+const handleNewsModalOk = async () => {
+  if (
+    !currentEditingNews.date ||
+    !currentEditingNews.content ||
+    !currentEditingNews.publisher
+  ) {
+    message.error("請填寫所有必填欄位");
+    return;
   }
+
+  try {
+    isNewsModalLoading.value = true;
+
+    const announcementDateTime = currentEditingNews.date
+      ? dayjs(currentEditingNews.date).toISOString()
+      : new Date().toISOString();
+
+    if (newsModalMode.value === "add") {
+      await announcementService.createAnnouncement({
+        announcementDateTime,
+        description: currentEditingNews.content,
+        department: currentEditingNews.publisher,
+        type: "news",
+      });
+      message.success("新增消息成功");
+    } else {
+      await announcementService.updateAnnouncement({
+        $id: currentEditingNews.$id,
+        announcementDateTime,
+        description: currentEditingNews.content,
+        department: currentEditingNews.publisher,
+        type: "news",
+      });
+      message.success("更新消息成功");
+    }
+
+    // Reload news after successful operation
+    await loadAllAnnouncements();
+    isNewsModalVisible.value = false;
+  } catch (error) {
+    console.error("Failed to save news:", error);
+    message.error("儲存消息失敗");
+  } finally {
+    isNewsModalLoading.value = false;
+  }
+};
+
+const handleNewsModalCancel = () => {
+  isNewsModalVisible.value = false;
 };
 
 // --- Course Announcements List Data and Logic ---
@@ -246,6 +288,7 @@ const handleAnnouncementModalOk = async () => {
   }
 
   try {
+    isAnnouncementModalLoading.value = true;
     if (modalMode.value === "add") {
       await announcementService.createAnnouncement({
         announcementDateTime: currentEditingAnnouncement.announcementDateTime,
@@ -253,6 +296,7 @@ const handleAnnouncementModalOk = async () => {
         department: currentEditingAnnouncement.title, // Using title as department
         type: "announcement",
       });
+      message.success("新增公告成功");
     } else {
       await announcementService.updateAnnouncement({
         $id: currentEditingAnnouncement.$id,
@@ -261,6 +305,7 @@ const handleAnnouncementModalOk = async () => {
         department: currentEditingAnnouncement.title, // Using title as department
         type: "announcement",
       });
+      message.success("更新公告成功");
     }
 
     // Reload announcements after successful operation
@@ -268,7 +313,9 @@ const handleAnnouncementModalOk = async () => {
     isAnnouncementModalVisible.value = false;
   } catch (error) {
     console.error("Failed to save announcement:", error);
-    // Error messages are handled by the service
+    message.error("儲存公告失敗");
+  } finally {
+    isAnnouncementModalLoading.value = false;
   }
 };
 
@@ -278,16 +325,20 @@ const handleAnnouncementModalCancel = () => {
 
 const deleteAnnouncement = async (key) => {
   try {
+    announcementActionLoading[key] = { deleting: true };
     const announcement = announcementDataSource.value.find(
       (item) => item.key === key
     );
     if (announcement) {
       await announcementService.deleteAnnouncement({ $id: announcement.$id });
       await loadAllAnnouncements();
+      message.success("刪除公告成功");
     }
   } catch (error) {
     console.error("Failed to delete announcement:", error);
-    // Error messages are handled by the service
+    message.error("刪除公告失敗");
+  } finally {
+    delete announcementActionLoading[key];
   }
 };
 
@@ -336,6 +387,7 @@ const handleNoticeModalOk = async () => {
   }
 
   try {
+    isNoticeModalLoading.value = true;
     if (noticeModalMode.value === "add") {
       await announcementService.createAnnouncement({
         announcementDateTime: currentEditingNotice.announcementDateTime,
@@ -343,6 +395,7 @@ const handleNoticeModalOk = async () => {
         department: currentEditingNotice.title,
         type: "notice",
       });
+      message.success("新增注意事項成功");
     } else {
       await announcementService.updateAnnouncement({
         $id: currentEditingNotice.$id,
@@ -351,12 +404,16 @@ const handleNoticeModalOk = async () => {
         department: currentEditingNotice.title,
         type: "notice",
       });
+      message.success("更新注意事項成功");
     }
 
     await loadAllAnnouncements();
     isNoticeModalVisible.value = false;
   } catch (error) {
     console.error("Failed to save notice:", error);
+    message.error("儲存注意事項失敗");
+  } finally {
+    isNoticeModalLoading.value = false;
   }
 };
 
@@ -366,13 +423,18 @@ const handleNoticeModalCancel = () => {
 
 const deleteNotice = async (key) => {
   try {
+    noticeActionLoading[key] = { deleting: true };
     const notice = noticeDataSource.value.find((item) => item.key === key);
     if (notice) {
       await announcementService.deleteAnnouncement({ $id: notice.$id });
       await loadAllAnnouncements();
+      message.success("刪除注意事項成功");
     }
   } catch (error) {
     console.error("Failed to delete notice:", error);
+    message.error("刪除注意事項失敗");
+  } finally {
+    delete noticeActionLoading[key];
   }
 };
 
@@ -414,8 +476,9 @@ onMounted(async () => {
         <a-button
           v-if="isAdmin"
           type="primary"
-          @click="addNewsRow"
+          @click="showAddNewsModal"
           size="small"
+          :disabled="isLoading"
         >
           新增消息
         </a-button>
@@ -427,60 +490,45 @@ onMounted(async () => {
         :columns="computedColumns"
         :data-source="newsDataSource"
         :pagination="false"
+        :loading="isLoading"
         rowKey="key"
         bordered
       >
         <template #bodyCell="{ column, text, record }">
-          <!-- Editable cells for date, content, publisher -->
+          <!-- Display cells for date, content, publisher -->
           <template
             v-if="['date', 'publisher', 'content'].includes(column.dataIndex)"
           >
-            <div v-if="editableNewsData[record.key]" style="margin: -5px 0">
-              <!-- Use DatePicker for Date -->
-              <a-date-picker
-                v-if="column.dataIndex === 'date'"
-                v-model:value="editableNewsData[record.key][column.dataIndex]"
-                valueFormat="YYYY-MM-DD"
-                style="width: 100%"
-              />
-              <!-- Use Input for Publisher -->
-              <a-input
-                v-else-if="column.dataIndex === 'publisher'"
-                v-model:value="editableNewsData[record.key][column.dataIndex]"
-              />
-              <!-- Use Textarea for Content -->
-              <a-textarea
-                v-else-if="column.dataIndex === 'content'"
-                v-model:value="editableNewsData[record.key][column.dataIndex]"
-                :rows="2"
-                :maxlength="300"
-              />
-            </div>
-            <template v-else>
-              <div v-if="column.dataIndex === 'content'" v-html="text"></div>
-              <template v-else>{{ text }}</template>
-            </template>
+            <div v-if="column.dataIndex === 'content'" v-html="text"></div>
+            <template v-else>{{ text }}</template>
           </template>
 
           <!-- Operation column -->
           <template v-else-if="column.dataIndex === 'operation'">
-            <div class="editable-row-operations">
-              <span v-if="editableNewsData[record.key]">
-                <a @click="saveNews(record.key)">儲存</a>
-                <a-popconfirm
-                  title="確定取消?"
-                  @confirm="cancelNews(record.key)"
+            <div>
+              <span class="u-grid u-grid-cols-2">
+                <a-button
+                  type="link"
+                  size="small"
+                  @click="showEditNewsModal(record)"
+                  :disabled="newsLoadingStates[record.key]?.deleting"
                 >
-                  <a class="u-ml-2">取消</a>
-                </a-popconfirm>
-              </span>
-              <span v-else>
-                <a @click="editNews(record.key)">編輯</a>
+                  編輯
+                </a-button>
                 <a-popconfirm
                   title="確定刪除?"
                   @confirm="deleteNewsRow(record.key)"
+                  :disabled="newsLoadingStates[record.key]?.deleting"
                 >
-                  <a class="u-ml-2">刪除</a>
+                  <a-button
+                    type="link"
+                    size="small"
+                    class="u-ml-2"
+                    :loading="newsLoadingStates[record.key]?.deleting"
+                    :disabled="newsLoadingStates[record.key]?.deleting"
+                  >
+                    刪除
+                  </a-button>
                 </a-popconfirm>
               </span>
             </div>
@@ -501,13 +549,16 @@ onMounted(async () => {
           type="primary"
           @click="showAddAnnouncementModal"
           size="small"
-          >新增公告</a-button
+          :disabled="isLoading"
         >
+          新增公告
+        </a-button>
       </div>
       <Divider class="u-my8px" />
       <a-list
         item-layout="vertical"
         :data-source="announcementDataSource"
+        :loading="isLoading"
         rowKey="key"
       >
         <template #renderItem="{ item }">
@@ -527,12 +578,27 @@ onMounted(async () => {
             <!-- Admin Actions -->
             <template v-if="isAdmin" #actions>
               <a-space>
-                <a @click="showEditAnnouncementModal(item)">編輯</a>
+                <a-button
+                  type="link"
+                  size="small"
+                  @click="showEditAnnouncementModal(item)"
+                  :disabled="announcementActionLoading[item.key]?.deleting"
+                >
+                  編輯
+                </a-button>
                 <a-popconfirm
                   title="確定刪除?"
                   @confirm="deleteAnnouncement(item.key)"
+                  :disabled="announcementActionLoading[item.key]?.deleting"
                 >
-                  <a>刪除</a>
+                  <a-button
+                    type="link"
+                    size="small"
+                    :loading="announcementActionLoading[item.key]?.deleting"
+                    :disabled="announcementActionLoading[item.key]?.deleting"
+                  >
+                    刪除
+                  </a-button>
                 </a-popconfirm>
               </a-space>
             </template>
@@ -553,6 +619,7 @@ onMounted(async () => {
           type="primary"
           @click="showAddNoticeModal"
           size="small"
+          :disabled="isLoading"
         >
           新增注意
         </a-button>
@@ -561,6 +628,7 @@ onMounted(async () => {
       <a-list
         item-layout="vertical"
         :data-source="noticeDataSource"
+        :loading="isLoading"
         rowKey="key"
       >
         <template #renderItem="{ item }">
@@ -580,12 +648,27 @@ onMounted(async () => {
             <!-- Admin Actions -->
             <template v-if="isAdmin" #actions>
               <a-space>
-                <a @click="showEditNoticeModal(item)">編輯</a>
+                <a-button
+                  type="link"
+                  size="small"
+                  @click="showEditNoticeModal(item)"
+                  :disabled="noticeActionLoading[item.key]?.deleting"
+                >
+                  編輯
+                </a-button>
                 <a-popconfirm
                   title="確定刪除?"
                   @confirm="deleteNotice(item.key)"
+                  :disabled="noticeActionLoading[item.key]?.deleting"
                 >
-                  <a>刪除</a>
+                  <a-button
+                    type="link"
+                    size="small"
+                    :loading="noticeActionLoading[item.key]?.deleting"
+                    :disabled="noticeActionLoading[item.key]?.deleting"
+                  >
+                    刪除
+                  </a-button>
                 </a-popconfirm>
               </a-space>
             </template>
@@ -593,6 +676,38 @@ onMounted(async () => {
         </template>
       </a-list>
     </div>
+
+    <!-- News Add/Edit Modal -->
+    <a-modal
+      v-model:open="isNewsModalVisible"
+      :title="newsModalTitle"
+      @ok="handleNewsModalOk"
+      @cancel="handleNewsModalCancel"
+      okText="儲存"
+      cancelText="取消"
+      :confirmLoading="isNewsModalLoading"
+    >
+      <a-space direction="vertical" style="width: 100%">
+        <a-date-picker
+          v-model:value="currentEditingNews.date"
+          placeholder="請選擇日期"
+          valueFormat="YYYY-MM-DD"
+          style="width: 100%"
+          :disabled="isNewsModalLoading"
+        />
+        <a-input
+          v-model:value="currentEditingNews.publisher"
+          placeholder="請輸入發佈單位"
+          :disabled="isNewsModalLoading"
+        />
+        <a-textarea
+          v-model:value="currentEditingNews.content"
+          placeholder="請輸入內容"
+          :rows="5"
+          :disabled="isNewsModalLoading"
+        />
+      </a-space>
+    </a-modal>
 
     <!-- Announcement Add/Edit Modal -->
     <a-modal
@@ -602,16 +717,19 @@ onMounted(async () => {
       @cancel="handleAnnouncementModalCancel"
       okText="儲存"
       cancelText="取消"
+      :confirmLoading="isAnnouncementModalLoading"
     >
       <a-space direction="vertical" style="width: 100%">
         <a-input
           v-model:value="currentEditingAnnouncement.title"
           placeholder="請輸入標題"
+          :disabled="isAnnouncementModalLoading"
         />
         <a-textarea
           v-model:value="currentEditingAnnouncement.contentsString"
           placeholder="請輸入內容 (每行一個項目)"
           :rows="5"
+          :disabled="isAnnouncementModalLoading"
         />
       </a-space>
     </a-modal>
@@ -624,28 +742,21 @@ onMounted(async () => {
       @cancel="handleNoticeModalCancel"
       okText="儲存"
       cancelText="取消"
+      :confirmLoading="isNoticeModalLoading"
     >
       <a-space direction="vertical" style="width: 100%">
         <a-input
           v-model:value="currentEditingNotice.title"
           placeholder="請輸入標題"
+          :disabled="isNoticeModalLoading"
         />
         <a-textarea
           v-model:value="currentEditingNotice.contentsString"
           placeholder="請輸入內容 (每行一個項目)"
           :rows="5"
+          :disabled="isNoticeModalLoading"
         />
       </a-space>
     </a-modal>
   </div>
 </template>
-
-<!-- <style lang="scss" scoped>
-.editable-row-operations a {
-  margin-right: 8px;
-}
-/* Add specific styles for list actions if needed */
-:deep(.ant-list-item-action) {
-  margin-left: auto; /* Push actions to the right */
-}
-</style> -->

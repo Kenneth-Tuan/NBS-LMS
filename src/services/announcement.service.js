@@ -33,11 +33,8 @@ const announcementService = {
           type,
         }
       );
-
-      message.success("Announcement created successfully");
     } catch (error) {
       console.error(error);
-      message.error("Failed to create announcement");
     }
   },
 
@@ -61,11 +58,8 @@ const announcementService = {
           type,
         }
       );
-
-      message.success("Announcement updated successfully");
     } catch (error) {
       console.error(error);
-      message.error("Failed to update announcement");
     }
   },
 
@@ -76,11 +70,8 @@ const announcementService = {
         "6873421c0038833bb4d9",
         announcement.$id
       );
-
-      message.success("Announcement deleted successfully");
     } catch (error) {
       console.error(error);
-      message.error("Failed to delete announcement");
     }
   },
 };
