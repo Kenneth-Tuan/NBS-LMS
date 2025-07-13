@@ -16,15 +16,11 @@ import {
   Modal as AModal,
   Space as ASpace,
 } from "ant-design-vue"; // Import needed components
-import {
-  dummyNewsData,
-  dummyNoticeData,
-  dummyAnnouncementData,
-} from "@/data/dummy";
 
 import { useUserStore } from "@/stores/user"; // Import user store
 import { UserRole } from "@/enums/appEnums"; // Import UserRole enum
 import { announcementService } from "@/services/announcement.service";
+import dayjs from "dayjs";
 
 // --- Store and User Role ---
 const userStore = useUserStore();
@@ -65,19 +61,69 @@ const operationColumn = {
   width: "10%",
 };
 
-// Make data source reactive and add unique keys if missing
-const newsDataSource = ref(
-  dummyNewsData.map((item, index) => ({
-    ...item,
-    key: item.key || `news-${index}`,
-  }))
-);
+// Make data source reactive
+const newsDataSource = ref([]);
 const editableNewsData = reactive({});
-let newsKeyCounter = newsDataSource.value.length; // For generating unique keys
 
 const computedColumns = computed(() => {
   return isAdmin.value ? [...baseColumns, operationColumn] : baseColumns;
 });
+
+// Load all announcements from API and filter by type
+const loadAllAnnouncements = async () => {
+  try {
+    const allAnnouncements = await announcementService.getAnnouncements();
+
+    // Filter and map news
+    const newsItems = allAnnouncements.filter((item) => item.type === "news");
+    newsDataSource.value = newsItems.map((item) => ({
+      key: item.$id,
+      $id: item.$id,
+      date: item.announcementDateTime
+        ? dayjs(item.announcementDateTime).format("YYYY-MM-DD")
+        : "",
+      content: item.description || "",
+      publisher: item.department || "",
+      announcementDateTime: item.announcementDateTime,
+      type: "news",
+    }));
+
+    // Filter and map announcements
+    const announcements = allAnnouncements.filter(
+      (item) => item.type === "announcement"
+    );
+    announcementDataSource.value = announcements.map((item) => ({
+      key: item.$id,
+      $id: item.$id,
+      title: item.department || "未分類", // Use department as title for now
+      contents: item.description
+        ? item.description.split("\n").filter((line) => line.trim())
+        : [],
+      announcementDateTime: item.announcementDateTime,
+      department: item.department,
+      description: item.description,
+      type: "announcement",
+    }));
+
+    // Filter and map notices
+    const notices = allAnnouncements.filter((item) => item.type === "notice");
+    noticeDataSource.value = notices.map((item) => ({
+      key: item.$id,
+      $id: item.$id,
+      title: item.department || "未分類",
+      contents: item.description
+        ? item.description.split("\n").filter((line) => line.trim())
+        : [],
+      announcementDateTime: item.announcementDateTime,
+      department: item.department,
+      description: item.description,
+      type: "notice",
+    }));
+  } catch (error) {
+    console.error("Failed to load announcements:", error);
+    message.error("載入公告失敗");
+  }
+};
 
 const editNews = (key) => {
   editableNewsData[key] = cloneDeep(
@@ -85,16 +131,30 @@ const editNews = (key) => {
   );
 };
 
-const saveNews = (key) => {
+const saveNews = async (key) => {
   const editedItem = editableNewsData[key];
-  const targetItem = newsDataSource.value.find((item) => key === item.key);
-  if (targetItem && editedItem) {
-    Object.assign(targetItem, editedItem);
+  if (!editedItem) return;
+
+  try {
+    // Convert date string back to ISO format if it's been edited
+    const announcementDateTime = editedItem.date
+      ? dayjs(editedItem.date).toISOString()
+      : new Date().toISOString();
+
+    await announcementService.updateAnnouncement({
+      $id: editedItem.$id,
+      announcementDateTime,
+      description: editedItem.content,
+      department: editedItem.publisher,
+      type: "news",
+    });
+
+    // Reload news after successful update
+    await loadAllAnnouncements();
     delete editableNewsData[key];
-    message.success("儲存成功");
-  } else {
-    message.error("儲存失敗");
-    delete editableNewsData[key]; // Still remove from edit mode
+  } catch (error) {
+    console.error("Failed to save news:", error);
+    delete editableNewsData[key];
   }
 };
 
@@ -102,40 +162,51 @@ const cancelNews = (key) => {
   delete editableNewsData[key];
 };
 
-const deleteNewsRow = (key) => {
-  newsDataSource.value = newsDataSource.value.filter(
-    (item) => item.key !== key
-  );
-  message.success("刪除成功");
+const deleteNewsRow = async (key) => {
+  try {
+    const newsItem = newsDataSource.value.find((item) => item.key === key);
+    if (newsItem) {
+      await announcementService.deleteAnnouncement({ $id: newsItem.$id });
+      await loadAllAnnouncements();
+    }
+  } catch (error) {
+    console.error("Failed to delete news:", error);
+  }
 };
 
-const addNewsRow = () => {
-  const newKey = `news-${newsKeyCounter++}`;
-  const newRow = {
-    key: newKey,
-    date: new Date().toISOString().split("T")[0], // Default to today's date
-    content: "",
-    publisher: userProfile.userName || "Admin", // Default publisher
-  };
-  newsDataSource.value.unshift(newRow); // Add to the top
-  editNews(newKey); // Enter edit mode immediately
+const addNewsRow = async () => {
+  try {
+    await announcementService.createAnnouncement({
+      announcementDateTime: new Date().toISOString(),
+      description: "新消息內容",
+      department: userProfile.userName || "Admin",
+      type: "news",
+    });
+
+    // Reload news after creation
+    await loadAllAnnouncements();
+
+    // Find the newly created item and enter edit mode
+    const newItem = newsDataSource.value[0]; // Assuming newest items are first
+    if (newItem) {
+      editNews(newItem.key);
+    }
+  } catch (error) {
+    console.error("Failed to add news:", error);
+  }
 };
 
 // --- Course Announcements List Data and Logic ---
-let announcementKeyCounter = 0;
-const announcementDataSource = ref(
-  dummyAnnouncementData.map((item, index) => ({
-    ...item,
-    key: item.key || `announcement-${announcementKeyCounter++}`,
-  }))
-);
+const announcementDataSource = ref([]);
 const isAnnouncementModalVisible = ref(false);
 const modalMode = ref("add"); // 'add' or 'edit'
 const currentEditingAnnouncement = reactive({
-  key: null,
+  $id: null,
   title: "",
   // Store contents as a single string for textarea editing
   contentsString: "",
+  department: "",
+  announcementDateTime: null,
 });
 
 const modalTitle = computed(() =>
@@ -144,84 +215,92 @@ const modalTitle = computed(() =>
 
 const showAddAnnouncementModal = () => {
   modalMode.value = "add";
-  currentEditingAnnouncement.key = null;
+  currentEditingAnnouncement.$id = null;
   currentEditingAnnouncement.title = "";
   currentEditingAnnouncement.contentsString = "";
+  currentEditingAnnouncement.department = userProfile.userName || "教務處";
+  currentEditingAnnouncement.announcementDateTime = new Date().toISOString();
   isAnnouncementModalVisible.value = true;
 };
 
 const showEditAnnouncementModal = (item) => {
   modalMode.value = "edit";
-  const clonedItem = cloneDeep(item);
-  currentEditingAnnouncement.key = clonedItem.key;
-  currentEditingAnnouncement.title = clonedItem.title;
+  currentEditingAnnouncement.$id = item.$id;
+  currentEditingAnnouncement.title = item.title;
   // Join array into a string for textarea
-  currentEditingAnnouncement.contentsString = (clonedItem.contents || []).join(
-    "\n"
-  );
+  currentEditingAnnouncement.contentsString = (item.contents || []).join("\n");
+  currentEditingAnnouncement.department =
+    item.department || userProfile.userName || "教務處";
+  currentEditingAnnouncement.announcementDateTime =
+    item.announcementDateTime || new Date().toISOString();
   isAnnouncementModalVisible.value = true;
 };
 
-const handleAnnouncementModalOk = () => {
-  if (!currentEditingAnnouncement.title) {
-    message.error("請輸入標題");
+const handleAnnouncementModalOk = async () => {
+  if (
+    !currentEditingAnnouncement.title ||
+    !currentEditingAnnouncement.contentsString
+  ) {
+    message.error("請輸入標題和內容");
     return;
   }
 
-  // Split string back into array, filtering empty lines
-  const updatedContents = currentEditingAnnouncement.contentsString
-    .split("\n")
-    .filter((line) => line.trim() !== "");
-
-  if (modalMode.value === "add") {
-    const newKey = `announcement-${announcementKeyCounter++}`;
-    announcementDataSource.value.unshift({
-      key: newKey,
-      title: currentEditingAnnouncement.title,
-      contents: updatedContents,
-    });
-    message.success("新增成功");
-  } else {
-    const index = announcementDataSource.value.findIndex(
-      (item) => item.key === currentEditingAnnouncement.key
-    );
-    if (index !== -1) {
-      announcementDataSource.value[index].title =
-        currentEditingAnnouncement.title;
-      announcementDataSource.value[index].contents = updatedContents;
-      message.success("更新成功");
+  try {
+    if (modalMode.value === "add") {
+      await announcementService.createAnnouncement({
+        announcementDateTime: currentEditingAnnouncement.announcementDateTime,
+        description: currentEditingAnnouncement.contentsString,
+        department: currentEditingAnnouncement.title, // Using title as department
+        type: "announcement",
+      });
     } else {
-      message.error("找不到要更新的項目");
+      await announcementService.updateAnnouncement({
+        $id: currentEditingAnnouncement.$id,
+        announcementDateTime: currentEditingAnnouncement.announcementDateTime,
+        description: currentEditingAnnouncement.contentsString,
+        department: currentEditingAnnouncement.title, // Using title as department
+        type: "announcement",
+      });
     }
+
+    // Reload announcements after successful operation
+    await loadAllAnnouncements();
+    isAnnouncementModalVisible.value = false;
+  } catch (error) {
+    console.error("Failed to save announcement:", error);
+    // Error messages are handled by the service
   }
-  isAnnouncementModalVisible.value = false;
 };
 
 const handleAnnouncementModalCancel = () => {
   isAnnouncementModalVisible.value = false;
 };
 
-const deleteAnnouncement = (key) => {
-  announcementDataSource.value = announcementDataSource.value.filter(
-    (item) => item.key !== key
-  );
-  message.success("刪除成功");
+const deleteAnnouncement = async (key) => {
+  try {
+    const announcement = announcementDataSource.value.find(
+      (item) => item.key === key
+    );
+    if (announcement) {
+      await announcementService.deleteAnnouncement({ $id: announcement.$id });
+      await loadAllAnnouncements();
+    }
+  } catch (error) {
+    console.error("Failed to delete announcement:", error);
+    // Error messages are handled by the service
+  }
 };
 
 // --- Notices List Data and Logic ---
-let noticeKeyCounter = 0;
-const noticeDataSource = ref(
-  dummyNoticeData.map((item, index) => ({
-    ...item,
-    key: item.key || `notice-${noticeKeyCounter++}`,
-  }))
-);
+const noticeDataSource = ref([]);
 const isNoticeModalVisible = ref(false);
 const noticeModalMode = ref("add"); // 'add' or 'edit'
 const currentEditingNotice = reactive({
-  key: null,
+  $id: null,
   title: "",
   contentsString: "",
+  department: "",
+  announcementDateTime: null,
 });
 
 const noticeModalTitle = computed(() =>
@@ -230,62 +309,71 @@ const noticeModalTitle = computed(() =>
 
 const showAddNoticeModal = () => {
   noticeModalMode.value = "add";
-  currentEditingNotice.key = null;
+  currentEditingNotice.$id = null;
   currentEditingNotice.title = "";
   currentEditingNotice.contentsString = "";
+  currentEditingNotice.department = userProfile.userName || "教務處";
+  currentEditingNotice.announcementDateTime = new Date().toISOString();
   isNoticeModalVisible.value = true;
 };
 
 const showEditNoticeModal = (item) => {
   noticeModalMode.value = "edit";
-  const clonedItem = cloneDeep(item);
-  currentEditingNotice.key = clonedItem.key;
-  currentEditingNotice.title = clonedItem.title;
-  currentEditingNotice.contentsString = (clonedItem.contents || []).join("\n");
+  currentEditingNotice.$id = item.$id;
+  currentEditingNotice.title = item.title;
+  currentEditingNotice.contentsString = (item.contents || []).join("\n");
+  currentEditingNotice.department =
+    item.department || userProfile.userName || "教務處";
+  currentEditingNotice.announcementDateTime =
+    item.announcementDateTime || new Date().toISOString();
   isNoticeModalVisible.value = true;
 };
 
-const handleNoticeModalOk = () => {
-  if (!currentEditingNotice.title) {
-    message.error("請輸入標題");
+const handleNoticeModalOk = async () => {
+  if (!currentEditingNotice.title || !currentEditingNotice.contentsString) {
+    message.error("請輸入標題和內容");
     return;
   }
-  const updatedContents = currentEditingNotice.contentsString
-    .split("\n")
-    .filter((line) => line.trim() !== "");
 
-  if (noticeModalMode.value === "add") {
-    const newKey = `notice-${noticeKeyCounter++}`;
-    noticeDataSource.value.unshift({
-      key: newKey,
-      title: currentEditingNotice.title,
-      contents: updatedContents,
-    });
-    message.success("新增成功");
-  } else {
-    const index = noticeDataSource.value.findIndex(
-      (item) => item.key === currentEditingNotice.key
-    );
-    if (index !== -1) {
-      noticeDataSource.value[index].title = currentEditingNotice.title;
-      noticeDataSource.value[index].contents = updatedContents;
-      message.success("更新成功");
+  try {
+    if (noticeModalMode.value === "add") {
+      await announcementService.createAnnouncement({
+        announcementDateTime: currentEditingNotice.announcementDateTime,
+        description: currentEditingNotice.contentsString,
+        department: currentEditingNotice.title,
+        type: "notice",
+      });
     } else {
-      message.error("找不到要更新的項目");
+      await announcementService.updateAnnouncement({
+        $id: currentEditingNotice.$id,
+        announcementDateTime: currentEditingNotice.announcementDateTime,
+        description: currentEditingNotice.contentsString,
+        department: currentEditingNotice.title,
+        type: "notice",
+      });
     }
+
+    await loadAllAnnouncements();
+    isNoticeModalVisible.value = false;
+  } catch (error) {
+    console.error("Failed to save notice:", error);
   }
-  isNoticeModalVisible.value = false;
 };
 
 const handleNoticeModalCancel = () => {
   isNoticeModalVisible.value = false;
 };
 
-const deleteNotice = (key) => {
-  noticeDataSource.value = noticeDataSource.value.filter(
-    (item) => item.key !== key
-  );
-  message.success("刪除成功");
+const deleteNotice = async (key) => {
+  try {
+    const notice = noticeDataSource.value.find((item) => item.key === key);
+    if (notice) {
+      await announcementService.deleteAnnouncement({ $id: notice.$id });
+      await loadAllAnnouncements();
+    }
+  } catch (error) {
+    console.error("Failed to delete notice:", error);
+  }
 };
 
 // --- Existing Logic ---
@@ -309,13 +397,13 @@ const otherColumns = [
 ];
 
 onMounted(async () => {
-  const announcements = await announcementService.getAnnouncements();
-  console.log(announcements);
+  // Load all three types of announcements
+  await loadAllAnnouncements();
 });
 </script>
 
 <template>
-  <div class="u-grid u-grid-cols-2 u-h100% u-gap-4 u-p4 u-items-start">
+  <div class="u-grid u-grid-cols-2 u-h100% u-w100% u-gap-4 u-p4 u-items-start">
     <div
       class="u-p24px u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
@@ -329,8 +417,8 @@ onMounted(async () => {
           @click="addNewsRow"
           size="small"
         >
-          新增消息</a-button
-        >
+          新增消息
+        </a-button>
       </div>
 
       <Divider class="u-my8px" />
@@ -465,8 +553,9 @@ onMounted(async () => {
           type="primary"
           @click="showAddNoticeModal"
           size="small"
-          >新增注意</a-button
         >
+          新增注意
+        </a-button>
       </div>
       <Divider class="u-my8px" />
       <a-list

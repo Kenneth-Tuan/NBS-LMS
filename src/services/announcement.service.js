@@ -14,8 +14,9 @@ const announcementService = {
     }
   },
   createAnnouncement: async (announcement) => {
-    const { announcementDateTime, description, department } = announcement;
-    if (!announcementDateTime || !description || !department) {
+    const { announcementDateTime, description, department, type } =
+      announcement;
+    if (!announcementDateTime || !description || !department || !type) {
       message.error("Please fill in all fields");
       return;
     }
@@ -29,6 +30,7 @@ const announcementService = {
           announcementDateTime,
           description,
           department,
+          type,
         }
       );
 
@@ -40,14 +42,23 @@ const announcementService = {
   },
 
   updateAnnouncement: async (announcement) => {
+    const { announcementDateTime, description, department, type } =
+      announcement;
+    if (!announcementDateTime || !description || !department || !type) {
+      message.error("Please fill in all fields");
+      return;
+    }
+
     try {
       await databases.updateDocument(
         "67e79a70003e621495da", // Database ID
         "6873421c0038833bb4d9", // Collection ID
         announcement.$id, // Document ID（要更新的文件 $id）
         {
-          description: "已更新內容",
-          department: "General Affairs Office",
+          announcementDateTime,
+          description,
+          department,
+          type,
         }
       );
 
