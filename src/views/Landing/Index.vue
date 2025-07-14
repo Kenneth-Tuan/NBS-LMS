@@ -28,6 +28,7 @@ const { userProfile } = userStore; // No need for storeToRefs if just reading pr
 const isAdmin = computed(
   () =>
     userProfile.userRole === UserRole.Admin ||
+    userProfile.userRole === UserRole.Manager ||
     userProfile.userRole === UserRole.Creator
 );
 
