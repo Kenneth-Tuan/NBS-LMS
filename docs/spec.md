@@ -258,6 +258,7 @@ user profile ?
 - 申請人
 - Email
 - 電話
+- 申請類型（請假/實習/補助）
 - 實習機構名稱
 - 實習機構地址
 - 實習機構聯絡人
@@ -270,15 +271,18 @@ user profile ?
 - 請假原因
 - 補助類型（學費/住宿/交通/其他）
 - 相關附件（multiple）
-- 審核狀態（待審核/已通過/駁回）
+- 審核狀態（pending/approved/regjected）
 - 審核人員
 - 審核原因
 
 #### submitApplication API
 
 - 僅學生有該功能
-- 請假申請發出後會通知對應課堂的老師進行審核
-- 實習/補助申請會通知 Admin/Manager 進行審核
+- 拆分成請假/實習/補助申請三隻 api ？
+- 產生一則訊息
+  - 請假申請發出後會通知對應課堂的老師進行審核
+  - 實習/補助申請會通知 Admin/Manager 進行審核
+  - 訊息：學生 [student_name] 提交了 [application_type] 申請，請您審核
 
 ### 申請紀錄
 
@@ -287,11 +291,45 @@ user profile ?
 - Creator/Admin/Manager 可以看到全部申請
 - Teacher 只能看到請假申請
 - Student 只能看到自己提出的申請
+- 欄位：
+  - 申請人
+  - 申請類型
+  - 申請時間
+  - 申請內容
+  - 審核狀態
 
-#### review API
+#### reviewApplication API
 
-- 審核完成之後會通知申請人
+- 產生一則訊息
+  - 訊息：您的 [application_type] 申請已由 [sender_name] 審核完成，審核結果為：[reviewed_result]
 
 ## 通知中心
 
-> 施工中...
+### 獲取通知 API
+
+- GET /api/notifications?user_id=xxx
+- 回傳：全部通知列表（含未讀已讀標記）
+
+- GET /api/unreadNotifications?user_id=xxx
+- 回傳：未讀通知列表
+
+### 標記單一通知已讀
+
+- POST /api/notification/read
+- Body: { user_id, notification_id }
+
+訊息格式：
+notification_id: string, //通知唯一 ID
+recipient_id: string, // 接受者 ID
+sender_id: string, // 申請者/審核者 ID
+related_resource_id: string, // 申請 ID (如: "LEA-2023-001")
+type: string, // 訊息類型
+message: string, // 訊息內容
+created_at: date, //訊息建立時間
+is_read: boolean, //是否已讀
+read_at: date, // 已讀時間
+action_url: string, (連結？)
+data: string, // JSON 字串，包含詳細資訊
+
+need userProfile api
+need checkEnrollment api
