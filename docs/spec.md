@@ -333,3 +333,11 @@ data: string, // JSON 字串，包含詳細資訊
 
 need userProfile api
 need checkEnrollment api
+
+---
+
+可以自動計算出席率？
+
+須在 8 月中正式選課將選課相關功能測試完畢
+
+gradebook 的欄位設計？

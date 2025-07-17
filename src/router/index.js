@@ -3,6 +3,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
 import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
+import { isFeatureEnabled } from "@/config/featureFlags";
 
 const routes = [
   {
@@ -161,6 +162,21 @@ const routes = [
       roles: [UserRole.Creator, UserRole.Admin],
     },
   },
+  // 開發環境限定：功能開關管理頁面
+  ...(isFeatureEnabled("experimental.enableDebugMode")
+    ? [
+        {
+          path: "/admin/feature-flags",
+          name: "FeatureFlagManager",
+          component: () => import("@/views/Admin/FeatureFlagManager.vue"),
+          meta: {
+            title: "功能開關管理 - 拿撒勒人會神學院 選課系統",
+            layout: DefaultLayout,
+            roles: [UserRole.Creator, UserRole.Admin],
+          },
+        },
+      ]
+    : []),
   {
     path: "/notifications",
     name: RouterName.Notifications,
