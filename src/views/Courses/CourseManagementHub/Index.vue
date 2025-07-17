@@ -38,22 +38,6 @@ const students = ref([]); // Course student roster
 const grades = reactive({}); // { studentId: { assignmentId: score } } - Teacher's gradebook data
 const currentUserSubmissions = ref([]); // [{ assignmentId, status, fileName, grade }]
 
-// --- Lifecycle Hooks ---
-onMounted(async () => {
-  // After local dummy data is loaded, try to fetch real course data from API
-  try {
-    const apiCourse = await courseService.getCourse(currentCourseId.value);
-    currentCourse.value = apiCourse;
-    console.log("apiCourse", apiCourse);
-  } catch (err) {
-    // Keep silent failure – fall back to dummy data
-    console.error(
-      "[CourseManagementHub] Failed to fetch course data from API:",
-      err
-    );
-  }
-});
-
 // --- Event Handlers ---
 const handleAnnouncementsUpdate = (newAnnouncements) => {
   announcements.value = newAnnouncements;
@@ -68,11 +52,8 @@ const handleAssignmentsUpdate = (updates) => {
   }
 };
 
-const handleMaterialsUpdate = (updates) => {
-  materials.value = updates.materials;
-  if (updates.currentCourse) {
-    currentCourse.value = updates.currentCourse;
-  }
+const handleMaterialsUpdate = () => {
+  fetchCourseData();
 };
 
 const handleGradesUpdate = (newGrades) => {
@@ -93,6 +74,26 @@ const handleGradesUpdate = (newGrades) => {
     }
   }
 };
+
+async function fetchCourseData() {
+  // After local dummy data is loaded, try to fetch real course data from API
+  try {
+    const apiCourse = await courseService.getCourse(currentCourseId.value);
+    currentCourse.value = apiCourse;
+    console.log("apiCourse", apiCourse);
+  } catch (err) {
+    // Keep silent failure – fall back to dummy data
+    console.error(
+      "[CourseManagementHub] Failed to fetch course data from API:",
+      err
+    );
+  }
+}
+
+// --- Lifecycle Hooks ---
+onMounted(async () => {
+  await fetchCourseData();
+});
 </script>
 
 <template>
@@ -157,6 +158,7 @@ const handleGradesUpdate = (newGrades) => {
                 :materials="currentCourse.outlineFile"
                 :current-course="currentCourse"
                 :is-teacher-or-creator="isTeacherOrCreator"
+                @update="handleMaterialsUpdate"
               />
             </a-tab-pane>
 
