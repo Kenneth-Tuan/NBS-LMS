@@ -25,7 +25,9 @@ const columns = ref([
     title: "課程名稱",
     dataIndex: "name",
     key: "name",
-    ellipsis: true,
+    ellipsis: {
+      showTitle: true,
+    },
   },
   {
     title: "授課老師名稱",
@@ -91,7 +93,7 @@ const columns = ref([
   {
     title: "操作",
     key: "actions",
-    width: 200,
+    width: 150,
     fixed: "right",
   },
 ]);

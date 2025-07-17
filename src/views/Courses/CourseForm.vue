@@ -13,7 +13,8 @@ import {
 import { useCourseStore } from "@/stores/course";
 import { courseSchema } from "@/schemas/course.schema";
 import { courseService } from "@/services/course.service";
-import { RouterName } from "@/enums/appEnums";
+import { RouterName, UserRole } from "@/enums/appEnums";
+import { useUserStore } from "@/stores/user";
 
 const route = useRoute();
 const isEdit = computed(() => {
@@ -25,9 +26,18 @@ const courseId = computed(() => {
 });
 
 const courseStore = useCourseStore();
+const userStore = useUserStore();
 const router = useRouter();
 const loading = ref(false);
 const formRef = ref(null);
+
+// 判斷是否為老師角色，老師只能編輯description和outlineFile
+const isTeacherRole = computed(() => {
+  return userStore.userProfile?.userRole === UserRole.Teacher;
+});
+
+// 保存原始的選課人數上限，用於編輯時的最小值限制
+const originalEnrollmentLimit = ref(null);
 
 // 上傳課程大綱前檢查
 const beforeOutlineUpload = async (file) => {
@@ -102,6 +112,16 @@ const handlePreview = async (file) => {
 
 const handleSubmit = async () => {
   try {
+    // 如果是編輯模式，檢查選課人數上限是否減少
+    if (isEdit.value && originalEnrollmentLimit.value) {
+      if (
+        courseStore.courseForm.enrollmentLimit < originalEnrollmentLimit.value
+      ) {
+        message.error("選課人數上限不能少於原本設定的數量！");
+        return;
+      }
+    }
+
     if (isEdit.value) {
       await courseStore.updateCourse();
     } else {
@@ -127,6 +147,8 @@ onBeforeMount(async () => {
 onMounted(async () => {
   if (isEdit.value && courseId.value) {
     await courseStore.getCourseHandler(courseId.value);
+    // 保存原始的選課人數上限，用於編輯時的限制
+    originalEnrollmentLimit.value = courseStore.courseForm.enrollmentLimit;
   }
 });
 </script>
@@ -139,7 +161,12 @@ onMounted(async () => {
           {{ isEdit ? "編輯課程" : "新增課程" }}
         </h1>
 
-        <a-button size="small" @click="courseStore.resetForm">重置</a-button>
+        <a-button
+          size="small"
+          @click="courseStore.resetForm"
+          :disabled="isTeacherRole"
+          >重置</a-button
+        >
       </div>
 
       <Divider class="u-my8px" />
@@ -160,6 +187,7 @@ onMounted(async () => {
                 <a-input
                   v-model:value="courseStore.courseForm.title"
                   :placeholder="courseSchema.title.placeholder"
+                  :disabled="isTeacherRole"
                 />
               </a-form-item>
             </a-col>
@@ -169,6 +197,7 @@ onMounted(async () => {
                 <a-input
                   v-model:value="courseStore.courseForm.classMode"
                   :placeholder="courseSchema.classMode.placeholder"
+                  :disabled="isTeacherRole"
                 />
               </a-form-item>
             </a-col>
@@ -185,6 +214,7 @@ onMounted(async () => {
                   class="u-w-full"
                   :filter-option="filterOption"
                   show-search
+                  :disabled="isTeacherRole"
                 >
                 </a-select>
               </a-form-item>
@@ -198,6 +228,7 @@ onMounted(async () => {
                   :min="1"
                   :max="999"
                   class="u-w-full"
+                  :disabled="isTeacherRole"
                 />
               </a-form-item>
             </a-col>
@@ -210,6 +241,7 @@ onMounted(async () => {
                   :min="1"
                   :max="999"
                   class="u-w-full"
+                  :disabled="isTeacherRole"
                 />
               </a-form-item>
             </a-col>
@@ -224,10 +256,21 @@ onMounted(async () => {
                 <a-input-number
                   v-model:value="courseStore.courseForm.enrollmentLimit"
                   :placeholder="courseSchema.enrollmentLimit.placeholder"
-                  :min="1"
+                  :min="
+                    isEdit && originalEnrollmentLimit
+                      ? originalEnrollmentLimit
+                      : 1
+                  "
                   :max="999"
                   class="u-w-full"
+                  :disabled="isTeacherRole"
                 />
+                <div
+                  v-if="isEdit && originalEnrollmentLimit"
+                  class="u-text-xs u-text-gray-500 u-mt-1"
+                >
+                  原始設定：{{ originalEnrollmentLimit }} 人（不可少於此數量）
+                </div>
               </a-form-item>
             </a-col>
             <a-col :span="12">
@@ -243,6 +286,7 @@ onMounted(async () => {
                   allow-clear
                   class="u-w-full"
                   :filter-option="filterOption"
+                  :disabled="isTeacherRole"
                 >
                   <!-- Optional: Customize tag rendering -->
                   <template #tagRender="{ label, closable, onClose }">
@@ -267,6 +311,7 @@ onMounted(async () => {
                   class="u-w-full"
                   :placeholder="courseSchema.startDate.placeholder"
                   :value-format="courseSchema.startDate.mask"
+                  :disabled="isTeacherRole"
                 />
               </a-form-item>
             </a-col>
@@ -278,6 +323,7 @@ onMounted(async () => {
                   class="u-w-full"
                   :placeholder="courseSchema.endDate.placeholder"
                   :value-format="courseSchema.endDate.mask"
+                  :disabled="isTeacherRole"
                 />
               </a-form-item>
             </a-col>
@@ -300,6 +346,7 @@ onMounted(async () => {
                     v-model:value="schedule.week_day"
                     :placeholder="courseSchema.week_day.placeholder"
                     :options="courseStore.courseInfos.weekDays"
+                    :disabled="isTeacherRole"
                   >
                   </a-select>
                 </a-form-item>
@@ -315,6 +362,7 @@ onMounted(async () => {
                     format="HH:mm"
                     value-format="HH:mm"
                     class="u-w-full"
+                    :disabled="isTeacherRole"
                   />
                 </a-form-item>
               </a-col>
@@ -329,6 +377,7 @@ onMounted(async () => {
                     format="HH:mm"
                     value-format="HH:mm"
                     class="u-w-full"
+                    :disabled="isTeacherRole"
                   />
                 </a-form-item>
               </a-col>
@@ -342,7 +391,8 @@ onMounted(async () => {
                         shape="circle"
                         :icon="h(MinusOutlined)"
                         :disabled="
-                          courseStore.courseForm.weeklySchedule.length === 1
+                          courseStore.courseForm.weeklySchedule.length === 1 ||
+                          isTeacherRole
                         "
                         @click="courseStore.removeWeeklySchedule(index)"
                       />
@@ -359,7 +409,10 @@ onMounted(async () => {
                 <a-button
                   type="dashed"
                   :icon="h(PlusOutlined)"
-                  :disabled="courseStore.courseForm.weeklySchedule.length >= 7"
+                  :disabled="
+                    courseStore.courseForm.weeklySchedule.length >= 7 ||
+                    isTeacherRole
+                  "
                   @click="courseStore.addWeeklySchedule"
                 >
                   <span> 新增上課日 </span>
