@@ -1,263 +1,323 @@
 <script setup>
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, onMounted } from "vue";
 import { message } from "ant-design-vue";
-import { SettingOutlined } from "@ant-design/icons-vue";
-import GradebookColumnSelector from "@/components/GradebookColumnSelector.vue";
-import { GradeItemType, DefaultGradeItems } from "@/enums/gradeEnums";
-import { isFeatureEnabled } from "@/config/featureFlags";
+import { 
+  SettingOutlined, 
+  PlusOutlined, 
+  DeleteOutlined,
+  EditOutlined
+} from "@ant-design/icons-vue";
+import { useRoute } from "vue-router";
 
-// Props
-const props = defineProps({
-  isTeacherOrCreator: {
-    type: Boolean,
-    default: false,
-  },
-  isStudent: {
-    type: Boolean,
-    default: false,
-  },
-  assignments: {
-    type: Array,
-    default: () => [],
-  },
-  students: {
-    type: Array,
-    default: () => [],
-  },
-  grades: {
-    type: Object,
-    default: () => ({}),
-  },
-  currentUserSubmissions: {
-    type: Array,
-    default: () => [],
-  },
-  currentUserStudentId: {
-    type: String,
-    default: "",
-  },
+import scoreApi from "@/apis/score";
+import { UserRole } from "@/enums/appEnums";
+import { useUserStore } from "@/stores/user";
+
+const route = useRoute();
+
+const course_id = ref(route.params.id);
+
+const { userProfile } = useUserStore();
+
+const isTeacherOrCreator = computed(() => {
+  return userProfile?.userRole === UserRole.Creator || userProfile?.userRole === UserRole.Admin || userProfile?.userRole === UserRole.Manager || userProfile?.userRole === UserRole.Teacher;
 });
 
-// Emits
-const emit = defineEmits(["update:grades"]);
+const isStudent = computed(() => {
+  return userProfile?.userRole === UserRole.Student;
+});
+
 
 // Local state for column configuration
 const showColumnSelector = ref(false);
-const selectedGradeItems = ref([...DefaultGradeItems]);
 
-// Feature flag for weight configuration
-const isWeightConfigEnabled = computed(() =>
-  isFeatureEnabled("gradebook.enableWeightConfiguration")
-);
+// Add item form state
+const addItemForm = reactive({
+  title: "",
+});
 
-// Local state
-const localGrades = reactive({ ...props.grades });
+const scoreItems = ref([]);
+const scoreSheet = ref([]);
 
-// Watch for prop changes
-import { watch } from "vue";
-watch(
-  () => props.grades,
-  (newVal) => {
-    Object.assign(localGrades, newVal);
-  },
-  { deep: true }
-);
-
-// Helper functions
-const getStatusText = (status) => {
-  switch (status) {
-    case "OPEN":
-      return "進行中";
-    case "SUBMITTED":
-      return "已繳交";
-    case "GRADED":
-      return "已評分";
-    case "CLOSED":
-      return "已關閉";
-    case "NOT_SUBMITTED":
-      return "未繳交";
-    default:
-      return "未知";
-  }
-};
-
-const getStatusColor = (status) => {
-  switch (status) {
-    case "OPEN":
-      return "blue";
-    case "SUBMITTED":
-      return "green";
-    case "GRADED":
-      return "purple";
-    case "CLOSED":
-      return "red";
-    case "NOT_SUBMITTED":
-      return "orange";
-    default:
-      return "default";
-  }
-};
-
-// Teacher/Creator Gradebook Columns
 const gradebookColumns = computed(() => {
   const baseColumns = [
     {
       title: "學生姓名",
-      dataIndex: "name",
-      key: "name",
+      dataIndex: "student_name",
+      key: "student_name",
       fixed: "left",
       width: 120,
     },
   ];
 
-  // Generate columns based on selected grade items
-  const gradeItemColumns = selectedGradeItems.value
-    .filter((item) => item.enabled)
-    .map((item) => {
-      let dataIndex, key;
+  // 根據 ordering 對 scoreItems 進行排序
+  const sortedScoreItems = scoreItems.value ? [...scoreItems.value].sort((a, b) => a.ordering - b.ordering) : [];
 
-      if (item.type === GradeItemType.ASSIGNMENT) {
-        // For assignments, use the assignment ID
-        dataIndex = ["grades", item.assignmentId];
-        key = item.assignmentId;
-      } else {
-        // For other grade items, use the item ID
-        dataIndex = ["grades", item.id];
-        key = item.id;
-      }
-
-      return {
-        title: item.title,
-        dataIndex,
-        key,
-        width: 100,
-        align: "center",
-        sorter: true,
-        render: (value) => value || "-",
-      };
-    });
+  // Generate columns based on sorted grade items
+  const gradeItemColumns = sortedScoreItems.map((item) => {
+    return {
+      title: item.item_name,
+      dataIndex: item.item_id,
+      key: item.item_id,
+      width: 100,
+      align: "center",
+      sorter: true,
+      render: (value) => value || "-",
+    };
+  });
 
   return [...baseColumns, ...gradeItemColumns];
 });
 
 const gradebookDataSource = computed(() => {
-  return props.students.map((student) => ({
-    ...student,
-    key: student.id,
-    grades: localGrades[student.id] || {},
-  }));
-});
+  if (!scoreSheet.value || !scoreItems.value) {
+    return [];
+  }
 
-// Student Gradebook Columns
-const studentGradebookColumns = computed(() => [
-  { title: "作業名稱", dataIndex: "title", key: "title", ellipsis: true },
-  {
-    title: "您的成績",
-    dataIndex: "gradeDisplay",
-    key: "grade",
-    width: 120,
-    align: "center",
-  },
-  {
-    title: "狀態",
-    dataIndex: "statusText",
-    key: "status",
-    width: 120,
-    align: "center",
-  },
-]);
+  // 根據 ordering 對 scoreItems 進行排序
+  const sortedScoreItems = [...scoreItems.value].sort((a, b) => a.ordering - b.ordering);
+  
+  // 建立 scoreItemId 到 ordering 的映射
+  const scoreItemOrderMap = {};
+  sortedScoreItems.forEach(item => {
+    scoreItemOrderMap[item.item_id] = item.ordering;
+  });
 
-const studentGradebookDataSource = computed(() => {
-  if (!props.isStudent) return [];
-  return props.assignments.map((assign) => {
-    const submission = props.currentUserSubmissions.find(
-      (s) => s.assignmentId === assign.id
-    );
-    let gradeDisplay = "-";
-    let statusText = getStatusText("NOT_SUBMITTED");
-
-    if (submission) {
-      statusText = getStatusText(submission.status);
-      if (submission.status === "GRADED") {
-        gradeDisplay =
-          submission.grade !== null
-            ? String(submission.grade)
-            : "已評分 (無分數)";
-      } else if (submission.status === "SUBMITTED") {
-        gradeDisplay = "評改中";
-      }
-    } else if (assign.status === "CLOSED") {
-      statusText = getStatusText("CLOSED");
-    }
-
-    return {
-      key: assign.id,
-      title: assign.title,
-      gradeDisplay,
-      statusText,
-      statusColor: getStatusColor(
-        submission?.status ||
-          (assign.status === "CLOSED" ? "CLOSED" : "NOT_SUBMITTED")
-      ),
+  return scoreSheet.value.map(studentRecord => {
+    // 建立新的學生記錄物件
+    const formattedRecord = {
+      student_id: studentRecord.student_id,
+      student_name: studentRecord.student_name,
     };
+
+    // 根據 ordering 排序的 scoreItems 來建立成績欄位
+    sortedScoreItems.forEach(scoreItem => {
+      const itemId = scoreItem.item_id;
+      
+      // 在學生的 scores 陣列中找到對應的成績
+      const scoreData = studentRecord.scores?.find(score => score.score_item_id === itemId);
+      
+      // 將成績值設定到對應的欄位
+      formattedRecord[itemId] = scoreData?.score || null;
+    });
+
+    return formattedRecord;
   });
 });
 
 // Methods
-const handleGradeChange = (studentId, gradeItemKey, event) => {
-  const score = event.target.value ? parseInt(event.target.value, 10) : null;
+const handleGradeChange = (studentId, scoreItemId, el) => {
+  const score = el.target.value ?? null;
+  const formatedScore = score ? parseInt(score, 10) : null;
+  console.log("handleGradeChange", studentId, scoreItemId, score);
+
   if (score !== null && (isNaN(score) || score < 0 || score > 100)) {
     message.error("請輸入 0-100 之間的有效分數");
-    event.target.value = localGrades[studentId]?.[gradeItemKey] || "";
     return;
   }
 
-  if (!localGrades[studentId]) localGrades[studentId] = {};
-  localGrades[studentId][gradeItemKey] = score;
-
-  emit("update:grades", { ...localGrades });
+  submitScore(studentId, scoreItemId, formatedScore);
 };
 
-// Get grade item by key
-const getGradeItemByKey = (key) => {
-  return selectedGradeItems.value.find((item) =>
-    item.type === GradeItemType.ASSIGNMENT
-      ? item.assignmentId === key
-      : item.id === key
-  );
+async function addScoreItem(item_name){
+  try {
+    const response = await scoreApi.addScoreItem(course_id.value, item_name);
+    
+    // 檢查 API 回應狀態
+    if (response && response.status === 200) {
+      message.success("評分項目添加成功");
+      console.log("addScoreItem success:", response);
+      // 重新獲取評分項目列表
+      await getScoreItems();
+      // 重置表單並隱藏添加表單
+      resetAddItemForm();
+    } else {
+      message.error("評分項目添加失敗");
+      console.error("addScoreItem failed:", response);
+    }
+  } catch (error) {
+    console.error("addScoreItem error", error);
+    message.error("評分項目添加失敗，請稍後重試");
+  }
+}
+
+// 重置添加項目表單
+const resetAddItemForm = () => {
+  addItemForm.title = "";
 };
+
+// 處理添加項目
+const handleAddItem = () => {
+  if (!addItemForm.title.trim()) {
+    message.error("請輸入項目名稱");
+    return;
+  }
+  
+  addScoreItem(addItemForm.title);
+};
+
+const handleCancelAddItem = () => {
+  resetAddItemForm();
+  showColumnSelector.value = false;
+};
+
+async function getScoreSheet(){   
+  try {
+    const {data:{data:{data_rows, score_items}}} = await scoreApi.getScoreSheet(course_id.value);
+
+    scoreSheet.value = data_rows;
+  } catch (error) {
+    console.error("getScoreSheet error", error);
+  }
+}
+
+async function getScoreItems(){
+  try {
+    const {data:{data:{items}}} = await scoreApi.getScoreItem(course_id.value);
+
+    scoreItems.value = items;
+  } catch (error) {
+    console.error("getScoreItem error", error);
+  }
+}
+
+async function reorderScoreItem(item_id, ordering){
+  const params = {
+    "items": [
+      {
+        "item_id": item_id,
+        "ordering": ordering
+      }
+    ]
+  }
+
+  try {
+    const response = await scoreApi.reorderScoreItem(params);
+    
+    // 檢查 API 回應狀態
+    if (response && response.status === 200) {
+      message.success("成績項目順序更新成功");
+      console.log("reorderScoreItem success:", response);
+      // 重新獲取評分項目列表
+      await getScoreItems();
+    } else {
+      message.error("成績項目順序更新失敗");
+      console.error("reorderScoreItem failed:", response);
+    }
+  } catch (error) {
+    console.error("reorderScoreItem error", error);
+    message.error("成績項目順序更新失敗，請稍後重試");
+  }
+}
+
+async function deleteScoreItem(item_id){
+  try {
+    const response = await scoreApi.deleteScoreItem(item_id);
+    
+    // 檢查 API 回應狀態
+    if (response && response.status === 200) {
+      message.success("成績項目刪除成功");
+      console.log("deleteScoreItem success:", response);
+      // 重新獲取評分項目列表
+      await getScoreItems();
+    } else {
+      message.error("成績項目刪除失敗");
+      console.error("deleteScoreItem failed:", response);
+    }
+  } catch (error) {
+    console.error("deleteScoreItem error", error);
+    message.error("成績項目刪除失敗，請稍後重試");
+  }
+}
+
+async function submitScore(student_id, score_item_id, score){ 
+  const params = {
+    student_id,
+    score_item_id,
+    score
+  };
+  
+  try {
+    const response = await scoreApi.submitScore(params);
+    
+    // 檢查 API 回應狀態
+    if (response && response.status === 200) {
+      await getScoreSheet();
+      message.success("成績更新成功");
+      console.log("submitScore success:", response);
+    } else {
+      message.error("成績更新失敗");
+      console.error("submitScore failed:", response);
+    }
+  } catch (error) {
+    console.error("submitScore error", error);
+    message.error("成績更新失敗，請稍後重試");
+  }
+}
+
+async function onClickShowColumnSelector(){
+  try {
+    await getScoreItems();
+    showColumnSelector.value = true;
+  } catch (error) {
+    console.error("onClickShowColumnSelector error", error);
+  }
+}
+
+onMounted(async () => {
+  await getScoreSheet();
+  await getScoreItems();
+});
 </script>
 
 <template>
   <!-- Teacher/Creator Grade Input View -->
-  <div v-if="isTeacherOrCreator">
+
     <div class="u-flex u-items-center u-justify-between u-mb-4">
       <div>
         <p class="u-text-sm u-c-gray-600">
-          在此輸入或編輯學生成績。分數範圍 0-100。
+          {{ isTeacherOrCreator ? "在此輸入或編輯學生成績。分數範圍 0-100。" : "我的成績" }}
         </p>
       </div>
       <a-button
-        type="default"
-        @click="showColumnSelector = true"
+        v-if="isTeacherOrCreator"
+        type="primary"
+        @click="onClickShowColumnSelector"
         class="u-mb-2"
       >
-        <template #icon><SettingOutlined /></template>
-        設定評分項目
+        <template #icon><PlusOutlined /></template>
+        添加評分項目
       </a-button>
     </div>
 
     <!-- Column Selector Modal -->
     <a-modal
       v-model:open="showColumnSelector"
-      title="評分項目設定"
+      title="添加評分項目"
       width="900px"
-      :footer="null"
     >
-      <GradebookColumnSelector
-        v-model="selectedGradeItems"
-        :assignments="assignments"
-      />
+      <div class="u-max-w-full">
+        <div>
+          <label class="u-block u-text-sm u-font-medium u-mb-2">項目名稱</label>
+          <a-input
+            v-model:value="addItemForm.title"
+            placeholder="請輸入評分項目名稱"
+            size="large"
+          />
+        </div>
+        
+        <div class="u-flex u-space-x-3">
+        </div>
+      </div>
+
+      <template #footer>
+        <a-button type="primary" @click="handleAddItem" :loading="false">
+          確認添加
+        </a-button>
+        <a-button @click="handleCancelAddItem">
+          取消
+        </a-button>
+      </template>
     </a-modal>
 
     <a-table
@@ -268,7 +328,7 @@ const getGradeItemByKey = (key) => {
       :scroll="{ x: 'max-content' }"
     >
       <template #bodyCell="{ column, record, value }">
-        <template v-if="column.key !== 'name'">
+        <template v-if="column.key !== 'student_name'">
           <div class="grade-input-wrapper">
             <a-input-number
               :value="value"
@@ -277,54 +337,16 @@ const getGradeItemByKey = (key) => {
               :precision="0"
               placeholder="-"
               size="small"
-              style="width: 80px"
-              @change="
-                (val) =>
-                  handleGradeChange(record.id, column.key, {
-                    target: { value: val },
-                  })
+              style="width: 80px" 
+              @blur="
+                (el) =>
+                  handleGradeChange(record.student_id, column.key, el)
               "
             />
-            <div
-              v-if="isWeightConfigEnabled && getGradeItemByKey(column.key)"
-              class="grade-item-hint"
-            >
-              {{ getGradeItemByKey(column.key)?.weight }}%
-            </div>
           </div>
         </template>
       </template>
     </a-table>
-  </div>
-
-  <!-- Student Grade View -->
-  <div v-if="isStudent">
-    <h3 class="u-text-lg u-font-semibold u-mb-3 u-c-gray-700">我的成績</h3>
-    <a-table
-      :columns="studentGradebookColumns"
-      :data-source="studentGradebookDataSource"
-      bordered
-      size="small"
-      row-key="key"
-    >
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'grade'">
-          <span
-            :class="{
-              'u-c-gray-500':
-                record.gradeDisplay === '評改中' || record.gradeDisplay === '-',
-            }"
-            >{{ record.gradeDisplay }}</span
-          >
-        </template>
-        <template v-else-if="column.key === 'status'">
-          <a-tag :color="record.statusColor">
-            {{ record.statusText }}
-          </a-tag>
-        </template>
-      </template>
-    </a-table>
-  </div>
 </template>
 
 <style scoped>
@@ -333,11 +355,5 @@ const getGradeItemByKey = (key) => {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-}
-
-.grade-item-hint {
-  font-size: 10px;
-  color: #999;
-  line-height: 1;
 }
 </style>

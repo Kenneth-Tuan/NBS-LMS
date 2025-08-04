@@ -1,8 +1,6 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { v4 as uuidv4 } from "uuid";
-import dayjs from "dayjs";
 
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
@@ -139,16 +137,7 @@ onMounted(async () => {
 
             <!-- Gradebook Tab -->
             <a-tab-pane key="gradebook" tab="成績簿">
-              <Gradebook
-                :is-teacher-or-creator="isTeacherOrCreator"
-                :is-student="isStudent"
-                :assignments="assignments"
-                :students="students"
-                :grades="grades"
-                :current-user-submissions="currentUserSubmissions"
-                :current-user-student-id="currentUserStudentId"
-                @update:grades="handleGradesUpdate"
-              />
+              <Gradebook />
             </a-tab-pane>
 
             <!-- Course Materials Tab -->

@@ -1,10 +1,22 @@
 <script setup>
-// Props
-defineProps({
-  students: {
-    type: Array,
-    default: () => [],
-  },
+import { ref, onMounted } from "vue";
+import { useRoute } from "vue-router";
+
+import courseApi from "@/apis/course";
+
+const route = useRoute();
+
+const course_id = ref(route.params.id);
+
+const students = ref([]);
+
+onMounted(async () => {
+  try {
+    const {data} = await courseApi.getStudentList(course_id.value);
+    students.value = [...data.data.students];
+  } catch (error) {
+    console.error("getStudentList error", error);
+  }
 });
 
 // Columns
@@ -18,9 +30,9 @@ const studentRosterColumns = [
   <a-table
     :columns="studentRosterColumns"
     :data-source="students"
-    row-key="id"
+    row-key="name"
     size="small"
-    :pagination="{ pageSize: 10 }"
+    :pagination="false"  
   >
   </a-table>
 </template>

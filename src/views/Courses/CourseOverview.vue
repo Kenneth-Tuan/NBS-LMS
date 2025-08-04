@@ -95,6 +95,7 @@ const columns = ref([
   {
     title: "操作",
     key: "actions",
+    width: 200,
     fixed: "right",
   },
 ]);
@@ -268,7 +269,7 @@ onMounted(async () => {
               </AButton>
               <AButton
                 v-if="canDeleteCourse"
-                type="danger"
+                danger
                 size="small"
                 @click="deleteCourseHandler(record.course_id)"
               >

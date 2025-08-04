@@ -122,4 +122,8 @@ export default {
       },
     };
   },
+
+  getStudentList(course_id) {
+    return baseApiHelper.get(`/student-list?course_id=${course_id}`);
+  },
 };
