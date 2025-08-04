@@ -1,9 +1,11 @@
 <script setup>
-import { reactive, watch, h, computed } from "vue";
+import { reactive, watch, h, computed, ref, onMounted } from "vue";
 
 import { useRouter, useRoute } from "vue-router";
 import { MenuItems } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
+import { courseService } from "@/services/course.service";
+import { RouterName } from "@/enums/appEnums";
 
 const props = defineProps({
   collapsed: {
@@ -23,6 +25,8 @@ const state = reactive({
   openKeys: ["sub1"],
   preOpenKeys: ["sub1"],
 });
+
+const hasEnrollment = ref(false)
 
 // 從appEnums.ts的MenuItems轉換成ant design menu需要的格式
 const menuItems = computed(() => {
@@ -67,6 +71,13 @@ const menuItems = computed(() => {
 
       if (transformed.children.length === 0) return null;
     }
+
+
+    if(menuItem.key === RouterName.TimedCourseSelection) {
+      transformed.disabled = !hasEnrollment.value;
+      transformed.highlight = hasEnrollment.value;
+    }
+
     return transformed;
   };
 
@@ -104,6 +115,11 @@ watch(
     state.openKeys = state.collapsed ? [] : state.preOpenKeys;
   }
 );
+
+onMounted(async () => {
+  const courses = await courseService.fetchCoursesForEnrollment();
+  hasEnrollment.value = courses.length > 0;
+});
 </script>
 
 <template>

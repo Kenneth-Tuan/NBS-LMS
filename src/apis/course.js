@@ -63,6 +63,10 @@ export default {
     return baseApiHelper.get(`/enrollment/my-schedule`);
   },
 
+  getEnrollmentStatus() {
+    return baseApiHelper.get(`/enrollment/list`);
+  },
+
   get getCurrentTermCourses() {
     return {
       [UserRole.Teacher]: () => {

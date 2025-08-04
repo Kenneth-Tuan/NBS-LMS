@@ -495,14 +495,14 @@ onMounted(async () => {
         <h1 class="u-text-24px u-font-bold u-c-blue">限時選課</h1>
 
         <div class="u-flex u-items-center">
-          <span class="u-mr-2 u-font-bold u-text-red-500">選課開放時間：</span>
+          <!-- <span class="u-mr-2 u-font-bold u-text-red-500">選課開放時間：</span>
           <a-tag color="red">
             <span class="u-font-bold">{{ selectionPeriod }}</span>
-          </a-tag>
-          <!-- <a-tag color="green" v-if="true" class="u-ml-2">
+          </a-tag> -->
+          <a-tag color="green" v-if="true" class="u-ml-2">
             <span class="u-font-bold">選課進行中</span>
           </a-tag>
-          <a-tag color="default" v-else class="u-ml-2">
+          <!-- <a-tag color="default" v-else class="u-ml-2">
             <span class="u-font-bold">選課未開放</span>
           </a-tag> -->
         </div>

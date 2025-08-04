@@ -94,7 +94,7 @@ export const MenuItems = [
     icon: ClockCircleFilled,
     route: { name: RouterName.TimedCourseSelection },
     roles: [UserRole.Creator, UserRole.Student],
-    highlight: true,
+    highlight: false,
   },
   {
     key: "courses",
@@ -159,16 +159,19 @@ export const MenuItems = [
         key: "internship-application",
         label: "實習申請",
         route: { name: RouterName.InternshipApplication },
+        roles: [UserRole.Creator, UserRole.Student],
       },
       {
         key: "leave-application",
         label: "請假申請",
         route: { name: RouterName.LeaveApplication },
+        roles: [UserRole.Creator, UserRole.Student],
       },
       {
         key: "subsidy-application",
         label: "補助申請",
         route: { name: RouterName.SubsidyApplication },
+        roles: [UserRole.Creator, UserRole.Student],
       },
       {
         key: "application-record",
@@ -189,6 +192,7 @@ export const MenuItems = [
     label: "通知中心",
     icon: BellOutlined,
     route: { name: RouterName.Notifications },
+    roles: [UserRole.Creator, UserRole.Admin],
     highlight: false,
   },
 ];
