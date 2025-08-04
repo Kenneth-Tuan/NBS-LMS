@@ -1,11 +1,11 @@
 <script setup>
 import { computed, reactive, ref, onMounted } from "vue";
 import { message } from "ant-design-vue";
-import { 
-  SettingOutlined, 
-  PlusOutlined, 
+import {
+  SettingOutlined,
+  PlusOutlined,
   DeleteOutlined,
-  EditOutlined
+  EditOutlined,
 } from "@ant-design/icons-vue";
 import { useRoute } from "vue-router";
 
@@ -20,13 +20,17 @@ const course_id = ref(route.params.id);
 const { userProfile } = useUserStore();
 
 const isTeacherOrCreator = computed(() => {
-  return userProfile?.userRole === UserRole.Creator || userProfile?.userRole === UserRole.Admin || userProfile?.userRole === UserRole.Manager || userProfile?.userRole === UserRole.Teacher;
+  return (
+    userProfile?.userRole === UserRole.Creator ||
+    userProfile?.userRole === UserRole.Admin ||
+    userProfile?.userRole === UserRole.Manager ||
+    userProfile?.userRole === UserRole.Teacher
+  );
 });
 
 const isStudent = computed(() => {
   return userProfile?.userRole === UserRole.Student;
 });
-
 
 // Local state for column configuration
 const showColumnSelector = ref(false);
@@ -51,7 +55,9 @@ const gradebookColumns = computed(() => {
   ];
 
   // 根據 ordering 對 scoreItems 進行排序
-  const sortedScoreItems = scoreItems.value ? [...scoreItems.value].sort((a, b) => a.ordering - b.ordering) : [];
+  const sortedScoreItems = scoreItems.value
+    ? [...scoreItems.value].sort((a, b) => a.ordering - b.ordering)
+    : [];
 
   // Generate columns based on sorted grade items
   const gradeItemColumns = sortedScoreItems.map((item) => {
@@ -75,15 +81,17 @@ const gradebookDataSource = computed(() => {
   }
 
   // 根據 ordering 對 scoreItems 進行排序
-  const sortedScoreItems = [...scoreItems.value].sort((a, b) => a.ordering - b.ordering);
-  
+  const sortedScoreItems = [...scoreItems.value].sort(
+    (a, b) => a.ordering - b.ordering
+  );
+
   // 建立 scoreItemId 到 ordering 的映射
   const scoreItemOrderMap = {};
-  sortedScoreItems.forEach(item => {
+  sortedScoreItems.forEach((item) => {
     scoreItemOrderMap[item.item_id] = item.ordering;
   });
 
-  return scoreSheet.value.map(studentRecord => {
+  return scoreSheet.value.map((studentRecord) => {
     // 建立新的學生記錄物件
     const formattedRecord = {
       student_id: studentRecord.student_id,
@@ -91,12 +99,14 @@ const gradebookDataSource = computed(() => {
     };
 
     // 根據 ordering 排序的 scoreItems 來建立成績欄位
-    sortedScoreItems.forEach(scoreItem => {
+    sortedScoreItems.forEach((scoreItem) => {
       const itemId = scoreItem.item_id;
-      
+
       // 在學生的 scores 陣列中找到對應的成績
-      const scoreData = studentRecord.scores?.find(score => score.score_item_id === itemId);
-      
+      const scoreData = studentRecord.scores?.find(
+        (score) => score.score_item_id === itemId
+      );
+
       // 將成績值設定到對應的欄位
       formattedRecord[itemId] = scoreData?.score || null;
     });
@@ -119,10 +129,10 @@ const handleGradeChange = (studentId, scoreItemId, el) => {
   submitScore(studentId, scoreItemId, formatedScore);
 };
 
-async function addScoreItem(item_name){
+async function addScoreItem(item_name) {
   try {
     const response = await scoreApi.addScoreItem(course_id.value, item_name);
-    
+
     // 檢查 API 回應狀態
     if (response && response.status === 200) {
       message.success("評分項目添加成功");
@@ -152,7 +162,7 @@ const handleAddItem = () => {
     message.error("請輸入項目名稱");
     return;
   }
-  
+
   addScoreItem(addItemForm.title);
 };
 
@@ -161,9 +171,13 @@ const handleCancelAddItem = () => {
   showColumnSelector.value = false;
 };
 
-async function getScoreSheet(){   
+async function getScoreSheet() {
   try {
-    const {data:{data:{data_rows, score_items}}} = await scoreApi.getScoreSheet(course_id.value);
+    const {
+      data: {
+        data: { data_rows, score_items },
+      },
+    } = await scoreApi.getScoreSheet(course_id.value);
 
     scoreSheet.value = data_rows;
   } catch (error) {
@@ -171,9 +185,13 @@ async function getScoreSheet(){
   }
 }
 
-async function getScoreItems(){
+async function getScoreItems() {
   try {
-    const {data:{data:{items}}} = await scoreApi.getScoreItem(course_id.value);
+    const {
+      data: {
+        data: { items },
+      },
+    } = await scoreApi.getScoreItem(course_id.value);
 
     scoreItems.value = items;
   } catch (error) {
@@ -181,19 +199,19 @@ async function getScoreItems(){
   }
 }
 
-async function reorderScoreItem(item_id, ordering){
+async function reorderScoreItem(item_id, ordering) {
   const params = {
-    "items": [
+    items: [
       {
-        "item_id": item_id,
-        "ordering": ordering
-      }
-    ]
-  }
+        item_id: item_id,
+        ordering: ordering,
+      },
+    ],
+  };
 
   try {
     const response = await scoreApi.reorderScoreItem(params);
-    
+
     // 檢查 API 回應狀態
     if (response && response.status === 200) {
       message.success("成績項目順序更新成功");
@@ -210,10 +228,10 @@ async function reorderScoreItem(item_id, ordering){
   }
 }
 
-async function deleteScoreItem(item_id){
+async function deleteScoreItem(item_id) {
   try {
     const response = await scoreApi.deleteScoreItem(item_id);
-    
+
     // 檢查 API 回應狀態
     if (response && response.status === 200) {
       message.success("成績項目刪除成功");
@@ -230,16 +248,16 @@ async function deleteScoreItem(item_id){
   }
 }
 
-async function submitScore(student_id, score_item_id, score){ 
+async function submitScore(student_id, score_item_id, score) {
   const params = {
     student_id,
     score_item_id,
-    score
+    score,
   };
-  
+
   try {
     const response = await scoreApi.submitScore(params);
-    
+
     // 檢查 API 回應狀態
     if (response && response.status === 200) {
       await getScoreSheet();
@@ -255,7 +273,7 @@ async function submitScore(student_id, score_item_id, score){
   }
 }
 
-async function onClickShowColumnSelector(){
+async function onClickShowColumnSelector() {
   try {
     await getScoreItems();
     showColumnSelector.value = true;
@@ -264,8 +282,18 @@ async function onClickShowColumnSelector(){
   }
 }
 
+async function getMyScore() {
+  try {
+    const response = await scoreApi.getMyScore(course_id.value);
+    console.log("getMyScore", response);
+  } catch (error) {
+    console.error("getMyScore error", error);
+  }
+}
+
 onMounted(async () => {
-  await getScoreSheet();
+  if (isTeacherOrCreator.value) await getScoreSheet();
+  if (isStudent.value) await getMyScore();
   await getScoreItems();
 });
 </script>
@@ -273,80 +301,74 @@ onMounted(async () => {
 <template>
   <!-- Teacher/Creator Grade Input View -->
 
-    <div class="u-flex u-items-center u-justify-between u-mb-4">
+  <div class="u-flex u-items-center u-justify-between u-mb-4">
+    <div>
+      <p class="u-text-sm u-c-gray-600">
+        {{
+          isTeacherOrCreator
+            ? "在此輸入或編輯學生成績。分數範圍 0-100。"
+            : "我的成績"
+        }}
+      </p>
+    </div>
+    <a-button
+      v-if="isTeacherOrCreator"
+      type="primary"
+      @click="onClickShowColumnSelector"
+      class="u-mb-2"
+    >
+      <template #icon><PlusOutlined /></template>
+      添加評分項目
+    </a-button>
+  </div>
+
+  <!-- Column Selector Modal -->
+  <a-modal v-model:open="showColumnSelector" title="添加評分項目" width="900px">
+    <div class="u-max-w-full">
       <div>
-        <p class="u-text-sm u-c-gray-600">
-          {{ isTeacherOrCreator ? "在此輸入或編輯學生成績。分數範圍 0-100。" : "我的成績" }}
-        </p>
+        <label class="u-block u-text-sm u-font-medium u-mb-2">項目名稱</label>
+        <a-input
+          v-model:value="addItemForm.title"
+          placeholder="請輸入評分項目名稱"
+          size="large"
+        />
       </div>
-      <a-button
-        v-if="isTeacherOrCreator"
-        type="primary"
-        @click="onClickShowColumnSelector"
-        class="u-mb-2"
-      >
-        <template #icon><PlusOutlined /></template>
-        添加評分項目
-      </a-button>
+
+      <div class="u-flex u-space-x-3"></div>
     </div>
 
-    <!-- Column Selector Modal -->
-    <a-modal
-      v-model:open="showColumnSelector"
-      title="添加評分項目"
-      width="900px"
-    >
-      <div class="u-max-w-full">
-        <div>
-          <label class="u-block u-text-sm u-font-medium u-mb-2">項目名稱</label>
-          <a-input
-            v-model:value="addItemForm.title"
-            placeholder="請輸入評分項目名稱"
-            size="large"
+    <template #footer>
+      <a-button type="primary" @click="handleAddItem" :loading="false">
+        確認添加
+      </a-button>
+      <a-button @click="handleCancelAddItem"> 取消 </a-button>
+    </template>
+  </a-modal>
+
+  <a-table
+    :columns="gradebookColumns"
+    :data-source="gradebookDataSource"
+    bordered
+    size="small"
+    :scroll="{ x: 'max-content' }"
+  >
+    <template #bodyCell="{ column, record, value }">
+      <template v-if="column.key !== 'student_name'">
+        <div class="grade-input-wrapper">
+          <a-input-number
+            :value="value"
+            :min="0"
+            :max="100"
+            :precision="0"
+            placeholder="-"
+            size="small"
+            style="width: 80px"
+            @blur="(el) => handleGradeChange(record.student_id, column.key, el)"
           />
         </div>
-        
-        <div class="u-flex u-space-x-3">
-        </div>
-      </div>
-
-      <template #footer>
-        <a-button type="primary" @click="handleAddItem" :loading="false">
-          確認添加
-        </a-button>
-        <a-button @click="handleCancelAddItem">
-          取消
-        </a-button>
       </template>
-    </a-modal>
-
-    <a-table
-      :columns="gradebookColumns"
-      :data-source="gradebookDataSource"
-      bordered
-      size="small"
-      :scroll="{ x: 'max-content' }"
-    >
-      <template #bodyCell="{ column, record, value }">
-        <template v-if="column.key !== 'student_name'">
-          <div class="grade-input-wrapper">
-            <a-input-number
-              :value="value"
-              :min="0"
-              :max="100"
-              :precision="0"
-              placeholder="-"
-              size="small"
-              style="width: 80px" 
-              @blur="
-                (el) =>
-                  handleGradeChange(record.student_id, column.key, el)
-              "
-            />
-          </div>
-        </template>
-      </template>
-    </a-table>
+    </template>
+  </a-table>
 </template>
 
 <style scoped>

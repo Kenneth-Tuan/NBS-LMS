@@ -26,7 +26,7 @@ const state = reactive({
   preOpenKeys: ["sub1"],
 });
 
-const hasEnrollment = ref(false)
+const hasEnrollment = ref(false);
 
 // 從appEnums.ts的MenuItems轉換成ant design menu需要的格式
 const menuItems = computed(() => {
@@ -72,10 +72,9 @@ const menuItems = computed(() => {
       if (transformed.children.length === 0) return null;
     }
 
-
-    if(menuItem.key === RouterName.TimedCourseSelection) {
+    if (menuItem.key === RouterName.TimedCourseSelection) {
       transformed.disabled = !hasEnrollment.value;
-      transformed.highlight = hasEnrollment.value;
+      transformed.class = hasEnrollment.value ? "menu-highlight" : "";
     }
 
     return transformed;
