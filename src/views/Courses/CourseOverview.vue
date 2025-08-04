@@ -7,6 +7,8 @@ import {
   Space as ASpace,
   Button as AButton,
   Divider as ADivider,
+  Modal,
+  message,
 } from "ant-design-vue";
 import dayjs from "dayjs";
 
@@ -33,7 +35,7 @@ const columns = ref([
     title: "授課老師名稱",
     dataIndex: "teacher",
     key: "teacher",
-    width: 150,
+    width: 120,
     customRender: ({ text, record }) => {
       return record.teacher || "未指定";
     },
@@ -93,7 +95,6 @@ const columns = ref([
   {
     title: "操作",
     key: "actions",
-    width: 150,
     fixed: "right",
   },
 ]);
@@ -175,14 +176,38 @@ const filteredCourseData = computed(() => {
   });
 });
 
-const canEditCourse = computed(() => {
-  return (
-    userStore.userProfile?.userRole === UserRole.Creator ||
-    userStore.userProfile?.userRole === UserRole.Admin ||
-    userStore.userProfile?.userRole === UserRole.Manager ||
-    userStore.userProfile?.userRole === UserRole.Teacher
-  );
+const canDeleteCourse = computed(() => {
+  return userStore.userProfile?.userRole === UserRole.Creator || userStore.userProfile?.userRole === UserRole.Admin;
 });
+
+const deleteCourseHandler = async (course_id) => {
+  Modal.confirm({
+    title: '確認刪除',
+    content: '刪除後將無法恢復，確認刪除？',
+    okText: '刪除',
+    cancelText: '取消',
+    okType: 'danger',
+    onOk: async () => {
+      try {
+        const success = await courseService.deleteCourse(course_id);
+        
+        if (success) {
+          message.success('課程刪除成功');
+          // 重新載入課程資料
+          courseData.value = await courseService.getCourses();
+        } else {
+          message.error('課程刪除失敗');
+        }
+      } catch (error) {
+        console.error('刪除課程時發生錯誤:', error);
+        message.error('刪除課程時發生錯誤');
+      }
+    },
+    onCancel() {
+      // 取消刪除，不做任何動作
+    },
+  });
+};
 
 onMounted(async () => {
   courseData.value = await courseService.getCourses();
@@ -226,6 +251,7 @@ onMounted(async () => {
           <template v-else-if="column.key === 'actions'">
             <ASpace>
               <AButton
+                v-if="record.view_permission || true"
                 type="primary"
                 size="small"
                 @click="goToCourseManagementHub(record.course_id)"
@@ -233,12 +259,20 @@ onMounted(async () => {
                 詳細内容
               </AButton>
               <AButton
-                v-if="canEditCourse"
+                v-if="record.edit_permission"
                 type="default"
                 size="small"
                 @click="goToEditCourse(record.course_id)"
               >
                 編輯
+              </AButton>
+              <AButton
+                v-if="canDeleteCourse"
+                type="danger"
+                size="small"
+                @click="deleteCourseHandler(record.course_id)"
+              >
+                刪除
               </AButton>
             </ASpace>
           </template>

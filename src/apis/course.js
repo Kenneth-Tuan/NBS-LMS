@@ -39,6 +39,10 @@ export default {
     );
   },
 
+  deleteCourse(course_id) {
+    return baseApiHelper.delete(`/course-management/delete-one?course_id=${course_id}`);
+  },
+
   getCoursesForEnrollmentSettings(params) {
     return baseApiHelper.post(`/enrollment/get-course`, params);
   },

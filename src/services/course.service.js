@@ -234,6 +234,24 @@ const courseService = {
     }
   },
 
+  deleteCourse: async (course_id) => {
+    try {
+      const response = await courseApi.deleteCourse(course_id);
+
+      console.log("response", response);
+      
+      // 檢查 API 回應狀態，200 表示成功
+      if (response.status === 200) {
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  },
+
   fetchCoursesForEnrollmentSettings: async () => {
     const params = {
       filter: {
