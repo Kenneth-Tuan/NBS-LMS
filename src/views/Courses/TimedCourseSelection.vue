@@ -51,12 +51,12 @@ const teacherOptions = computed(() => {
 const timeSlots = [
   { slot: 1, label: "第1節 08:00-08:50" },
   { slot: 2, label: "第2節 09:00-09:50" },
-  { slot: 3, label: "第3節 10:10-11:00" },
-  { slot: 4, label: "第4節 11:10-12:00" },
-  { slot: 5, label: "第5節 13:10-14:00" },
-  { slot: 6, label: "第6節 14:10-15:00" },
-  { slot: 7, label: "第7節 15:10-16:00" },
-  { slot: 8, label: "第8節 16:10-17:00" },
+  { slot: 3, label: "第3節 10:00-10:50" },
+  { slot: 4, label: "第4節 11:00-11:50" },
+  { slot: 5, label: "第5節 13:00-13:50" },
+  { slot: 6, label: "第6節 14:00-14:50" },
+  { slot: 7, label: "第7節 15:00-15:50" },
+  { slot: 8, label: "第8節 16:00-16:50" },
   { slot: 9, label: "第9節 18:00-18:50" },
   { slot: 10, label: "第10節 19:00-19:50" },
   { slot: 11, label: "第11節 20:00-20:50" },
@@ -211,9 +211,6 @@ const hasCourseTimeConflict = (course) => {
 
           // 檢查是否有時間重疊
           if (hasOverlap(newStart, newEnd, existingStart, existingEnd)) {
-            console.log(
-              `時間衝突: ${selectedCourse.course_name} (${selectedCourse.week_day} ${selectedCourse.start_time}-${selectedCourse.end_time}) 與 ${course.course_name} (${newSchedule.week_day} ${newSchedule.start_time}-${newSchedule.end_time})`
-            );
             return true;
           }
         }
@@ -227,9 +224,6 @@ const hasCourseTimeConflict = (course) => {
         const existingEnd = timeToMinutes(selectedCourse.end_time);
 
         if (hasOverlap(newStart, newEnd, existingStart, existingEnd)) {
-          console.log(
-            `時間衝突: ${selectedCourse.course_name} (${selectedCourse.week_day} ${selectedCourse.start_time}-${selectedCourse.end_time}) 與 ${course.course_name} (${course.week_day} ${course.start_time}-${course.end_time})`
-          );
           return true;
         }
       }
@@ -333,12 +327,12 @@ const getCoursesInTimeSlot = (day, slot) => {
   const timeSlotMap = {
     1: { start: "08:00", end: "08:50" },
     2: { start: "09:00", end: "09:50" },
-    3: { start: "10:10", end: "11:00" },
-    4: { start: "11:10", end: "12:00" },
-    5: { start: "13:10", end: "14:00" },
-    6: { start: "14:10", end: "15:00" },
-    7: { start: "15:10", end: "16:00" },
-    8: { start: "16:10", end: "17:00" },
+    3: { start: "10:00", end: "10:50" },
+    4: { start: "11:00", end: "11:50" },
+    5: { start: "13:00", end: "13:50" },
+    6: { start: "14:00", end: "14:50" },
+    7: { start: "15:00", end: "15:50" },
+    8: { start: "16:00", end: "16:50" },
     9: { start: "18:00", end: "18:50" },
     10: { start: "19:00", end: "19:50" },
     11: { start: "20:00", end: "20:50" },

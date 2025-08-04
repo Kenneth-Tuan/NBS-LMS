@@ -238,13 +238,11 @@ const courseService = {
     try {
       const response = await courseApi.deleteCourse(course_id);
 
-      console.log("response", response);
-      
       // 檢查 API 回應狀態，200 表示成功
       if (response.status === 200) {
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error(error);
@@ -290,11 +288,18 @@ const courseService = {
     };
 
     try {
-      const response = await courseApi.createEnrollment(params);
-      return response.data.data;
+      await courseApi.createEnrollment(params);
+      return { result: true, msg: "設定成功" };
     } catch (error) {
-      console.error(error);
-      return [];
+      console.error("createEnrollment error:", error);
+
+      // 處理 API 錯誤響應
+      if (error.response?.data?.msg) {
+        return { result: false, msg: error.response.data.msg };
+      }
+
+      // 處理網路錯誤或其他異常
+      return { result: false, msg: "網路連線錯誤或伺服器異常" };
     }
   },
 

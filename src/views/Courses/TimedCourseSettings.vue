@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, onMounted, ref , computed} from "vue";
+import { reactive, onMounted, ref, computed } from "vue";
 import dayjs from "dayjs";
 import { Divider, message, Table } from "ant-design-vue";
 
@@ -19,43 +19,42 @@ const selectableCourses = ref([]);
 const enrollmentStatusData = ref([]);
 
 const isEnrollmentStatusSectionDisplayed = computed(() => {
-  return enrollmentStatusData.value.length > 0 && enrollmentStatusData.value.some(enrollment => dayjs(enrollment.end_time).isAfter(dayjs()));
+  return enrollmentStatusData.value.length > 0;
 });
 
 // 表格欄位定義
 const columns = [
   {
-    title: '選課設定編號',
-    key: 'enrollment_id',
-    dataIndex: 'enrollment_id',
+    title: "選課設定編號",
+    key: "enrollment_id",
+    dataIndex: "enrollment_id",
   },
   {
-    title: '課程',
-    key: 'courses',
-    dataIndex: 'courses',
-    customRender: ({text, record, index, column}) => {
-      console.log("record", record);
-      return record.courses.map(course => course.name).join('、');
-    }
+    title: "課程",
+    key: "courses",
+    dataIndex: "courses",
+    customRender: ({ text, record, index, column }) => {
+      return record.courses.map((course) => course.name).join("、");
+    },
   },
   {
-    title: '選課開始/結束時間',
-    key: 'timeRange',
-    dataIndex: 'timeRange',
-    customRender: ({text, record, index, column}) => {
-      const startTime = dayjs(record.start_time).format('YYYY-MM-DD HH:mm');
-      const endTime = dayjs(record.end_time).format('YYYY-MM-DD HH:mm');
+    title: "選課開始/結束時間",
+    key: "timeRange",
+    dataIndex: "timeRange",
+    customRender: ({ text, record, index, column }) => {
+      const startTime = dayjs(record.start_time).format("YYYY-MM-DD HH:mm");
+      const endTime = dayjs(record.end_time).format("YYYY-MM-DD HH:mm");
       return `${startTime} / ${endTime}`;
-    }
+    },
   },
   {
-    title: '該學期學分上限',
-    key: 'creditLimit',
-    dataIndex: 'creditLimit',
-    customRender: ({text, record, index, column}) => {
-      return `${record.credit_limit} 學分`
-    }
-  }
+    title: "該學期學分上限",
+    key: "creditLimit",
+    dataIndex: "creditLimit",
+    customRender: ({ text, record, index, column }) => {
+      return `${record.credit_limit} 學分`;
+    },
+  },
 ];
 
 const onFinish = async (values) => {
@@ -69,16 +68,18 @@ const onFinish = async (values) => {
 
     const result = await courseService.createEnrollment(
       courseIds,
-      startTime,
-      endTime,
+      dayjs(startTime).format(),
+      dayjs(endTime).format(),
       creditLimit
     );
 
-    console.log("Result:", result);
-    message.success("設定成功");
-    
-    // 重新載入選課狀態資料
-    await loadEnrollmentStatus();
+    if (result.result) {
+      message.success(result.msg);
+      // 重新載入選課狀態資料
+      await loadEnrollmentStatus();
+    } else {
+      message.error(result.msg);
+    }
   } catch (error) {
     console.error(error);
   }
@@ -100,12 +101,16 @@ const filterOption = (input, option) => {
 // 載入選課狀態資料
 const loadEnrollmentStatus = async () => {
   try {
-    const  data  = await courseService.getEnrollmentStatus();
-    console.log("enrollments", data.enrollments);
-    enrollmentStatusData.value = [...data.enrollments];
+    const data = await courseService.getEnrollmentStatus();
+
+    const filteredEnrollments = data.enrollments.filter((enrollment) =>
+      dayjs(enrollment.end_time).isAfter(dayjs())
+    );
+
+    enrollmentStatusData.value = [...filteredEnrollments];
   } catch (error) {
-    console.error('載入選課狀態失敗:', error);
-    message.error('載入選課狀態失敗');
+    console.error("載入選課狀態失敗:", error);
+    message.error("載入選課狀態失敗");
   }
 };
 
@@ -115,7 +120,7 @@ onMounted(async () => {
     label: course.name,
     value: course.course_id,
   }));
-  
+
   // 載入選課狀態資料
   await loadEnrollmentStatus();
 });
@@ -128,11 +133,12 @@ onMounted(async () => {
 
       <Divider class="u-my16px" />
 
-
       <template v-if="isEnrollmentStatusSectionDisplayed">
         <!-- 現有選課狀態表格 -->
         <div class="u-mb24px">
-          <h2 class="u-text-18px u-font-semibold u-mb16px u-c-blue">現有選課設定</h2>
+          <h2 class="u-text-18px u-font-semibold u-mb16px u-c-blue">
+            現有選課設定
+          </h2>
           <Table
             :columns="columns"
             :data-source="enrollmentStatusData"
@@ -146,7 +152,9 @@ onMounted(async () => {
       </template>
 
       <!-- 新增選課設定表單 -->
-      <h2 class="u-text-18px u-font-semibold u-mb16px u-c-blue">新增選課設定</h2>
+      <h2 class="u-text-18px u-font-semibold u-mb16px u-c-blue">
+        新增選課設定
+      </h2>
       <a-form
         :model="formState"
         name="timed-course-settings"
