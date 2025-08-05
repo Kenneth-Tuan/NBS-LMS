@@ -42,6 +42,7 @@ const addItemForm = reactive({
 
 const scoreItems = ref([]);
 const scoreSheet = ref([]);
+const myScores = ref([]);
 
 const gradebookColumns = computed(() => {
   const baseColumns = [
@@ -72,14 +73,18 @@ const gradebookColumns = computed(() => {
     };
   });
 
-  return [...baseColumns, ...gradeItemColumns];
+  return isTeacherOrCreator.value ? [...baseColumns, ...gradeItemColumns] : [...gradeItemColumns];
 });
 
 const gradebookDataSource = computed(() => {
-  if (!scoreSheet.value || !scoreItems.value) {
+  if (
+    (isTeacherOrCreator.value && (!scoreSheet.value || !scoreItems.value)) ||
+    (isStudent.value && !myScores.value)
+  ) {
     return [];
   }
 
+  if (isTeacherOrCreator.value) {
   // 根據 ordering 對 scoreItems 進行排序
   const sortedScoreItems = [...scoreItems.value].sort(
     (a, b) => a.ordering - b.ordering
@@ -111,8 +116,15 @@ const gradebookDataSource = computed(() => {
       formattedRecord[itemId] = scoreData?.score || null;
     });
 
-    return formattedRecord;
-  });
+      return formattedRecord;
+    });
+  }
+
+  if (isStudent.value) {
+    return myScores.value.map((score) => ({
+      [score.score_item_id]: score.score,
+    }));
+  }
 });
 
 // Methods
@@ -284,8 +296,12 @@ async function onClickShowColumnSelector() {
 
 async function getMyScore() {
   try {
-    const response = await scoreApi.getMyScore(course_id.value);
-    console.log("getMyScore", response);
+    const {
+      data: {
+        data: { scores },
+      },
+    } = await scoreApi.getMyScore(course_id.value);
+    myScores.value = scores;
   } catch (error) {
     console.error("getMyScore error", error);
   }
@@ -351,9 +367,10 @@ onMounted(async () => {
     bordered
     size="small"
     :scroll="{ x: 'max-content' }"
+    row-key="student_id"
   >
     <template #bodyCell="{ column, record, value }">
-      <template v-if="column.key !== 'student_name'">
+      <template v-if="isTeacherOrCreator && column.key !== 'student_name'">
         <div class="grade-input-wrapper">
           <a-input-number
             :value="value"
