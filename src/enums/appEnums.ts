@@ -184,3 +184,16 @@ export const MenuItems = [
     highlight: false,
   },
 ];
+
+export enum ApplicationType {
+  Internship = "internship",
+  Leave = "leave",
+  Subsidy = "subsidy",
+  Other = "other",
+}
+
+export enum ApplicationStatus {
+  Pending = "Pending",
+  Approved = "Approved",
+  Rejected = "Rejected",
+}

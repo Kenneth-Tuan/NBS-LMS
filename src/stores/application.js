@@ -2,8 +2,10 @@ import { reactive, ref } from "vue";
 import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { defineStore } from "pinia";
+
 import { saveApplication } from "@/mocks/domains/applications/model";
-import { dummyApplicationData } from "@/mocks/domains/applications/data";
+import applicationApi from "@/apis/application";
+import { ApplicationType } from "@/enums/appEnums";
 
 dayjs.extend(customParseFormat);
 
@@ -11,37 +13,21 @@ export const useApplicationStore = defineStore(
   "application",
   () => {
     const applicationForm = reactive({
-      name: {
+      applicantName: {
         value: "",
         err: false,
         errMsg: "",
-        maxLength: 4,
+        maxLength: 50,
         required: true,
-        label: "姓名",
+        label: "申請人名稱",
       },
-      id: {
+      applicantEmail: {
         value: "",
         err: false,
         errMsg: "",
-        maxLength: 999,
+        maxLength: 254,
         required: true,
-        label: "學號",
-      },
-      email: {
-        value: "",
-        err: false,
-        errMsg: "",
-        maxLength: 999,
-        required: true,
-        label: "Email",
-      },
-      tel: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "電話",
-        mask: "####-###-###",
+        label: "申請人 Email",
       },
       applicationDate: {
         value: "",
@@ -258,8 +244,7 @@ export const useApplicationStore = defineStore(
         // Add application type
         formData.type = type;
 
-        // Add studentId field from id field
-        formData.studentId = applicationForm.id.value;
+        // Keep payload minimal; applicant info included via fields
 
         // Save to session storage
         const savedApplication = saveApplication(formData);
@@ -328,33 +313,59 @@ export const useApplicationStore = defineStore(
     /**
      * Fetch the application list from the API
      */
-    const getApplicationList = async () => {
+    const getApplicationList = async (applicationType = "all", page = 1, page_size = 30) => {
       loading.value = true;
       error.value = null;
 
       try {
-        // 從 API 獲取應用數據
-        // const response = await fetch("/applicationList");
-        // const data = await response.json();
-        // if (data.success) {
-        //   applicationList.value.length = 0; // 清空當前列表
-        //   // 合併應用數據和會話存儲數據
-        //   const applications = data.data;
-        //   // 添加所有應用數據到列表
-        //   applications.forEach((app) => {
-        //     applicationList.value.push(app);
-        //   });
-        // } else {
-        //   error.value = data.message || "獲取申請列表失敗";
-        //   throw new Error(error.value);
-        // }
-
-        applicationList.value = dummyApplicationData;
+        const params = {
+            paged_info: {
+              page,
+              page_size
+            },
+            filter: {
+              type: applicationType
+             }
+           }
+        const response = await applicationApi.getApplicationList(params);
+        if (response.status === 200) {
+          const { data: { data: { list } } } = response;
+          applicationList.value = list;
+        } else {
+          error.value = response.message || "獲取申請列表失敗";
+          throw new Error(error.value);
+        }
       } catch (err) {
         error.value = err.message || "獲取申請列表時發生錯誤";
         throw err;
       } finally {
         loading.value = false;
+      }
+    };
+
+    const getApplicationDetail = async (id, applicationType) => {
+      try {
+        let response = null;
+        if(applicationType === ApplicationType.Internship) {
+          response = await applicationApi.getInternshipDetail(id);
+        } else if(applicationType === ApplicationType.Leave) {
+          response = await applicationApi.getLeaveDetail(id);
+        } else if(applicationType === ApplicationType.Subsidy) {
+          response = await applicationApi.getSubsidyDetail(id);
+        } else if(applicationType === ApplicationType.Other) {
+          response = await applicationApi.getOthersDetail(id);
+        }
+
+        if(response.status === 200) {
+          const { data: { data } } = response;
+          return data;
+        } else {
+          error.value = response.message || "獲取申請詳細資訊失敗";
+          throw new Error(error.value);
+        }
+      } catch (err) {
+        error.value = err.message || "獲取申請詳細資訊時發生錯誤";
+        throw err;
       }
     };
 
@@ -408,6 +419,7 @@ export const useApplicationStore = defineStore(
       resetForm,
       submitForm,
       getApplicationList,
+      getApplicationDetail,
       updateApplicationStatus,
     };
   },
@@ -417,10 +429,8 @@ export const useApplicationStore = defineStore(
 );
 
 const intershipApplicationForm = [
-  "name",
-  "id",
-  "email",
-  "tel",
+  "applicantName",
+  "applicantEmail",
   "internshipProviderName",
   "internshipProviderAddress",
   "internshipProviderContactPerson",
@@ -433,10 +443,8 @@ const intershipApplicationForm = [
 ];
 
 const leaveApplicationForm = [
-  "name",
-  "id",
-  "email",
-  "tel",
+  "applicantName",
+  "applicantEmail",
   "leaveStartDate",
   "leaveEndDate",
   "reasonForLeave",
@@ -444,10 +452,8 @@ const leaveApplicationForm = [
 ];
 
 const subsidyApplicationForm = [
-  "name",
-  "id",
-  "email",
-  "tel",
+  "applicantName",
+  "applicantEmail",
   "subsidyType",
   "subsidyAmount",
   "receipts",

@@ -126,4 +126,27 @@ export default {
   getStudentList(course_id) {
     return baseApiHelper.get(`/student-list?course_id=${course_id}`);
   },
+
+  get announcements() {
+    return {
+      list: (course_id) => {
+        return baseApiHelper.get(`/course-announcement/list?course_id=${course_id}`);
+      },
+      create: (course_id, params) => {
+        return baseApiHelper.post(`/course-announcement/create-one?course_id=${course_id}`, params);
+      },
+      edit: (course_id, params) => {
+        return baseApiHelper.put(`/course-announcement/replace-one?course_id=${course_id}`, params);
+      },
+      delete: (course_id) => {
+        return baseApiHelper.delete(`/course-announcement/delete-one?course_id=${course_id}`);
+      },
+      getNotification: () => {
+        return baseApiHelper.get(`/course-announcement/notifications`);
+      },
+      markAsRead: (course_id) => {
+        return baseApiHelper.post(`/course-announcement/mark-as-read?course_id=${course_id}`);
+      },
+    };
+  },
 };

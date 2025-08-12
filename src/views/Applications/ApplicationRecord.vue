@@ -1,27 +1,4 @@
-<template>
-  <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
-      <h1 class="u-text-2xl u-font-bold u-mb-6 u-c-blue">申請紀錄</h1>
 
-      <a-spin :spinning="loading">
-        <a-tabs v-model:activeKey="activeTabKey">
-          <a-tab-pane key="all" tab="全部申請">
-            <application-list :data="filteredApplications" />
-          </a-tab-pane>
-          <a-tab-pane key="internship" tab="實習申請">
-            <application-list :data="internshipApplications" />
-          </a-tab-pane>
-          <a-tab-pane key="leave" tab="請假申請">
-            <application-list :data="leaveApplications" />
-          </a-tab-pane>
-          <a-tab-pane key="subsidy" tab="補助申請">
-            <application-list :data="subsidyApplications" />
-          </a-tab-pane>
-        </a-tabs>
-      </a-spin>
-    </div>
-  </div>
-</template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
@@ -72,33 +49,35 @@ onMounted(async () => {
 });
 </script>
 
+<template>
+  <div class="u-p-1rem u-w-100%">
+    <div class="u-bg-white u-rounded-0.5rem u-p-1.5rem u-shadow-md">
+      <h1 class="u-text-1.5rem u-fw600 u-mb-1.5rem u-c-blue">申請紀錄</h1>
+
+      <a-spin :spinning="loading">
+        <a-tabs v-model:activeKey="activeTabKey">
+          <a-tab-pane key="all" tab="全部申請">
+            <application-list :data="filteredApplications" />
+          </a-tab-pane>
+          <a-tab-pane key="internship" tab="實習申請">
+            <application-list :data="internshipApplications" />
+          </a-tab-pane>
+          <a-tab-pane key="leave" tab="請假申請">
+            <application-list :data="leaveApplications" />
+          </a-tab-pane>
+          <a-tab-pane key="subsidy" tab="補助申請">
+            <application-list :data="subsidyApplications" />
+          </a-tab-pane>
+        </a-tabs>
+      </a-spin>
+    </div>
+  </div>
+</template>
+
+
 <style scoped>
-.u-p-4 {
-  padding: 1rem;
-}
-.u-w-full {
-  width: 100%;
-}
-.u-bg-white {
-  background-color: white;
-}
-.u-rounded-lg {
-  border-radius: 0.5rem;
-}
-.u-p-6 {
-  padding: 1.5rem;
-}
 .u-shadow-md {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-.u-text-2xl {
-  font-size: 1.5rem;
-}
-.u-font-bold {
-  font-weight: bold;
-}
-.u-mb-6 {
-  margin-bottom: 1.5rem;
 }
 </style>

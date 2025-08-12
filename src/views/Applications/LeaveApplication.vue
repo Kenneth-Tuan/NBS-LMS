@@ -5,7 +5,7 @@ import { message } from "ant-design-vue";
 
 import { useApplicationStore } from "@/stores/application";
 import { useCourseStore } from "../../stores/course";
-import { courseSchema } from "../../schemas/course.schema";
+import ApplicantInfo from "@/components/ApplicantInfo.vue";
 
 const applicationStore = useApplicationStore();
 const { applicationForm, leaveApplicationForm, resetForm, submitForm } =
@@ -106,60 +106,9 @@ const filterOption = (input, option) => {
       <h1 class="u-text-2xl u-font-bold u-mb-6 u-c-blue">請假申請</h1>
 
       <a-form layout="vertical" :model="applicationForm">
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item
-              label="姓名"
-              :validateStatus="formField('name').err ? 'error' : ''"
-              :help="formField('name').errMsg"
-            >
-              <a-input
-                v-model:value="formField('name').value"
-                placeholder="請輸入姓名"
-              />
-            </a-form-item>
-          </a-col>
 
-          <a-col :span="12">
-            <a-form-item
-              label="學號"
-              :validateStatus="formField('id').err ? 'error' : ''"
-              :help="formField('id').errMsg"
-            >
-              <a-input
-                v-model:value="formField('id').value"
-                placeholder="請輸入學號"
-              />
-            </a-form-item>
-          </a-col>
+          <ApplicantInfo />
 
-          <a-col :span="12">
-            <a-form-item
-              label="Email"
-              :validateStatus="formField('email').err ? 'error' : ''"
-              :help="formField('email').errMsg"
-            >
-              <a-input
-                v-model:value="formField('email').value"
-                placeholder="請輸入Email"
-              />
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="12">
-            <a-form-item
-              label="電話"
-              :validateStatus="formField('tel').err ? 'error' : ''"
-              :help="formField('tel').errMsg"
-            >
-              <a-input
-                v-model:value="formField('tel').value"
-                placeholder="請輸入電話"
-                v-mask="formField('tel').mask"
-              />
-            </a-form-item>
-          </a-col>
-        </a-row>
 
         <a-divider orientation="left">請假資訊</a-divider>
 
