@@ -3,6 +3,7 @@ import { createWebHistory, createRouter } from "vue-router";
 import DefaultLayout from "@/layouts/DefaultLayout.vue";
 import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
+import { decryptString } from "@/utils/misc";
 import { isFeatureEnabled } from "@/config/featureFlags";
 
 const routes = [
@@ -206,13 +207,70 @@ router.beforeEach(async (to, from, next) => {
   // 更新頁面標題
   document.title = to.meta.title || "拿撒勒人會神學院 選課系統";
 
+  // Global auth validation: if token/email cookie is missing/invalid, force logout and go to landing with login dialog
+  const userStore = useUserStore();
+
+  const isAuthInvalid = async () => {
+    try {
+      const token = $cookies.get("ApiToken");
+      const enc = $cookies.get("UserEmailEnc");
+
+      if (!token || typeof token !== "string" || token.trim().length < 10) {
+        return true;
+      }
+
+      // Accept both stringified JSON and object cookies
+      let payload = null;
+      if (typeof enc === "string") {
+        try {
+          payload = JSON.parse(enc);
+        } catch {
+          return true;
+        }
+      } else if (enc && typeof enc === "object") {
+        payload = enc;
+      } else {
+        return true;
+      }
+      if (!payload?.c || !payload?.i || !payload?.s) {
+        return true;
+      }
+
+      try {
+        const email = await decryptString(
+          { cipherTextBase64: payload.c, ivHex: payload.i, saltHex: payload.s },
+          token
+        );
+        const looksLikeEmail = /.+@.+\..+/.test(String(email));
+        return !looksLikeEmail;
+      } catch {
+        return true;
+      }
+    } catch {
+      return true;
+    }
+  };
+
+  if (await isAuthInvalid()) {
+    // If already heading to landing, don't redirect again to avoid loops
+    if (to.name === RouterName.LandingPage) {
+      userStore.logout();
+      userStore.updateLoginDialogOpen(true);
+      next();
+      return;
+    }
+    userStore.logout();
+    userStore.updateLoginDialogOpen(true);
+    next({ name: RouterName.LandingPage });
+    return;
+  }
+
   // Consolidated Role Check
   if (
     to.meta.roles &&
     Array.isArray(to.meta.roles) &&
     to.meta.roles.length > 0
   ) {
-    const userStore = useUserStore();
     const userRole = userStore.userProfile.userRole;
 
     // Check if user has one of the required roles
@@ -230,6 +288,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
+  
   // If no roles specified or user has the required role, proceed
   next();
 });

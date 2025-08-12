@@ -169,7 +169,7 @@ onUnmounted(() => {
           >
             <UserOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
             <span class="u-text-1rem u-font-bold u-c-blue">
-              {{ userProfile.userID }} {{ userProfile.userName }}
+              {{ userProfile.userName }}
             </span>
 
             <CaretDownOutlined

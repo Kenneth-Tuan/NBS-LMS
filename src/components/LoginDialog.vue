@@ -63,7 +63,7 @@ const onFinish = async () => {
       ) {
         await userManagementStore.fetchUsers();
       }
-      fetchUserProfile(formState.userEmail);
+      fetchUserProfile();
       updateLoginDialogOpen(false);
     } else throw new Error("Login Failed!");
 

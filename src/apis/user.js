@@ -2,7 +2,7 @@ import { baseApiHelper } from "@/utils/axios";
 
 export default {
   getUserProfile() {
-    return baseApiHelper.get("/userprofile");
+    return baseApiHelper.get("/user/profile");
   },
 
   // Get all users with pagination and filtering
@@ -66,6 +66,4 @@ export default {
       rest
     );
   },
-
-  
 };
