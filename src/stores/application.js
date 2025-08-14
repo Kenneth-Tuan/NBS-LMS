@@ -3,7 +3,6 @@ import dayjs from "dayjs";
 import customParseFormat from "dayjs/plugin/customParseFormat";
 import { defineStore } from "pinia";
 
-import { saveApplication } from "@/mocks/domains/applications/model";
 import applicationApi from "@/apis/application";
 import { ApplicationType } from "@/enums/appEnums";
 
@@ -12,247 +11,174 @@ dayjs.extend(customParseFormat);
 export const useApplicationStore = defineStore(
   "application",
   () => {
-    const applicationForm = reactive({
-      applicantName: {
-        value: "",
-        err: false,
-        errMsg: "",
-        maxLength: 50,
-        required: true,
-        label: "申請人名稱",
-      },
-      applicantEmail: {
-        value: "",
-        err: false,
-        errMsg: "",
-        maxLength: 254,
-        required: true,
-        label: "申請人 Email",
-      },
-      applicationDate: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        mask: "####/##/##",
-        rules: [(val) => !!val && dayjs(val, "YYYY/MM/DD", true)],
-        label: "申請日期",
-      },
-      // fromDate: {
-      //   value: "",
-      //   err: false,
-      //   errMsg: "",
-      //   required: true,
-      //   mask: "####/##/##",
-      // },
-      // toDate: {
-      //   value: "",
-      //   err: false,
-      //   errMsg: "",
-      //   mask: "####/##/##",
-      //   required: true,
-      // },
-      internshipProviderName: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "實習機構名稱",
-      },
-      internshipProviderAddress: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "實習機構地址",
-      },
-      internshipProviderContactPerson: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "實習機構聯絡人",
-      },
-      internshipProviderContactPersonTel: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "實習機構聯絡人電話",
-        mask: "####-###-###",
-      },
-      internshipProviderContactPersonEmail: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "實習機構聯絡人Email",
-      },
-      internshipStartDate: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        mask: "####/##/##",
-        label: "實習開始日期",
-      },
-      internshipEndDate: {
-        value: "",
-        err: false,
-        errMsg: "",
-        mask: "####/##/##",
-        required: true,
-        label: "實習結束日期",
-      },
-      internshipHours: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "實習時數",
-      },
-      internshipOverview: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "實習概述",
-      },
-      subsidyType: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        options: [
-          {
-            label: "學費補助",
-            value: "type1",
-          },
-          {
-            label: "住宿補助",
-            value: "type2",
-          },
-          {
-            label: "交通補助",
-            value: "type3",
-          },
-          {
-            label: "其他補助",
-            value: "type4",
-          },
-        ],
-        label: "補助類型",
-      },
-      subsidyAmount: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "補助金額",
-      },
-      receipts: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "收據",
-      },
-      supportingDocuments: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "證明文件",
-      },
-      supplementaryMaterials: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "相關附件",
-      },
-      leaveStartDate: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        mask: "####/##/##",
-        label: "休假開始日期",
-      },
-      leaveEndDate: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        mask: "####/##/##",
-        label: "休假結束日期",
-      },
-      reasonForLeave: {
-        value: "",
-        err: false,
-        errMsg: "",
-        required: true,
-        label: "休假原因",
-      },
+    const internshipApplicationForm = reactive({
+      organization_name: "",
+      organization_address: "",
+      contact_person_name: "",
+      contact_person_phone: "",
+      contact_person_email: "",
+      internship_date_range: [],
+      internship_hours: "",
+      internship_description: "",
+    });
+
+    const leaveApplicationForm = reactive({
+      course_id: "",
+      leave_type: "",
+      leave_date_range: [],
+      leave_reason: "",
+      attachments: [],
+    });
+
+    const subsidyApplicationForm = reactive({
+      subsidy_type: "",
+      attachments: [],
+    });
+
+    const otherApplicationForm = reactive({
+      other_application_id: "",
+      attachments: [],
     });
 
     const applicationList = ref([]);
+    const otherApplicationItems = ref([]);
     const loading = ref(false);
-    const error = ref(null);
 
     /**
      * Reset all form fields to their initial empty state
      */
-    const resetForm = () => {
-      // Loop through all form fields and reset their values
-      Object.keys(applicationForm).forEach((key) => {
-        applicationForm[key].value = "";
-        applicationForm[key].err = false;
-        applicationForm[key].errMsg = "";
-      });
+
+    const resetInternshipForm = () => {
+      internshipApplicationForm.organization_name = "";
+      internshipApplicationForm.organization_address = "";
+      internshipApplicationForm.contact_person_name = "";
+      internshipApplicationForm.contact_person_phone = "";
+      internshipApplicationForm.contact_person_email = "";
+      internshipApplicationForm.internship_date_range = [];
+      internshipApplicationForm.internship_hours = "";
+      internshipApplicationForm.internship_description = "";
     };
 
-    /**
-     * Submit the application form
-     * @param {string} type - The type of application (internship, leave, subsidy)
-     * @returns {Promise} A promise that resolves when the form is submitted
-     */
-    const submitForm = async (type) => {
+    const resetLeaveForm = () => {
+      leaveApplicationForm.course_id = "";
+      leaveApplicationForm.leave_type = "";
+      leaveApplicationForm.leave_date_range = [];
+      leaveApplicationForm.leave_reason = "";
+      leaveApplicationForm.attachments = [];
+    };
+
+    const resetSubsidyForm = () => {
+      subsidyApplicationForm.subsidy_type = "";
+      subsidyApplicationForm.attachments = [];
+    };
+
+    const resetOtherForm = () => {
+      otherApplicationForm.other_application_id = "";
+      otherApplicationForm.attachments = [];
+    };
+
+    const submitInternshipForm = async () => {
+      const internship_start_date = dayjs(
+        internshipApplicationForm.internship_date_range[0]
+      ).format("YYYY-MM-DDTHH:mm:ssZ");
+      const internship_end_date = dayjs(
+        internshipApplicationForm.internship_date_range[1]
+      ).format("YYYY-MM-DDTHH:mm:ssZ");
+
+      const formData = {
+        ...internshipApplicationForm,
+        internship_start_date: internship_start_date,
+        internship_end_date: internship_end_date,
+      };
+
+      delete formData.internship_date_range;
+
       try {
-        // Validate the form first
-        const isValid = validateForm(type);
-        if (!isValid) {
-          throw new Error("表單驗證失敗");
+        const submitResult = await applicationApi.applyInternship(formData);
+        if (submitResult.status === 200) {
+          return submitResult.data;
+        } else {
+          throw new Error(submitResult.message || "實習申請提交失敗");
         }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        throw error;
+      }
+    };
 
-        // Prepare the application data
-        const formData = {};
+    const submitLeaveForm = async () => {
+      const leave_start_date = dayjs(
+        leaveApplicationForm.leave_date_range[0]
+      ).format("YYYY-MM-DDTHH:mm:ssZ");
+      const leave_end_date = dayjs(
+        leaveApplicationForm.leave_date_range[1]
+      ).format("YYYY-MM-DDTHH:mm:ssZ");
+      const attachments = leaveApplicationForm.attachments
+        .filter((file) => file.isUploaded)
+        .map((file) => file.url);
 
-        // Get the appropriate fields for this application type
-        const fields =
-          type === "internship"
-            ? intershipApplicationForm
-            : type === "leave"
-            ? leaveApplicationForm
-            : subsidyApplicationForm;
+      const formData = {
+        ...leaveApplicationForm,
+        leave_start_date: leave_start_date,
+        leave_end_date: leave_end_date,
+        attachments,
+      };
 
-        // Extract field values
-        fields.forEach((fieldName) => {
-          formData[fieldName] = applicationForm[fieldName].value;
-        });
+      delete formData.leave_date_range;
 
-        // Add application type
-        formData.type = type;
+      try {
+        const submitResult = await applicationApi.applyLeave(formData);
+        if (submitResult.status === 200) {
+          return submitResult.data;
+        } else {
+          throw new Error(submitResult.message || "請假申請提交失敗");
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        throw error;
+      }
+    };
 
-        // Keep payload minimal; applicant info included via fields
+    const submitSubsidyForm = async () => {
+      const attachments = subsidyApplicationForm.attachments
+        .filter((file) => file.isUploaded)
+        .map((file) => file.url);
 
-        // Save to session storage
-        const savedApplication = saveApplication(formData);
+      const formData = {
+        ...subsidyApplicationForm,
+        attachments,
+      };
 
-        // Reset the form after successful submission
-        resetForm();
+      try {
+        const submitResult = await applicationApi.applySubsidy(formData);
+        if (submitResult.status === 200) {
+          return submitResult.data;
+        } else {
+          throw new Error(submitResult.message || "補助申請提交失敗");
+        }
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        throw error;
+      }
+    };
 
-        return savedApplication;
+    const submitOtherForm = async () => {
+      const attachments = otherApplicationForm.attachments
+        .filter((file) => file.isUploaded)
+        .map((file) => file.url);
+
+      const formData = {
+        ...otherApplicationForm,
+        attachments,
+      };
+
+      try {
+        const submitResult = await applicationApi.applyOthers(formData);
+        if (submitResult.status === 200) {
+          return submitResult.data;
+        } else {
+          throw new Error(submitResult.message || "其他申請提交失敗");
+        }
       } catch (error) {
         console.error("Error submitting form:", error);
         throw error;
@@ -260,111 +186,98 @@ export const useApplicationStore = defineStore(
     };
 
     /**
-     * Validate the form fields for the given type
-     * @param {string} type - The type of application (internship, leave, subsidy)
-     * @returns {boolean} Whether the form is valid
-     */
-    const validateForm = (type) => {
-      // Determine which fields to validate based on the application type
-      const fieldsToValidate =
-        type === "internship"
-          ? intershipApplicationForm
-          : type === "leave"
-          ? leaveApplicationForm
-          : subsidyApplicationForm;
-
-      let isValid = true;
-
-      // Check each required field
-      fieldsToValidate.forEach((fieldName) => {
-        const field = applicationForm[fieldName];
-
-        // Skip if the field doesn't exist
-        if (!field) return;
-
-        // Reset error status
-        field.err = false;
-        field.errMsg = "";
-
-        // Check if required and empty
-        if (field.required && !field.value) {
-          field.err = true;
-          field.errMsg = `${field.label}為必填欄位`;
-          isValid = false;
-        }
-
-        // Check custom validation rules if provided
-        if (field.rules && field.value) {
-          for (const rule of field.rules) {
-            const result = rule(field.value);
-            if (!result) {
-              field.err = true;
-              field.errMsg = `${field.label}格式不正確`;
-              isValid = false;
-              break;
-            }
-          }
-        }
-      });
-
-      return isValid;
-    };
-
-    /**
      * Fetch the application list from the API
      */
-    const getApplicationList = async (applicationType = "all", page = 1, page_size = 30) => {
+    const getApplicationList = async (
+      applicationType = "all",
+      page = 1,
+      page_size = 30
+    ) => {
       loading.value = true;
-      error.value = null;
 
       try {
         const params = {
-            paged_info: {
-              page,
-              page_size
-            },
-            filter: {
-              type: applicationType
-             }
-           }
+          paged_info: {
+            page,
+            page_size,
+          },
+          filter: {
+            type: applicationType,
+          },
+        };
         const response = await applicationApi.getApplicationList(params);
         if (response.status === 200) {
-          const { data: { data: { list } } } = response;
+          const {
+            data: {
+              data: { list },
+            },
+          } = response;
           applicationList.value = list;
         } else {
-          error.value = response.message || "獲取申請列表失敗";
-          throw new Error(error.value);
+          throw new Error(response.message || "獲取申請列表失敗");
         }
       } catch (err) {
-        error.value = err.message || "獲取申請列表時發生錯誤";
         throw err;
       } finally {
         loading.value = false;
       }
     };
 
+    const fetchOtherApplicationItems = async () => {
+      if (otherApplicationItems.value.length > 0) return;
+      try {
+        const response = await applicationApi.getOthersApplicationList();
+        if (response.status === 200) {
+          const {
+            data: {
+              data: { list },
+            },
+          } = response;
+          otherApplicationItems.value = list;
+        } else {
+          throw new Error(response.message || "獲取其他申請列表失敗");
+        }
+      } catch (err) {
+        throw err;
+      }
+    };
+
     const getApplicationDetail = async (id, applicationType) => {
       try {
         let response = null;
-        if(applicationType === ApplicationType.Internship) {
+        if (applicationType === ApplicationType.Internship) {
           response = await applicationApi.getInternshipDetail(id);
-        } else if(applicationType === ApplicationType.Leave) {
+        } else if (applicationType === ApplicationType.Leave) {
           response = await applicationApi.getLeaveDetail(id);
-        } else if(applicationType === ApplicationType.Subsidy) {
+        } else if (applicationType === ApplicationType.Subsidy) {
           response = await applicationApi.getSubsidyDetail(id);
-        } else if(applicationType === ApplicationType.Other) {
+        } else if (applicationType === ApplicationType.Others) {
           response = await applicationApi.getOthersDetail(id);
         }
 
-        if(response.status === 200) {
-          const { data: { data } } = response;
+        if (response.status === 200) {
+          const {
+            data: { data },
+          } = response;
+          data.info.attachments = data.info.attachments.map((file) => {
+            if (!file) return null;
+            const fileName = file?.split("_").pop();
+            const fileType = fileName?.split(".").pop();
+
+            return {
+              uid: "-1",
+              name: fileName,
+              status: "done",
+              url: file,
+              fileType,
+              isUploaded: true,
+            };
+          });
           return data;
         } else {
-          error.value = response.message || "獲取申請詳細資訊失敗";
-          throw new Error(error.value);
+          throw new Error(response.message || "獲取申請詳細資訊失敗");
         }
       } catch (err) {
-        error.value = err.message || "獲取申請詳細資訊時發生錯誤";
         throw err;
       }
     };
@@ -379,7 +292,6 @@ export const useApplicationStore = defineStore(
     const updateApplicationStatus = async (id, status, reviewData = {}) => {
       try {
         loading.value = true;
-        error.value = null;
 
         // Find the application in the list
         const appIndex = applicationList.value.findIndex(
@@ -400,7 +312,45 @@ export const useApplicationStore = defineStore(
 
         return updatedApp;
       } catch (err) {
-        error.value = err.message || "更新申請狀態時發生錯誤";
+        throw err;
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const reviewApplication = async (
+      application_id,
+      applicationType,
+      reviewData = {}
+    ) => {
+      if (
+        !application_id ||
+        !applicationType ||
+        !reviewData.action ||
+        !reviewData.note
+      ) {
+        throw new Error("參數不完整");
+      }
+
+      try {
+        loading.value = true;
+
+        const params = {
+          type: applicationType,
+          action: reviewData.action,
+          note: reviewData.note,
+        };
+
+        const response = await applicationApi.reviewApplication(
+          application_id,
+          params
+        );
+        if (response.status === 200) {
+          return response.data;
+        } else {
+          throw new Error(response.message || "審核申請失敗");
+        }
+      } catch (err) {
         throw err;
       } finally {
         loading.value = false;
@@ -408,55 +358,30 @@ export const useApplicationStore = defineStore(
     };
 
     return {
-      applicationForm,
-      intershipApplicationForm,
+      internshipApplicationForm,
       leaveApplicationForm,
       subsidyApplicationForm,
+      otherApplicationForm,
       applicationList,
+      otherApplicationItems,
       loading,
-      error,
 
-      resetForm,
-      submitForm,
+      resetInternshipForm,
+      resetLeaveForm,
+      resetSubsidyForm,
+      resetOtherForm,
+      submitInternshipForm,
+      submitLeaveForm,
+      submitSubsidyForm,
+      submitOtherForm,
       getApplicationList,
       getApplicationDetail,
       updateApplicationStatus,
+      fetchOtherApplicationItems,
+      reviewApplication,
     };
   },
   {
     persist: false,
   }
 );
-
-const intershipApplicationForm = [
-  "applicantName",
-  "applicantEmail",
-  "internshipProviderName",
-  "internshipProviderAddress",
-  "internshipProviderContactPerson",
-  "internshipProviderContactPersonTel",
-  "internshipProviderContactPersonEmail",
-  "internshipStartDate",
-  "internshipEndDate",
-  "internshipHours",
-  "internshipOverview",
-];
-
-const leaveApplicationForm = [
-  "applicantName",
-  "applicantEmail",
-  "leaveStartDate",
-  "leaveEndDate",
-  "reasonForLeave",
-  "supplementaryMaterials",
-];
-
-const subsidyApplicationForm = [
-  "applicantName",
-  "applicantEmail",
-  "subsidyType",
-  "subsidyAmount",
-  "receipts",
-  "supportingDocuments",
-  "supplementaryMaterials",
-];

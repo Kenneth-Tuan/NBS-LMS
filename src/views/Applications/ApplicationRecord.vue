@@ -1,34 +1,41 @@
 
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, unref } from "vue";
+
+import { storeToRefs } from "pinia";
 import { useApplicationStore } from "@/stores/application";
 import { message } from "ant-design-vue";
 import ApplicationList from "./components/ApplicationList.vue";
+import { ApplicationType } from "@/enums/appEnums";
 
 const applicationStore = useApplicationStore();
-const { applicationList, loading, error, getApplicationList } =
-  applicationStore;
+const { applicationList, loading } = storeToRefs(applicationStore)
+const {  getApplicationList } = applicationStore;
 
 // 當前激活的標籤頁
 const activeTabKey = ref("all");
 
 // 根據類型過濾申請列表
 const internshipApplications = computed(() => {
-  return applicationList.filter((item) => item.type === "internship");
+  return unref(applicationList).filter((item) => item.type === ApplicationType.Internship);
 });
 
 const leaveApplications = computed(() => {
-  return applicationList.filter((item) => item.type === "leave");
+  return unref(applicationList).filter((item) => item.type === ApplicationType.Leave);
 });
 
 const subsidyApplications = computed(() => {
-  return applicationList.filter((item) => item.type === "subsidy");
+  return unref(applicationList).filter((item) => item.type === ApplicationType.Subsidy);
+});
+
+const othersApplications = computed(() => {
+  return unref(applicationList).filter((item) => item.type === ApplicationType.Others);
 });
 
 const filteredApplications = computed(() => {
   if (activeTabKey.value === "all") {
-    return applicationList;
+    return unref(applicationList);
   } else if (activeTabKey.value === "internship") {
     return internshipApplications.value;
   } else if (activeTabKey.value === "leave") {
@@ -40,7 +47,7 @@ const filteredApplications = computed(() => {
 });
 
 // 初始化時獲取申請列表
-onMounted(async () => {
+onMounted (async () => {
   try {
     await getApplicationList();
   } catch (err) {
@@ -57,16 +64,19 @@ onMounted(async () => {
       <a-spin :spinning="loading">
         <a-tabs v-model:activeKey="activeTabKey">
           <a-tab-pane key="all" tab="全部申請">
-            <application-list :data="filteredApplications" />
+            <application-list :data="filteredApplications" @afterReview="getApplicationList" />
           </a-tab-pane>
           <a-tab-pane key="internship" tab="實習申請">
-            <application-list :data="internshipApplications" />
+            <application-list :data="internshipApplications" @afterReview="getApplicationList" />
           </a-tab-pane>
           <a-tab-pane key="leave" tab="請假申請">
-            <application-list :data="leaveApplications" />
+            <application-list :data="leaveApplications" @afterReview="getApplicationList" />
           </a-tab-pane>
           <a-tab-pane key="subsidy" tab="補助申請">
-            <application-list :data="subsidyApplications" />
+            <application-list :data="subsidyApplications" @afterReview="getApplicationList" />
+          </a-tab-pane>
+          <a-tab-pane key="others" tab="其他申請">
+            <application-list :data="othersApplications" @afterReview="getApplicationList" />
           </a-tab-pane>
         </a-tabs>
       </a-spin>

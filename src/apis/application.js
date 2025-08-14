@@ -94,7 +94,8 @@ export default {
    * }
    */
   applyOthers(params) {
-    return baseApiHelper.post("/application/other/apply", params);
+    const { other_application_id, ...rest } = params;
+    return baseApiHelper.post(`/application/other/apply?other_application_id=${other_application_id}`, rest);
   },
   getOthersDetail(id) {
     return baseApiHelper.get(`/application/other/detail?other_application_id=${id}`);
@@ -133,9 +134,9 @@ export default {
    * POST /application/review?application_id={id}
    * Request body (JSON):
    * {
-   *   status: "PENDING" | "APPROVED" | "REJECTED", // 審核結果（必填）
-   *   reviewer_comment?: string,                      // 備註（可選）
-   *   reviewed_at?: string                           // ISO datetime（可選）
+   *   type: "擇一輸入: ['internship', 'leave', 'subsidy', 'other']",
+   *   action: "擇一輸入: ['Approved', 'Rejected']",
+   *   note: "一些文字"
    * }
    */
   reviewApplication(id, params) {

@@ -58,8 +58,6 @@ const openAddMaterialModal = () => {
 };
 
 const beforeMaterialUpload = (file) => {
-  console.log("beforeMaterialUpload called with file:", file);
-
   // 支援的檔案類型
   const allowedTypes = [
     "application/pdf", // PDF
@@ -245,20 +243,23 @@ const downloadMaterial = async (material) => {
               <a
                 @click="downloadMaterial(item)"
                 class="u-text-md u-font-semibold u-c-blue-600 hover:u-underline"
-                >{{ item.name }}</a
               >
+                {{ item.name }}
+              </a>
             </template>
           </a-list-item-meta>
           <template #actions>
-            <a-button type="link" size="small" @click="downloadMaterial(item)"
-              >下載</a-button
-            >
+            <a-button type="link" size="small" @click="downloadMaterial(item)">
+              下載
+            </a-button>
             <a-popconfirm
               v-if="isTeacherOrCreator"
               title="確定刪除此教材嗎?"
               @confirm="deleteMaterial(item.url)"
             >
-              <a-button type="link" size="small" danger>刪除</a-button>
+              <a-button type="link" size="small" danger>
+                刪除
+              </a-button>
             </a-popconfirm>
           </template>
         </a-list-item>

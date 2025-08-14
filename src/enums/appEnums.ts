@@ -23,6 +23,7 @@ export enum RouterName {
   InternshipApplication = "internship-application",
   LeaveApplication = "leave-application",
   SubsidyApplication = "subsidy-application",
+  OthersApplication = "others-application",
   ApplicationRecord = "application-record",
   CourseRecord = "course-record",
   GradeDetail = "grade-detail",
@@ -162,6 +163,12 @@ export const MenuItems = [
         roles: [UserRole.Creator, UserRole.Student],
       },
       {
+        key: "others-application",
+        label: "其他申請",
+        route: { name: RouterName.OthersApplication },
+        roles: [UserRole.Creator, UserRole.Student],
+      },
+      {
         key: "application-record",
         label: "申請記錄",
         route: { name: RouterName.ApplicationRecord },
@@ -189,7 +196,7 @@ export enum ApplicationType {
   Internship = "internship",
   Leave = "leave",
   Subsidy = "subsidy",
-  Other = "other",
+  Others = "other",
 }
 
 export enum ApplicationStatus {

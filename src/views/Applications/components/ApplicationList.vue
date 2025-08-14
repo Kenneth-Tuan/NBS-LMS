@@ -1,15 +1,23 @@
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 
 import { useUserStore } from "@/stores/user";
 import { useApplicationStore } from "@/stores/application";
-import { ApplicationStatus, ApplicationType } from "@/enums/appEnums";
+import { ApplicationStatus, UserRole } from "@/enums/appEnums";
+import {
+  SUBSIDY_TYPE,
+  APPLICATION_TYPE_COLOR,
+  APPLICATION_TYPE_TEXT,
+  APPLICATION_STATUS_COLOR,
+  APPLICATION_STATUS_TEXT,
+} from "@/constant/application.constant";
+import AttachmentColumn from "./AttachmentColumn.vue";
 
 const { userProfile } = useUserStore();
 const applicationStore = useApplicationStore();
-const { getApplicationDetail } = applicationStore;
+const { getApplicationDetail, reviewApplication } = applicationStore;
 
 const props = defineProps({
   data: {
@@ -18,72 +26,17 @@ const props = defineProps({
   },
 });
 
-// 審核相關狀態
-const reviewResult = ref("approve");
-const reviewComment = ref("");
-
-// 提交審核
-const submitReview = async () => {
-  if (!reviewComment.value.trim()) {
-    message.error("請輸入審核意見");
-    return;
-  }
-
-  try {
-    // 更新狀態
-    const newStatus =
-      reviewResult.value === "approve"
-        ? ApplicationStatus.Approved
-        : ApplicationStatus.Rejected;
-
-    // 準備審核數據
-    const reviewData = {
-      reviewDate: new Date().toISOString().split("T")[0].replace(/-/g, "/"),
-      reviewer: userProfile.userName,
-      reviewComment: reviewComment.value,
-    };
-
-    // 使用 store 中的方法更新申請狀態
-    await applicationStore.updateApplicationStatus(
-      currentRecord.value.id,
-      newStatus,
-      reviewData
-    );
-
-    message.success(
-      `申請 ${currentRecord.value.id} 已${
-        reviewResult.value === "approve" ? "通過" : "退回"
-      }`
-    );
-
-    // 關閉對話框
-    detailVisible.value = false;
-
-    // 重置審核表單
-    reviewResult.value = "approve";
-    reviewComment.value = "";
-  } catch (error) {
-    console.error("更新申請狀態失敗:", error);
-    message.error("更新申請狀態失敗，請重試: " + error.message);
-  }
-};
-
-// 取消審核
-const cancelReview = () => {
-  reviewResult.value = "approve";
-  reviewComment.value = "";
-  detailVisible.value = false;
-};
-
+const emits = defineEmits(["afterReview"]);
 
 // 表格欄位定義
 const columns = [
-  // {
-  //   title: "申請編號",
-  //   dataIndex: "applicant_id",
-  //   key: "applicant_id",
-  //   width: "150px",
-  // },
+  {
+    title: "申請編號",
+    dataIndex: "applicant_id",
+    key: "applicant_id",
+    width: "150px",
+    roles: [UserRole.Creator],
+  },
   {
     title: "申請人",
     dataIndex: "applicant_name",
@@ -116,8 +69,16 @@ const columns = [
     dataIndex: "action",
     key: "action",
     width: "80px",
+    roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
   },
 ];
+
+const filterColumns = computed(() => {
+  return columns.filter((column) => {
+    if (!column.roles) return true;
+    return column.roles.includes(userProfile.userRole);
+  });
+});
 
 // 詳細資訊相關
 const detailVisible = ref(false);
@@ -125,10 +86,11 @@ const currentRecord = ref(null);
 
 // 顯示詳細資訊
 const showDetail = async (record) => {
-
   try {
-    const applicationDetail = await getApplicationDetail(record.application_id, record.type);
-    console.log("applicationDetail", applicationDetail);
+    const applicationDetail = await getApplicationDetail(
+      record.application_id,
+      record.type
+    );
     currentRecord.value = applicationDetail;
     currentRecord.value.type = record.type;
     detailVisible.value = true;
@@ -138,78 +100,54 @@ const showDetail = async (record) => {
   }
 };
 
-// 狀態相關輔助函數
-const getStatusText = (status) => {
-  switch (status) {
-    case ApplicationStatus.Pending:
-      return "待審核";
-    case ApplicationStatus.Approved:
-      return "已通過";
-    case ApplicationStatus.Rejected:
-      return "已駁回";
-    default:
-      return "未知狀態";
+// 審核相關狀態
+const reviewResult = ref(ApplicationStatus.Approved);
+const reviewComment = ref("");
+
+// 提交審核
+const submitReview = async () => {
+  if (!reviewComment.value.trim()) {
+    message.error("請輸入審核意見");
+    return;
+  }
+
+  try {
+    // 準備審核數據
+    const reviewData = {
+      action: reviewResult.value,
+      note: reviewComment.value,
+    };
+
+    // 使用 store 中的方法更新申請狀態
+    await reviewApplication(
+      currentRecord.value.base.application_id,
+      currentRecord.value.type,
+      reviewData
+    );
+
+    message.success(
+      `申請 ${currentRecord.value.base.application_id} 已${
+        reviewResult.value === ApplicationStatus.Approved ? "通過" : "退回"
+      }`
+    );
+    emits("afterReview");
+
+    // 關閉對話框
+    detailVisible.value = false;
+
+    // 重置審核表單
+    reviewResult.value = ApplicationStatus.Approved;
+    reviewComment.value = "";
+  } catch (error) {
+    console.error("更新申請狀態失敗:", error.message);
   }
 };
 
-const getStatusColor = (status) => {
-  switch (status) {
-    case ApplicationStatus.Pending:
-      return "blue";
-    case ApplicationStatus.Approved:
-      return "green";
-    case ApplicationStatus.Rejected:
-      return "red";
-    default:
-      return "gray";
-  }
-};
-
-// 類型相關輔助函數
-const getTypeText = (type) => {
-  switch (type) {
-    case ApplicationType.Internship:
-      return "實習申請";
-    case ApplicationType.Leave:
-      return "請假申請";
-    case ApplicationType.Subsidy:
-      return "補助申請";
-    case ApplicationType.Other:
-      return "其他申請";
-    default:
-      return "未知類型";
-  }
-};
-
-const getTypeColor = (type) => {
-  switch (type) {
-    case ApplicationType.Internship:
-      return "cyan";
-    case ApplicationType.Leave:
-      return "purple";
-    case ApplicationType.Subsidy:
-      return "orange";
-    case ApplicationType.Other:
-      return "pink";
-    default:
-      return "gray";
-  }
-};
-
-// 補助類型輔助函數
-const getSubsidyTypeText = (type) => {
-  switch (type) {
-    case "type1":
-      return "學費補助";
-    case "type2":
-      return "住宿補助";
-    case "type3":
-      return "交通補助";
-    case "type4":
-      return "其他補助";
-    default:
-      return "未知類型";
-  }
+// 取消審核
+const cancelReview = () => {
+  reviewResult.value = ApplicationStatus.Approved;
+  reviewComment.value = "";
+  detailVisible.value = false;
 };
 
 const dateFormatter = (date) => {
@@ -225,23 +163,23 @@ const dateFormatter = (date) => {
     <a-table
       v-else
       :dataSource="data"
-      :columns="columns"
-      rowKey="id"
-      :pagination="{ pageSize: 10 }"
+      :columns="filterColumns"
+      rowKey="application_id"
+      :pagination="{ pageSize: 30 }"
     >
       <!-- 申請編號列 -->
       <template #bodyCell="{ column, record }">
         <!-- 申請狀態 -->
         <template v-if="column.dataIndex === 'status'">
-          <a-tag :color="getStatusColor(record.status)">
-            {{ getStatusText(record.status) }}
+          <a-tag :color="APPLICATION_STATUS_COLOR[record.status]">
+            {{ APPLICATION_STATUS_TEXT[record.status] }}
           </a-tag>
         </template>
 
         <!-- 申請類型 -->
         <template v-if="column.dataIndex === 'type'">
-          <a-tag :color="getTypeColor(record.type)">
-            {{ getTypeText(record.type) }}
+          <a-tag :color="APPLICATION_TYPE_COLOR[record.type]">
+            {{ APPLICATION_TYPE_TEXT[record.type] }}
           </a-tag>
         </template>
 
@@ -268,13 +206,15 @@ const dateFormatter = (date) => {
             currentRecord?.base?.applicant_name
           }}</a-descriptions-item>
           <a-descriptions-item label="申請類型">
-            <a-tag :color="getTypeColor(currentRecord.type)">
-              {{ getTypeText(currentRecord.type) }}
+            <a-tag :color="APPLICATION_TYPE_COLOR[currentRecord.type]">
+              {{ APPLICATION_TYPE_TEXT[currentRecord.type] }}
             </a-tag>
           </a-descriptions-item>
           <a-descriptions-item label="申請狀態">
-            <a-tag :color="getStatusColor(currentRecord?.base?.status)">
-              {{ getStatusText(currentRecord?.base?.status) }}
+            <a-tag
+              :color="APPLICATION_STATUS_COLOR[currentRecord?.base?.status]"
+            >
+              {{ APPLICATION_STATUS_TEXT[currentRecord?.base?.status] }}
             </a-tag>
           </a-descriptions-item>
           <a-descriptions-item label="申請日期">{{
@@ -317,26 +257,40 @@ const dateFormatter = (date) => {
             <a-descriptions-item label="請假原因" :span="2">{{
               currentRecord?.info?.leave_reason
             }}</a-descriptions-item>
-            <a-descriptions-item label="相關附件" :span="2">{{
-              currentRecord?.info?.attachments || "無"
-            }}</a-descriptions-item>
+            <a-descriptions-item label="相關附件" :span="2">
+              <attachment-column
+                :attachments="currentRecord?.info?.attachments"
+              />
+            </a-descriptions-item>
           </template>
 
           <!-- 補助申請特定欄位 -->
           <template v-if="currentRecord.type === 'subsidy'">
-            <a-descriptions-item label="補助類型">{{
-              getSubsidyTypeText(currentRecord.info.subsidy_type)
+            <a-descriptions-item label="補助類型" :span="2">{{
+              SUBSIDY_TYPE[currentRecord.info.subsidy_type]
             }}</a-descriptions-item>
-            <a-descriptions-item label="相關附件" :span="2">{{
-              currentRecord.info.attachments || "無"
-            }}</a-descriptions-item>
+            <a-descriptions-item label="相關附件" :span="2">
+              <attachment-column
+                :attachments="currentRecord?.info?.attachments"
+              />
+            </a-descriptions-item>
           </template>
+
+          <!-- 其他申請特定欄位 -->
+          <template v-if="currentRecord.type === 'other'">
+            <a-descriptions-item label="相關附件" :span="2">
+              <attachment-column
+                :attachments="currentRecord?.info?.attachments"
+              />
+            </a-descriptions-item>
+          </template>ß
         </a-descriptions>
 
         <!-- 審核狀況區塊 - 僅對待審核的申請顯示 -->
         <div
           v-if="
-            currentRecord && currentRecord?.base?.status === ApplicationStatus.Pending
+            currentRecord &&
+            currentRecord?.base?.status === ApplicationStatus.Pending
           "
           class="review-section"
         >
@@ -348,15 +302,17 @@ const dateFormatter = (date) => {
             class="u-border u-border-[#89c4d6] u-rounded-b-lg"
           >
             <a-descriptions-item label="狀態">
-              <a-tag :color="getStatusColor(currentRecord?.base?.status)">
-                {{ getStatusText(currentRecord?.base?.status) }}
+              <a-tag
+                :color="APPLICATION_STATUS_COLOR[currentRecord?.base?.status]"
+              >
+                {{ APPLICATION_STATUS_TEXT[currentRecord?.base?.status] }}
               </a-tag>
             </a-descriptions-item>
 
             <a-descriptions-item label="審核結果" :span="2">
               <a-radio-group v-model:value="reviewResult">
-                <a-radio value="approve">同意</a-radio>
-                <a-radio value="reject">退回</a-radio>
+                <a-radio :value="ApplicationStatus.Approved">同意</a-radio>
+                <a-radio :value="ApplicationStatus.Rejected">退回</a-radio>
               </a-radio-group>
             </a-descriptions-item>
 
@@ -379,5 +335,4 @@ const dateFormatter = (date) => {
   </div>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

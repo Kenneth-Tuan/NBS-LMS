@@ -165,8 +165,9 @@ onMounted(async () => {
           size="small"
           @click="courseStore.resetForm"
           :disabled="isTeacherRole"
-          >重置</a-button
         >
+          重置
+        </a-button>
       </div>
 
       <Divider class="u-my8px" />

@@ -1,185 +1,178 @@
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, onMounted } from "vue";
 import { UploadOutlined } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+import { useRouter } from "vue-router";
 
 import { useApplicationStore } from "@/stores/application";
-import { useCourseStore } from "../../stores/course";
 import ApplicantInfo from "@/components/ApplicantInfo.vue";
+import { leaveApplicationSchema } from "@/schemas/leaveApplication.schema";
+import applicationApi from "@/apis/application";
+import { useFileUpload } from "@/composables/useFileUpload";
+import { useFileDownload } from "@/composables/useFileDownload";
+import { RouterName } from "@/enums/appEnums";
+
+const router = useRouter();
 
 const applicationStore = useApplicationStore();
-const { applicationForm, leaveApplicationForm, resetForm, submitForm } =
+const { leaveApplicationForm, resetLeaveForm, submitLeaveForm } =
   applicationStore;
 
-const courseStore = useCourseStore();
+const { uploading, beforeUpload: beforeAttachmentUpload, processFileList } = useFileUpload({ maxSizeMB: 50 });
+const { downloading, downloadAndOpen } = useFileDownload();
 
-// 輔助函數來獲取表單欄位
-const formField = (fieldName) => {
-  return applicationForm[fieldName];
+// 表單 Ref
+const leaveFormRef = ref(null);
+
+
+// file upload handled by useFileUpload composable
+const handlePreview = async (file) => {
+  await downloadAndOpen(file);
 };
 
-const formState = reactive({});
+const customRequest = async () => {
+  await processFileList(leaveApplicationForm.attachments)
+}
 
-const rangeConfig = {
-  rules: [
-    {
-      type: "array",
-      required: true,
-      message: "Please select time!",
-    },
-  ],
-};
-
-// 檔案上傳相關
-const fileList = ref([]);
-const handleFileChange = (info) => {
-  let fileList = [...info.fileList];
-
-  // 限制檔案數量
-  fileList = fileList.slice(-3);
-
-  // 更新檔案列表
-  fileList.value = fileList;
-
-  // 提取上傳檔案名稱並更新表單值
-  if (fileList.length > 0) {
-    const fileNames = fileList.map((file) => file.name).join(", ");
-    formField("supplementaryMaterials").value = fileNames;
-  } else {
-    formField("supplementaryMaterials").value = "";
-  }
-};
-
-const handlePreview = (file) => {
-  // 實際應用中，這裡可能會開啟檔案預覽
-  console.log("Preview file:", file);
-};
 
 // 狀態變量
 const submitting = ref(false);
 const successVisible = ref(false);
-const submittedId = ref("");
 
-// 提交表單
+// 提交表單（a-form finish 事件觸發）
 const handleSubmit = async () => {
   try {
     submitting.value = true;
-
-    // 調用 store 中的提交函數
-    const result = await submitForm("leave");
-
-    // 提交成功處理
-    submittedId.value = result.id;
+    await submitLeaveForm();
     successVisible.value = true;
   } catch (error) {
-    // 提交失敗處理
     message.error(error.message || "表單提交失敗，請檢查填寫內容");
   } finally {
     submitting.value = false;
   }
 };
 
+// 失敗回傳
+const handleFinishFailed = (errorInfo) => {
+  console.log("leave form failed:", errorInfo);
+};
+
 // 重置表單
 const handleReset = () => {
-  resetForm();
-  fileList.value = [];
+  resetLeaveForm();
+  leaveFormRef.value.clearValidate();
 };
 
 // 成功提示框確認
 const handleSuccessOk = () => {
   successVisible.value = false;
+  handleReset();
+  router.push({ name: RouterName.ApplicationRecord })
 };
 
+// 下拉搜尋（選填）
 const filterOption = (input, option) => {
-  // Check if option.label exists and is a string before calling toLowerCase
   return (
     option.label &&
     typeof option.label === "string" &&
     option.label.toLowerCase().indexOf(input.toLowerCase()) >= 0
   );
 };
+
+
+const courseOptions = ref([]);
+
+
+const fetchCoursesListForLeave = async () => {
+  try { 
+    const {data:{data: {courses}}} = await applicationApi.getCoursesListForLeave();
+    courseOptions.value = courses.map(course => ({
+      label: course.name,
+      value: course.id,
+    }));
+  } catch (error) {
+    console.error("Error fetching courses list:", error);
+  }
+}
+
+onMounted(async () => {
+  await fetchCoursesListForLeave();
+});
 </script>
 
 <template>
-  <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-lg u-p-6 u-shadow-md">
-      <h1 class="u-text-2xl u-font-bold u-mb-6 u-c-blue">請假申請</h1>
+  <div class="u-p-1rem u-w-full">
+    <div class="u-bg-white u-rounded-0.5rem u-p-1.5rem u-shadow-md">
+      <h1 class="u-text-1.5rem u-fw600 u-mb-1.5rem u-c-blue">請假申請</h1>
 
-      <a-form layout="vertical" :model="applicationForm">
-
-          <ApplicantInfo />
-
+      <a-form
+        ref="leaveFormRef"
+        layout="vertical"
+        :model="leaveApplicationForm"
+        @finish="handleSubmit"
+        @finishFailed="handleFinishFailed"
+      >
+        <ApplicantInfo />
 
         <a-divider orientation="left">請假資訊</a-divider>
 
         <a-row :gutter="16">
           <a-col :span="12">
-            <a-form-item
-              name="range-time-picker"
-              label="請假時間"
-              v-bind="rangeConfig"
-            >
-              <a-range-picker
-                v-model:value="formState['range-time-picker']"
-                show-time
-                format="YYYY-MM-DD HH:mm:ss"
-                value-format="YYYY-MM-DD HH:mm:ss"
+            <a-form-item v-bind="leaveApplicationSchema.course_id" name="course_id">
+              <a-select
+                v-model:value="leaveApplicationForm.course_id"
+                :options="courseOptions"
+                :placeholder="leaveApplicationSchema.course_id.placeholder"
+                allow-clear
+                class="u-w-full"
+                :filter-option="filterOption"
+                show-search
+              />
+            </a-form-item>
+          </a-col>
+
+          <a-col :span="12">
+            <a-form-item v-bind="leaveApplicationSchema.leave_type" name="leave_type">
+              <a-select
+                v-model:value="leaveApplicationForm.leave_type"
+                :options="leaveApplicationSchema.leave_type.options"
+                :placeholder="leaveApplicationSchema.leave_type.placeholder"
+                allow-clear
                 class="u-w-full"
               />
             </a-form-item>
           </a-col>
 
           <a-col :span="12">
-            <a-form-item label="請假課程" name="prerequisites">
-              <a-select
-                v-model:value="courseStore.courseForm.prerequisites"
-                mode="multiple"
-                placeholder="請選擇請假課程"
-                :options="courseStore.courseInfos.prerequisites"
-                allow-clear
+            <a-form-item v-bind="leaveApplicationSchema.leave_date_range" name="leave_date_range">
+              <a-range-picker
+                v-model:value="leaveApplicationForm.leave_date_range"
+                :format="leaveApplicationSchema.leave_date_range.format"
+                :value-format="leaveApplicationSchema.leave_date_range.valueFormat"
+                :placeholder="leaveApplicationSchema.leave_date_range.placeholder"
                 class="u-w-full"
-                :filter-option="filterOption"
-              >
-                <!-- Optional: Customize tag rendering -->
-                <template #tagRender="{ label, closable, onClose }">
-                  <a-tag
-                    :closable="closable"
-                    @close="onClose"
-                    style="margin-right: 3px"
-                    >{{ label }}</a-tag
-                  >
-                </template>
-              </a-select>
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="24">
-            <a-form-item
-              label="請假原因"
-              :validateStatus="formField('reasonForLeave').err ? 'error' : ''"
-              :help="formField('reasonForLeave').errMsg"
-            >
-              <a-textarea
-                v-model:value="formField('reasonForLeave').value"
-                placeholder="請詳述請假原因"
-                :rows="4"
               />
             </a-form-item>
           </a-col>
 
           <a-col :span="24">
-            <a-form-item
-              label="相關附件"
-              :validateStatus="
-                formField('supplementaryMaterials').err ? 'error' : ''
-              "
-              :help="formField('supplementaryMaterials').errMsg"
-            >
+            <a-form-item v-bind="leaveApplicationSchema.leave_reason" name="leave_reason">
+              <a-textarea
+                v-model:value="leaveApplicationForm.leave_reason"
+                :rows="4"
+                :placeholder="leaveApplicationSchema.leave_reason.placeholder"
+              />
+            </a-form-item>
+          </a-col>
+
+          <a-col :span="24">
+            <a-form-item v-bind="leaveApplicationSchema.attachments" name="attachments">
               <a-upload
-                action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
                 list-type="picture"
-                :file-list="fileList"
-                @change="handleFileChange"
+                v-model:file-list="leaveApplicationForm.attachments"
+                :customRequest="customRequest"
+                :before-upload="beforeAttachmentUpload"
+                :disabled="uploading"
               >
                 <a-button>
                   <upload-outlined />
@@ -204,7 +197,7 @@ const filterOption = (input, option) => {
 
         <a-form-item>
           <a-space>
-            <a-button type="primary" @click="handleSubmit" :loading="submitting"
+            <a-button type="primary" html-type="submit" :loading="submitting"
               >提交申請</a-button
             >
             <a-button @click="handleReset">重置表單</a-button>
@@ -218,9 +211,16 @@ const filterOption = (input, option) => {
         title="申請提交成功"
         @ok="handleSuccessOk"
       >
-        <p>您的請假申請已成功提交，申請編號：{{ submittedId }}</p>
+        <p>您的請假申請已成功提交</p>
         <p>目前狀態：待審核</p>
       </a-modal>
     </div>
   </div>
 </template>
+
+<style scoped>
+.u-shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+</style>

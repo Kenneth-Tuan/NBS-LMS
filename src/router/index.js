@@ -109,6 +109,15 @@ const routes = [
     },
   },
   {
+    path: "/others-application",
+    name: RouterName.OthersApplication,
+    component: () => import("@/views/Applications/OthersApplication.vue"),
+    meta: {
+      title: "其他申請 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+    },
+  },
+  {
     path: "/application-record",
     name: RouterName.ApplicationRecord,
     component: () => import("@/views/Applications/ApplicationRecord.vue"),
@@ -288,7 +297,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  
+
   // If no roles specified or user has the required role, proceed
   next();
 });
