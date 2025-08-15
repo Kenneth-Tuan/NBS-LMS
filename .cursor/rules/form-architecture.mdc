@@ -1,0 +1,67 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# 表單處理架構
+
+本專案採用分層架構處理表單，實現關注點分離與代碼重用。
+
+## 架構層次
+
+1. **Stores 層** - [src/stores/](mdc:src/stores/)
+   - 使用 Pinia 管理表單狀態
+   - 處理表單錯誤與驗證結果
+   - 示例: [src/stores/formStore.js](mdc:src/stores/formStore.js)
+
+2. **Services 層** - [src/services/](mdc:src/services/)
+   - 負責 API 通訊
+   - 處理資料格式轉換
+   - 示例: [src/services/api.service.js](mdc:src/services/api.service.js)
+
+3. **Composables 層** - [src/composables/](mdc:src/composables/)
+   - 提供表單邏輯鉤子
+   - 包含表單驗證等可重用邏輯
+   - 示例: [src/composables/useFormValidation.js](mdc:src/composables/useFormValidation.js)
+
+4. **Schemas 層** - [src/schemas/](mdc:src/schemas/)
+   - 定義表單欄位和驗證規則
+   - 提供資料映射功能
+   - 示例: [src/schemas/userForm.schema.js](mdc:src/schemas/userForm.schema.js)
+
+5. **Utils 層** - [src/utils/](mdc:src/utils/)
+   - 提供通用工具函數
+   - 包含深度複製、比較等函數
+   - 示例: [src/utils/deepUtils.js](mdc:src/utils/deepUtils.js)
+
+## 表單處理流程
+
+1. 使用 schema 定義表單結構與驗證規則
+2. 通過 composable 提供表單操作邏輯
+3. 使用 store 管理表單狀態與錯誤
+4. 提交時透過 service 與後端 API 通訊
+5. 使用 mapping 功能在前後端資料格式間轉換
+
+## 使用示例
+
+```vue
+<script setup>
+import { useFormStore } from '@/stores/formStore';
+import { useFormValidation } from '@/composables/useFormValidation';
+import { userFormSchema } from '@/schemas/userForm.schema';
+
+// 初始化表單驗證
+const { values, errors, setTouched, setValue, validateForm } = 
+  useFormValidation({}, userFormSchema);
+
+// 使用表單狀態管理
+const formStore = useFormStore();
+
+// 提交表單
+const handleSubmit = async () => {
+  if (validateForm()) {
+    await formStore.submitForm(values);
+  }
+};
+</script>
+```

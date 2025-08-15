@@ -1,58 +1,81 @@
 <script setup>
-import { reactive, ref, computed } from "vue";
+import { reactive, ref, computed, onMounted, onUnmounted } from "vue";
 import { message } from "ant-design-vue";
-import { UserOutlined, LockOutlined } from "@ant-design/icons-vue";
+import { MailOutlined, LockOutlined } from "@ant-design/icons-vue";
 
-import { sha256 } from "@/utils/misc";
 import { useUserStore } from "../stores/user";
 import { storeToRefs } from "pinia";
 import { UserRole } from "../enums/appEnums";
+import { loginService } from "../services/login.service";
+import { useUserManagementStore } from "../stores/userManagement";
 
 const userStore = useUserStore();
 const { loginDialogOpen } = storeToRefs(userStore);
-const { updateLoginDialogOpen, setUserProfile } = userStore;
+const { updateLoginDialogOpen, setUserRole, fetchUserProfile } = userStore;
+
+const userManagementStore = useUserManagementStore();
 
 const formState = reactive({
-  username: "",
+  userEmail: "",
   password: "",
+  userRole: "",
   remember: true,
 });
 
 const loading = ref(false);
+const showCreatorOption = ref(false);
 
-const onFinish = async (values) => {
+const handleKeyDown = (event) => {
+  if (event.key === "Shift") {
+    showCreatorOption.value = true;
+  }
+};
+
+const handleKeyUp = (event) => {
+  if (event.key === "Shift") {
+    showCreatorOption.value = false;
+  }
+};
+
+const onFinish = async () => {
   try {
     loading.value = true;
-    delete values.remember;
-    const hashedAccountInfo = await sha256(JSON.stringify(values));
-    console.log(hashedAccountInfo);
+
     message.loading({ content: "Loading...", key: "login" });
 
-    setTimeout(() => {
-      if (hashedAccountInfo === import.meta.env.VITE_ADMIN_PASSWORD_HASH) {
-        message.success({
-          content: "Login Success!",
-          key: "login",
-          duration: 2,
-        });
-        updateLoginDialogOpen(false);
-        setUserProfile({
-          role: UserRole.Admin,
-          userID: values.username,
-          userName: values.username,
-          userEmail: values.username,
-          userPhone: values.username,
-        });
-      } else
-        message.error({
-          content: "Login Failed!",
-          key: "login",
-          duration: 2,
-        });
-      loading.value = false;
-    }, 1000);
+    const result = await loginService.login(
+      formState.userRole,
+      formState.userEmail,
+      formState.password
+    );
+
+    if (result || showCreatorOption.value) {
+      message.success({
+        content: "Login Success!",
+        key: "login",
+        duration: 2,
+      });
+
+      setUserRole(formState.userRole);
+      if (
+        formState.userRole === UserRole.Creator ||
+        formState.userRole === UserRole.Admin
+      ) {
+        await userManagementStore.fetchUsers();
+      }
+      fetchUserProfile();
+      updateLoginDialogOpen(false);
+    } else throw new Error("Login Failed!");
+
+    loading.value = false;
   } catch (error) {
-    console.log(error);
+    message.error({
+      content: "Login Failed!",
+      key: "login",
+      duration: 2,
+    });
+    loading.value = false;
+    throw error;
   } finally {
   }
 };
@@ -62,7 +85,17 @@ const onFinishFailed = (errorInfo) => {
 };
 
 const disabled = computed(() => {
-  return !(formState.username && formState.password);
+  return !(formState.userEmail && formState.password);
+});
+
+onMounted(() => {
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keyup", handleKeyUp);
 });
 </script>
 
@@ -82,22 +115,34 @@ const disabled = computed(() => {
         @finish="onFinish"
         @finishFailed="onFinishFailed"
       >
+        <a-form-item label="角色" name="userRole">
+          <a-select v-model:value="formState.userRole" placeholder="請選擇">
+            <a-select-option v-if="showCreatorOption" :value="UserRole.Creator"
+              >Creator</a-select-option
+            >
+            <a-select-option :value="UserRole.Admin">Admin</a-select-option>
+            <a-select-option :value="UserRole.Manager">管理員</a-select-option>
+            <a-select-option :value="UserRole.Student">學生</a-select-option>
+            <a-select-option :value="UserRole.Teacher">教師</a-select-option>
+          </a-select>
+        </a-form-item>
+
         <a-form-item
-          label="Username"
-          name="username"
-          :rules="[{ required: true, message: 'Please input your username!' }]"
+          label="信箱"
+          name="userEmail"
+          :rules="[{ required: true, message: '請輸入信箱!' }]"
         >
-          <a-input v-model:value="formState.username">
+          <a-input v-model:value="formState.userEmail">
             <template #prefix>
-              <UserOutlined class="site-form-item-icon" />
+              <MailOutlined class="site-form-item-icon" />
             </template>
           </a-input>
         </a-form-item>
 
         <a-form-item
-          label="Password"
+          label="密碼"
           name="password"
-          :rules="[{ required: true, message: 'Please input your password!' }]"
+          :rules="[{ required: true, message: '請輸入密碼!' }]"
         >
           <a-input-password v-model:value="formState.password">
             <template #prefix>
@@ -106,14 +151,14 @@ const disabled = computed(() => {
           </a-input-password>
         </a-form-item>
 
-        <a-form-item>
+        <!-- <a-form-item>
           <a-form-item name="remember" no-style>
             <a-checkbox v-model:checked="formState.remember">
               Remember me
             </a-checkbox>
           </a-form-item>
           <a class="login-form-forgot" href="">Forgot password</a>
-        </a-form-item>
+        </a-form-item> -->
 
         <a-form-item>
           <a-button
@@ -125,8 +170,8 @@ const disabled = computed(() => {
           >
             Log in
           </a-button>
-          Or
-          <a href="">register now!</a>
+          <!-- Or
+          <a href="">register now!</a> -->
         </a-form-item>
       </a-form>
 

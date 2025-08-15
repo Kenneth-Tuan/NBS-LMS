@@ -1,68 +1,75 @@
 import { defineStore } from "pinia";
-import dayjs from "dayjs";
 import { ref, reactive, computed } from "vue";
 
 import { UserRole } from "../enums/appEnums";
+import userApi from "@/apis/user";
+import { decryptString } from "@/utils/misc";
 
 export const useUserStore = defineStore(
   "user",
   () => {
     const userProfile = reactive({
-      role: "",
       userID: "",
       userName: "",
       userEmail: "",
-      userPhone: "",
+      userTel: "",
+      userRole: 0,
+      userStatus: "",
     });
 
-    const isLoggedIn = computed(() =>
-      Object.values(UserRole).includes(userProfile.role)
-    );
+    const isLoggedIn = computed(() => {
+      const hasRole = Object.values(UserRole).includes(userProfile.userRole);
+      const hasToken = typeof $cookies.get("ApiToken") === "string";
+      const enc = $cookies.get("UserEmailEnc");
+      const hasEncEmail =
+        (typeof enc === "string" && enc.length > 0) ||
+        (enc && typeof enc === "object");
+      return hasRole && hasToken && hasEncEmail;
+    });
     const loginDialogOpen = ref(false);
 
     function getToken() {
       return $cookies.get("ApiToken");
     }
 
-    async function signIn() {
-      const userID = import.meta.env.VITE_USER_ID;
-      const companyID = import.meta.env.VITE_COMPANY_ID;
+    async function fetchUserProfile() {
+      if (userProfile.userID && userProfile.userEmail) return;
 
       try {
-        const { data } = await authorizationApi.signIn({
-          client_id: `${userID}@${companyID}`,
-          client_secret: import.meta.env.VITE_CLIENT_SECRET,
-        });
-        const tokenPair = {
-          ApiToken: data.access_token,
-          RefreshToken: data.refresh_token,
-          ApiTokenExpiryTime: dayjs().add(data.expires_in, "s").valueOf(),
-          userID,
-          companyID,
+        const 
+          {data: {data}}
+         = await userApi.getUserProfile();
+
+        // Decrypt user email from cookie if present
+        let decryptedEmail = "";
+        try {
+          const enc = $cookies.get("UserEmailEnc");
+          if (enc) {
+            const payload = JSON.parse(enc);
+            const token = $cookies.get("ApiToken");
+            if (token && payload?.c && payload?.i && payload?.s) {
+              decryptedEmail = await decryptString(
+                { cipherTextBase64: payload.c, ivHex: payload.i, saltHex: payload.s },
+                token
+              );
+            }
+          }
+        } catch (e) {
+          console.warn("Failed to decrypt user email from cookies", e);
+        }
+
+        const adaptedUserProfile = {
+          userID: data.user_id,
+          userName: data.user_name,
+          userEmail: decryptedEmail || "",
+          userTel: data.user_phone,
+          userRole: data.user_role,
+          userStatus: data.user_status,
         };
 
-        for (const key in tokenPair) {
-          $cookies.set(key, tokenPair[key]);
-        }
+        setUserProfile(adaptedUserProfile);
       } catch (error) {
-        console.log(error);
-      }
-    }
-
-    async function fetchUserProfile() {
-      try {
-        const params = { token: $cookies.get("ApiToken") };
-        const {
-          data: { objects: userProfileResponse },
-        } = await ezyCargoAPI.userProfile(params);
-        setUserProfile(userProfileResponse);
-      } catch (error) {
-        glsDialogCreateHandler({
-          isCancelBtnDisplayed: false,
-          title: apiErrorMessage.type.UNAVAILABLE_SERVICE,
-          description: apiErrorMessage.description.GENERAL,
-          okBtnLabel: apiErrorMessage.action.OK,
-        });
+        throw new Error("fetchUserProfile failed");
       }
     }
 
@@ -73,11 +80,13 @@ export const useUserStore = defineStore(
       });
     }
 
-    function getUserAndCompanyID() {
-      if (!userProfile.companyID)
-        userProfile.companyID = $cookies.get("companyID").toUpperCase();
-      if (!userProfile.userID)
-        userProfile.userID = $cookies.get("userID").toUpperCase();
+    function setUserRole(newRole) {
+      if (Object.values(UserRole).includes(newRole)) {
+        userProfile.userRole = newRole;
+        console.log(`User role manually changed to: ${newRole}`); // For debugging
+      } else {
+        console.warn(`Invalid user role provided: ${newRole}`);
+      }
     }
 
     function updateLoginDialogOpen(payload) {
@@ -85,17 +94,25 @@ export const useUserStore = defineStore(
     }
 
     function logout() {
-      // $cookies.remove("ApiToken");
-      // $cookies.remove("RefreshToken");
-      // $cookies.remove("ApiTokenExpiryTime");
-      // $cookies.remove("userID");
-      // $cookies.remove("companyID");
+      // 移除 cookies
+      $cookies.remove("ApiToken");
+        $cookies.remove("UserEmailEnc");
+      $cookies.remove("RefreshToken");
+      $cookies.remove("ApiTokenExpiryTime");
 
-      userProfile.role = "";
+      // 清空 userProfile
       userProfile.userID = "";
       userProfile.userName = "";
       userProfile.userEmail = "";
-      userProfile.userPhone = "";
+      userProfile.userTel = "";
+      userProfile.userRole = "";
+      userProfile.userStatus = "";
+
+      // 清除所有 localStorage 資料
+      localStorage.clear();
+
+      // 清除所有 sessionStorage 資料
+      sessionStorage.clear();
     }
 
     return {
@@ -105,17 +122,15 @@ export const useUserStore = defineStore(
 
       // methods
       getToken,
-      signIn,
+
       fetchUserProfile,
       setUserProfile,
-      getUserAndCompanyID,
       updateLoginDialogOpen,
       logout,
+      setUserRole,
     };
   },
   {
-    persist: {
-      paths: ["userRegion"],
-    },
+    persist: ["userProfile"],
   }
 );

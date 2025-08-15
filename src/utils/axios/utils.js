@@ -1,4 +1,5 @@
 import * as R from "ramda";
+import router from "@/router";
 
 export function responseHandler(response) {
   if (R.is(String, response?.data)) {
@@ -16,6 +17,7 @@ export function responseHandler(response) {
 }
 
 export function responseErrorHandler(error) {
+  // TODO：token 過期
   if (error.response) {
     switch (error.response.status) {
       case 401:

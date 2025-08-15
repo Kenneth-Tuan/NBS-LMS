@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Deployment Guide
+
+## Vercel Deployment
+- Configuration: [vercel.json](mdc:vercel.json) - Contains rewrites to handle SPA routing
+- Key settings:
+  - All routes redirect to index.html
+  - Special headers for MSW service worker
+
+## Environment Configuration
+- Main environment variables are configured in .env files
+- Vercel environment variables should be set in the Vercel dashboard
+- Required variables:
+  - `VITE_APP_IS_MOCK`: Set to "TRUE" to enable API mocking
+  - `VITE_LMS_BASE_URL`: Base URL for the application
+
+## MSW Configuration
+- MSW config in package.json: `"msw": { "workerDirectory": "public" }`
+- Worker initialization in [src/main.js](mdc:src/main.js)
+- Special headers in vercel.json for the service worker
+- Run `npx msw init public` to generate the service worker file

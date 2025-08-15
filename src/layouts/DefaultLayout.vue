@@ -1,107 +1,23 @@
 <script setup>
-import { reactive, watch, h, unref, ref } from "vue";
+import { reactive, unref, ref, onMounted, onUnmounted, computed } from "vue";
 import { storeToRefs } from "pinia";
 import {
-  PieChartOutlined,
-  MailOutlined,
-  DesktopOutlined,
-  InboxOutlined,
-  AppstoreOutlined,
   LoginOutlined,
   UserOutlined,
   BellOutlined,
   CaretDownOutlined,
 } from "@ant-design/icons-vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 
 import { useUserStore } from "@/stores/user";
-import { RouterName } from "@/enums/appEnums";
+import SideMenu from "@/components/SideMenu.vue";
+import { UserRole } from "@/enums/appEnums";
 
 const router = useRouter();
-const route = useRoute();
 
 const userStore = useUserStore();
 const { isLoggedIn } = storeToRefs(userStore);
-const { updateLoginDialogOpen, logout } = userStore;
-
-const state = reactive({
-  collapsed: false,
-  selectedKeys: [route.name],
-  openKeys: ["sub1"],
-  preOpenKeys: ["sub1"],
-});
-
-const items = reactive([
-  {
-    key: RouterName.LandingPage,
-    icon: () => h(PieChartOutlined),
-    label: "首頁",
-  },
-  {
-    key: RouterName.Dashboard,
-    icon: () => h(DesktopOutlined),
-    label: "儀表板",
-  },
-  // {
-  //   key: RouterName.NewCourse,
-  //   icon: () => h(InboxOutlined),
-  //   label: "新課程",
-  // },
-  {
-    icon: () => h(MailOutlined),
-    label: "課程",
-    children: [
-      {
-        key: RouterName.NewCourse,
-        label: "最新課程",
-      },
-      {
-        key: RouterName.Course,
-        label: "新增/編輯課程",
-      },
-      {
-        key: "7",
-        label: "課程列表",
-        disabled: true,
-      },
-    ],
-  },
-  // {
-  //   key: "sub2",
-  //   icon: () => h(AppstoreOutlined),
-  //   label: "",
-  //   title: "Navigation Two",
-  //   children: [
-  //     {
-  //       key: "9",
-  //       label: "Option 9",
-  //       title: "Option 9",
-  //     },
-  //     {
-  //       key: "10",
-  //       label: "Option 10",
-  //       title: "Option 10",
-  //     },
-  //     {
-  //       key: "sub3",
-  //       label: "Submenu",
-  //       title: "Submenu",
-  //       children: [
-  //         {
-  //           key: "11",
-  //           label: "Option 11",
-  //           title: "Option 11",
-  //         },
-  //         {
-  //           key: "12",
-  //           label: "Option 12",
-  //           title: "Option 12",
-  //         },
-  //       ],
-  //     },
-  //   ],
-  // },
-]);
+const { updateLoginDialogOpen, logout, userProfile, setUserRole } = userStore;
 
 const visible = ref(false);
 const handleMenuClick = (e) => {
@@ -110,28 +26,73 @@ const handleMenuClick = (e) => {
     router.push("/landing-page");
   }
 };
-const handleMenuSelect = ({ item, key, selectedKeys }) => {
-  console.log(item, key, selectedKeys);
-  router.push({ name: key });
-};
-watch(
-  () => state.openKeys,
-  (_val, oldVal) => {
-    state.preOpenKeys = oldVal;
-  }
-);
-const toggleCollapsed = () => {
-  state.collapsed = !state.collapsed;
-  state.openKeys = state.collapsed ? [] : state.preOpenKeys;
-};
 
-function onClickLoginBtn() {
+async function onClickLoginBtn() {
   if (!unref(isLoggedIn)) {
     updateLoginDialogOpen(true);
   } else {
     logout();
   }
 }
+
+const handleRoleChange = (newRole) => {
+  setUserRole(newRole);
+  // Optionally: refresh or trigger something to reflect role change immediately
+  // e.g., router.go(0) or re-fetch data based on role
+};
+
+const showCreatorOption = ref(false);
+
+const handleKeyDown = (event) => {
+  if (event.key === "Shift") {
+    showCreatorOption.value = true;
+  }
+};
+
+const handleKeyUp = (event) => {
+  if (event.key === "Shift") {
+    showCreatorOption.value = false;
+  }
+};
+
+const userRoleOptions = computed(() => {
+  return [
+    {
+      label: "Creator",
+      value: UserRole.Creator,
+    },
+    {
+      label: "Admin",
+      value: UserRole.Admin,
+    },
+    {
+      label: "Manager",
+      value: UserRole.Manager,
+    },
+    {
+      label: "Teacher",
+      value: UserRole.Teacher,
+    },
+    {
+      label: "Student",
+      value: UserRole.Student,
+    },
+  ].filter(
+    (item) => showCreatorOption.value || item.value !== UserRole.Creator
+  );
+});
+
+const isDEV = import.meta.env.DEV;
+
+onMounted(() => {
+  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+});
+
+onUnmounted(() => {
+  window.removeEventListener("keydown", handleKeyDown);
+  window.removeEventListener("keyup", handleKeyUp);
+});
 </script>
 
 <template>
@@ -154,64 +115,74 @@ function onClickLoginBtn() {
       </p>
       <div class="u-flex-1"></div>
 
-      <Transition name="fade" :duration="550" mode="out-in" appear>
-        <a-tooltip v-if="isLoggedIn" title="通知">
-          <a-button
-            @click="() => {}"
-            shape="circle"
-            :size="'large'"
-            type="ghost"
-            :ghost="true"
+      <!-- DEV ONLY: Role Switcher -->
+      <div v-if="isDEV" class="u-mx-2">
+        <a-select
+          :value="userProfile.userRole"
+          style="width: 120px"
+          @change="handleRoleChange"
+          :options="userRoleOptions"
+        >
+        </a-select>
+      </div>
+      <!-- END DEV ONLY -->
+
+      <!-- <Transition name="fade" :duration="550" mode="out-in" appear> -->
+      <a-tooltip v-if="isLoggedIn && false" title="通知">
+        <a-button
+          @click="() => {}"
+          shape="circle"
+          :size="'large'"
+          type="ghost"
+          :ghost="true"
+        >
+          <BellOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
+        </a-button>
+      </a-tooltip>
+
+      <a-tooltip v-if="!isLoggedIn" title="登入">
+        <a-button
+          @click="onClickLoginBtn"
+          shape="circle"
+          :size="'large'"
+          type="ghost"
+          :ghost="true"
+        >
+          <LoginOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
+        </a-button>
+      </a-tooltip>
+      <!-- </Transition> -->
+
+      <!-- <Transition name="fade" :duration="550" mode="out-in" appear> -->
+      <div v-if="isLoggedIn">
+        <a-dropdown v-model:open="visible">
+          <div
+            class="u-flex u-items-center u-justify-center u-flex-gap-x-0.5rem"
           >
-            <BellOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
-          </a-button>
-        </a-tooltip>
-      </Transition>
+            <UserOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
+            <span class="u-text-1rem u-font-bold u-c-blue">
+              {{ userProfile.userName }}
+            </span>
 
-      <Transition name="fade" :duration="550" mode="out-in" appear>
-        <a-tooltip v-if="!isLoggedIn" title="登入">
-          <a-button
-            @click="onClickLoginBtn"
-            shape="circle"
-            :size="'large'"
-            type="ghost"
-            :ghost="true"
-          >
-            <LoginOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
-          </a-button>
-        </a-tooltip>
-      </Transition>
-
-      <Transition name="fade" :duration="550" mode="out-in" appear>
-        <div v-if="isLoggedIn">
-          <a-dropdown v-model:open="visible">
-            <div
-              class="u-flex u-items-center u-justify-center u-flex-gap-x-0.5rem"
-            >
-              <UserOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
-              <span class="u-text-1rem u-font-bold u-c-blue">
-                A1234 王小明
-              </span>
-
-              <CaretDownOutlined
-                class="u-text-1rem u-font-bold u-c-blue"
-                :class="{
-                  'u-rotate-180': visible,
-                  'u-transition-all u-duration-250ms u-ease-in-out': true,
-                }"
-              />
-            </div>
-            <template #overlay>
-              <a-menu @click="handleMenuClick">
-                <a-menu-item key="1"> 個人資料</a-menu-item>
-                <a-menu-item key="2"> 修改密碼</a-menu-item>
-                <a-menu-divider />
-                <a-menu-item key="3"> 登出</a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-        </div>
-      </Transition>
+            <CaretDownOutlined
+              class="u-text-1rem u-font-bold u-c-blue"
+              :class="{
+                'u-rotate-180': visible,
+                'u-transition-all u-duration-250ms u-ease-in-out': true,
+              }"
+            />
+          </div>
+          <template #overlay>
+            <a-menu @click="handleMenuClick">
+              <!-- <a-menu-item key="1"> 個人資料</a-menu-item>
+              <a-menu-item key="2"> 修改密碼</a-menu-item>
+              <a-menu-divider /> -->
+              <a-menu-item key="3"> 登出</a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
+      </div>
+      <!-- </Transition> -->
     </header>
 
     <main
@@ -220,17 +191,7 @@ function onClickLoginBtn() {
       <div class="u-absolute u-inset-0 u-bg-white u-opacity-40 u-h100%"></div>
       <div class="u-w100% u-h100% u-z-9 u-flex-1 u-flex u-flex-nowrap">
         <Transition name="fade" :duration="550" mode="out-in" appear>
-          <a-menu
-            v-if="isLoggedIn"
-            @select="handleMenuSelect"
-            class="u-wmin u-px0.5rem"
-            v-model:openKeys="state.openKeys"
-            v-model:selectedKeys="state.selectedKeys"
-            mode="inline"
-            theme="light"
-            :inline-collapsed="state.collapsed && false"
-            :items="items"
-          ></a-menu>
+          <SideMenu v-if="isLoggedIn" />
         </Transition>
         <router-view />
       </div>
@@ -248,5 +209,5 @@ function onClickLoginBtn() {
 </template>
 
 <style scoped>
-/* 這裡可以添加額外的樣式 */
+/* Styles specific to the DefaultLayout component */
 </style>

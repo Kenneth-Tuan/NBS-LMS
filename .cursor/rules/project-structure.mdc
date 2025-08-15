@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# NBS-LMS Project Structure Guide
+
+## Core Files
+- Main entry: [src/main.js](mdc:src/main.js) - initializes the Vue application
+- App component: [src/App.vue](mdc:src/App.vue) - root Vue component
+- Vite config: [vite.config.mjs](mdc:vite.config.mjs) - build and dev server configuration
+- Package.json: [package.json](mdc:package.json) - project dependencies and scripts
+
+## Key Directories
+- Components: [src/components/](mdc:src/components) - Reusable Vue components
+- Views: [src/views/](mdc:src/views) - Page components
+- Router: [src/router/](mdc:src/router) - Vue Router configuration
+- Stores: [src/stores/](mdc:src/stores) - Pinia 狀態儲存 & 表單狀態控制 (含錯誤)
+- Services: [src/services/](mdc:src/services) - 負責 API 通訊與資料格式轉換
+- Composables: [src/composables/](mdc:src/composables) - 表單邏輯，如 useFormValidation
+- Schemas: [src/schemas/](mdc:src/schemas) - 表單欄位 schema, mapping 規則
+- Utils: [src/utils/](mdc:src/utils) - deep clone, deep compare 等共用方法
+- Mocks: [src/mocks/](mdc:src/mocks) - MSW API mocking
+
+## Configuration
+- Styles: [src/style.css](mdc:src/style.css) - Global CSS
+- UnoCSS: [uno.config.js](mdc:uno.config.js) - UnoCSS configuration
+- Vercel: [vercel.json](mdc:vercel.json) - Vercel deployment configuration
+
+## Appwrite Integration
+- Appwrite client: [src/appwrite.js](mdc:src/appwrite.js) - Appwrite SDK setup

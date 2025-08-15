@@ -1,0 +1,397 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Unit Test Generation Rules
+
+## Testing Framework & Setup
+
+### **Testing Stack**
+- **Framework**: Vitest (preferred) or Jest
+- **Vue Testing**: Vue Test Utils (@vue/test-utils)
+- **Mocking**: Vitest/Jest built-in mocking
+- **Assertions**: Expect API with custom matchers
+- **Coverage**: c8 or Istanbul
+- **E2E**: Cypress or Playwright (for integration tests)
+
+### **File Naming Conventions**
+- Unit tests: `ComponentName.test.js` or `functionName.test.js`
+- Integration tests: `ComponentName.integration.test.js`
+- Test utilities: `test-utils.js`
+- Mock data: `__mocks__/mockData.js`
+- Setup files: `setupTests.js`
+
+## Vue Component Testing Standards
+
+### **Component Test Structure**
+```javascript
+import { mount, shallowMount } from '@vue/test-utils'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import ComponentName from '@/components/ComponentName.vue'
+
+describe('ComponentName', () => {
+  let wrapper
+  
+  beforeEach(() => {
+    wrapper = mount(ComponentName, {
+      props: { /* test props */ },
+      global: {
+        plugins: [/* required plugins */],
+        stubs: { /* component stubs */ }
+      }
+    })
+  })
+
+  it('should render component correctly', () => {
+    expect(wrapper.exists()).toBe(true)
+  })
+})
+```
+
+### **Test Categories for Components**
+1. **Rendering Tests**: Component mounts and displays correctly
+2. **Props Tests**: Props are received and handled properly
+3. **Events Tests**: Component emits events correctly
+4. **User Interaction Tests**: User actions trigger expected behavior
+5. **Computed Properties Tests**: Reactive data works as expected
+6. **Lifecycle Tests**: Mounted, updated, unmounted hooks work
+7. **Store Integration Tests**: Pinia store interactions
+
+### **Composition API Testing**
+```javascript
+import { reactive, ref } from 'vue'
+import { mount } from '@vue/test-utils'
+
+// Test composables separately
+import { useFeatureName } from '@/composables/useFeatureName'
+
+describe('useFeatureName', () => {
+  it('should return expected reactive state', () => {
+    const { state, action } = useFeatureName()
+    
+    expect(state.value).toBeDefined()
+    action()
+    expect(state.value).toBe(expectedValue)
+  })
+})
+```
+
+## Pinia Store Testing
+
+### **Store Test Pattern**
+```javascript
+import { setActivePinia, createPinia } from 'pinia'
+import { useStoreNameStore } from '@/stores/storeName'
+
+describe('Store: storeName', () => {
+  beforeEach(() => {
+    setActivePinia(createPinia())
+  })
+
+  it('should initialize with correct default state', () => {
+    const store = useStoreNameStore()
+    
+    expect(store.someState).toBe(defaultValue)
+  })
+
+  it('should update state when action is called', async () => {
+    const store = useStoreNameStore()
+    
+    await store.someAction(testData)
+    
+    expect(store.someState).toBe(expectedValue)
+  })
+})
+```
+
+### **Store Action Testing**
+- Test successful API calls
+- Test error handling
+- Test state mutations
+- Test getters
+- Mock external dependencies
+
+## Function & Utility Testing
+
+### **Pure Function Testing**
+```javascript
+import { functionName } from '@/utils/utilityFile'
+
+describe('functionName', () => {
+  it('should return expected result for valid input', () => {
+    const input = 'test input'
+    const result = functionName(input)
+    
+    expect(result).toBe(expectedOutput)
+  })
+
+  it('should handle edge cases correctly', () => {
+    expect(functionName(null)).toBe(null)
+    expect(functionName(undefined)).toBe(undefined)
+    expect(functionName('')).toBe('')
+  })
+
+  it('should throw error for invalid input', () => {
+    expect(() => functionName(invalidInput)).toThrow('Expected error message')
+  })
+})
+```
+
+### **Validation Function Testing**
+```javascript
+import { validateEmail } from '@/utils/validations'
+
+describe('validateEmail', () => {
+  it.each([
+    ['valid@email.com', true],
+    ['user.name@domain.co.uk', true],
+    ['invalid-email', false],
+    ['@domain.com', false],
+    ['user@', false],
+    ['', false],
+    [null, false],
+    [undefined, false]
+  ])('should validate "%s" as %s', (email, expected) => {
+    expect(validateEmail(email)).toBe(expected)
+  })
+})
+```
+
+## API & Async Testing
+
+### **API Call Testing**
+```javascript
+import { vi } from 'vitest'
+import { apiFunction } from '@/apis/apiFile'
+
+// Mock the API module
+vi.mock('@/apis/apiFile')
+
+describe('API: apiFunction', () => {
+  it('should call API with correct parameters', async () => {
+    const mockResponse = { data: 'test data' }
+    apiFunction.mockResolvedValue(mockResponse)
+
+    const result = await apiFunction(testParams)
+
+    expect(apiFunction).toHaveBeenCalledWith(testParams)
+    expect(result).toEqual(mockResponse)
+  })
+
+  it('should handle API errors gracefully', async () => {
+    const mockError = new Error('API Error')
+    apiFunction.mockRejectedValue(mockError)
+
+    await expect(apiFunction(testParams)).rejects.toThrow('API Error')
+  })
+})
+```
+
+### **Async Component Testing**
+```javascript
+import { flushPromises } from '@vue/test-utils'
+
+it('should handle async data loading', async () => {
+  const wrapper = mount(AsyncComponent)
+  
+  expect(wrapper.find('[data-testid="loading"]').exists()).toBe(true)
+  
+  await flushPromises()
+  
+  expect(wrapper.find('[data-testid="loading"]').exists()).toBe(false)
+  expect(wrapper.find('[data-testid="content"]').exists()).toBe(true)
+})
+```
+
+## Test Data & Mocking
+
+### **Mock Data Standards**
+```javascript
+// __mocks__/mockData.js
+export const mockUserData = {
+  id: 1,
+  name: 'Test User',
+  email: 'test@example.com',
+  // Include all required fields
+}
+
+export const mockFormData = {
+  field1: 'value1',
+  field2: 'value2',
+  // Match real form structure
+}
+```
+
+### **Component Mocking**
+```javascript
+// Mock child components
+const ChildComponentStub = {
+  template: '<div data-testid="child-component">Mocked Child</div>',
+  props: ['propName']
+}
+
+const wrapper = mount(ParentComponent, {
+  global: {
+    stubs: {
+      ChildComponent: ChildComponentStub
+    }
+  }
+})
+```
+
+### **External Library Mocking**
+```javascript
+// Mock external libraries
+vi.mock('external-library', () => ({
+  default: vi.fn(),
+  namedExport: vi.fn(() => 'mocked result')
+}))
+```
+
+## Validation & Error Testing
+
+### **Form Validation Testing**
+```javascript
+describe('Form Validation', () => {
+  it('should show error for invalid email format', async () => {
+    const wrapper = mount(FormComponent)
+    
+    await wrapper.find('[data-testid="email-input"]').setValue('invalid-email')
+    await wrapper.find('[data-testid="submit-btn"]').trigger('click')
+    
+    expect(wrapper.find('[data-testid="email-error"]').text()).toBe('Invalid email format')
+  })
+
+  it('should allow submission with valid data', async () => {
+    const wrapper = mount(FormComponent)
+    
+    await wrapper.find('[data-testid="email-input"]').setValue('valid@email.com')
+    await wrapper.find('[data-testid="submit-btn"]').trigger('click')
+    
+    expect(wrapper.emitted('submit')).toBeTruthy()
+  })
+})
+```
+
+### **Error Boundary Testing**
+```javascript
+it('should handle errors gracefully', async () => {
+  const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+  
+  const wrapper = mount(ComponentWithError, {
+    props: { shouldError: true }
+  })
+  
+  expect(wrapper.find('[data-testid="error-message"]').exists()).toBe(true)
+  
+  consoleError.mockRestore()
+})
+```
+
+## Test Quality Standards
+
+### **Test Naming Conventions**
+- Descriptive test names: `should [expected behavior] when [condition]`
+- Group related tests in `describe` blocks
+- Use `it.each` for parameterized tests
+- Use `it.todo` for planned tests
+
+### **Assertion Best Practices**
+- Use specific matchers: `toHaveBeenCalledWith()` vs `toHaveBeenCalled()`
+- Test behavior, not implementation
+- Avoid testing internal state directly
+- Use `data-testid` attributes for reliable element selection
+
+### **Coverage Requirements**
+- **Minimum Coverage**: 80% for all code
+- **Critical Paths**: 95% coverage for business logic
+- **Edge Cases**: Test null, undefined, empty values
+- **Error Scenarios**: Test all error conditions
+
+### **Test Organization**
+```javascript
+describe('ComponentName', () => {
+  describe('Rendering', () => {
+    // Rendering tests
+  })
+
+  describe('Props', () => {
+    // Props tests
+  })
+
+  describe('Events', () => {
+    // Event tests
+  })
+
+  describe('User Interactions', () => {
+    // Interaction tests
+  })
+
+  describe('Error Handling', () => {
+    // Error tests
+  })
+})
+```
+
+## Performance & Optimization
+
+### **Test Performance Guidelines**
+- Use `shallowMount` when testing component in isolation
+- Mock heavy dependencies
+- Avoid unnecessary DOM queries
+- Clean up after tests (timers, event listeners)
+- Use `beforeEach`/`afterEach` for setup and teardown
+
+### **Memory Management**
+```javascript
+afterEach(() => {
+  wrapper.unmount()
+  vi.clearAllMocks()
+  vi.restoreAllMocks()
+})
+```
+
+## Accessibility Testing
+
+### **A11y Test Integration**
+```javascript
+import { axe, toHaveNoViolations } from 'jest-axe'
+
+expect.extend(toHaveNoViolations)
+
+it('should not have accessibility violations', async () => {
+  const wrapper = mount(Component)
+  const results = await axe(wrapper.element)
+  
+  expect(results).toHaveNoViolations()
+})
+```
+
+## Test Documentation
+
+### **Test Comments & Documentation**
+- Document complex test setup
+- Explain non-obvious test scenarios
+- Include references to requirements/tickets
+- Document known limitations or skipped tests
+
+### **Test Reports**
+- Generate coverage reports
+- Include test results in CI/CD
+- Track test performance metrics
+- Monitor flaky tests
+
+## Best Practices Summary
+
+1. **Write tests first** (TDD approach when possible)
+2. **Test behavior, not implementation**
+3. **Keep tests simple and focused**
+4. **Use descriptive test names**
+5. **Mock external dependencies**
+6. **Test edge cases and error conditions**
+7. **Maintain high test coverage**
+8. **Keep tests fast and reliable**
+9. **Use proper setup and teardown**
+10. **Document complex test scenarios**
+
