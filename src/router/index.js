@@ -119,6 +119,16 @@ const routes = [
     },
   },
   {
+    path: "/other-application-control-panel",
+    name: RouterName.OtherApplicationControlPanel,
+    component: () => import("@/views/Applications/OthersApplicationControlPanel.vue"),
+    meta: {
+      title: "其他申請 - 控制面板 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+      roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
+    },
+  },
+  {
     path: "/application-record",
     name: RouterName.ApplicationRecord,
     component: () => import("@/views/Applications/ApplicationRecord.vue"),

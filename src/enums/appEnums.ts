@@ -25,6 +25,7 @@ export enum RouterName {
   LeaveApplication = "leave-application",
   SubsidyApplication = "subsidy-application",
   OthersApplication = "others-application",
+  OtherApplicationControlPanel = "other-application-control-panel",
   ApplicationRecord = "application-record",
   CourseRecord = "course-record",
   GradeDetail = "grade-detail",
@@ -158,6 +159,12 @@ export const MenuItems = [
         label: "其他申請",
         route: { name: RouterName.OthersApplication },
         roles: [UserRole.Creator, UserRole.Student],
+      },
+      {
+        key: "other-application-control-panel",
+        label: "其他申請 - 控制面板",
+        route: { name: RouterName.OtherApplicationControlPanel },
+        roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
       },
       {
         key: "application-record",

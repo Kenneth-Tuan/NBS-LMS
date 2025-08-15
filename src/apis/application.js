@@ -104,9 +104,8 @@ export default {
    * POST /application/other/create-one
    * Request body (JSON):
    * {
-   *   title: string,                   // 主旨（必填）
-   *   content: string,                 // 內容（必填）
-   *   attachments?: string             // 附件（可選）
+   *   name: string,             // 項目名稱（必填）
+   *   attachments?: string[]    // 附件清單（可選）
    * }
    */
   createOthers(params) {
@@ -119,9 +118,8 @@ export default {
    * PUT /application/other/edit-one?other_application_id={id}
    * Request body (JSON):
    * {
-   *   title?: string,
-   *   content?: string,
-   *   attachments?: string
+   *   name?: string,
+   *   attachments?: string[]
    * }
    */
   updateOthersApplication(id, params) {
