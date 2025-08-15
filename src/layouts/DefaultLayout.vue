@@ -19,20 +19,12 @@ const userStore = useUserStore();
 const { isLoggedIn } = storeToRefs(userStore);
 const { updateLoginDialogOpen, logout, userProfile, setUserRole } = userStore;
 
-const state = reactive({
-  collapsed: false,
-});
-
 const visible = ref(false);
 const handleMenuClick = (e) => {
   if (e.key === "3") {
     logout();
     router.push("/landing-page");
   }
-};
-
-const toggleCollapsed = () => {
-  state.collapsed = !state.collapsed;
 };
 
 async function onClickLoginBtn() {
@@ -136,7 +128,7 @@ onUnmounted(() => {
       <!-- END DEV ONLY -->
 
       <!-- <Transition name="fade" :duration="550" mode="out-in" appear> -->
-      <a-tooltip v-if="isLoggedIn" title="通知">
+      <a-tooltip v-if="isLoggedIn && false" title="通知">
         <a-button
           @click="() => {}"
           shape="circle"
@@ -148,7 +140,7 @@ onUnmounted(() => {
         </a-button>
       </a-tooltip>
 
-      <a-tooltip v-else title="登入">
+      <a-tooltip v-if="!isLoggedIn" title="登入">
         <a-button
           @click="onClickLoginBtn"
           shape="circle"
@@ -182,9 +174,9 @@ onUnmounted(() => {
           </div>
           <template #overlay>
             <a-menu @click="handleMenuClick">
-              <a-menu-item key="1"> 個人資料</a-menu-item>
+              <!-- <a-menu-item key="1"> 個人資料</a-menu-item>
               <a-menu-item key="2"> 修改密碼</a-menu-item>
-              <a-menu-divider />
+              <a-menu-divider /> -->
               <a-menu-item key="3"> 登出</a-menu-item>
             </a-menu>
           </template>
@@ -199,7 +191,7 @@ onUnmounted(() => {
       <div class="u-absolute u-inset-0 u-bg-white u-opacity-40 u-h100%"></div>
       <div class="u-w100% u-h100% u-z-9 u-flex-1 u-flex u-flex-nowrap">
         <Transition name="fade" :duration="550" mode="out-in" appear>
-          <SideMenu v-if="isLoggedIn" :collapsed="state.collapsed" />
+          <SideMenu v-if="isLoggedIn" />
         </Transition>
         <router-view />
       </div>

@@ -5,6 +5,7 @@ import {
   ClockCircleFilled,
   TeamOutlined,
   BellOutlined,
+  DesktopOutlined,
 } from "@ant-design/icons-vue";
 
 export enum RouterName {
@@ -83,12 +84,13 @@ export const MenuItems = [
     icon: HomeOutlined,
     label: "首頁",
   },
-  // {
-  //   key: "dashboard",
-  //   label: "儀表板",
-  //   icon: DesktopOutlined,
-  //   route: { name: RouterName.Dashboard },
-  // },
+  {
+    key: "dashboard",
+    label: "儀表板",
+    icon: DesktopOutlined,
+    route: { name: RouterName.Dashboard },
+    disabled: true,
+  },
   {
     key: "timed-course-selection",
     label: "限時選課",
@@ -120,17 +122,6 @@ export const MenuItems = [
         route: { name: RouterName.CurrentCourses },
         roles: [UserRole.Creator, UserRole.Teacher, UserRole.Student],
       },
-      // {
-      //   key: "course-record",
-      //   label: "修課紀錄",
-      //   route: { name: RouterName.CourseRecord },
-      //   roles: [
-      //     UserRole.Creator,
-      //     UserRole.Manager,
-      //     UserRole.Teacher,
-      //     UserRole.Student,
-      //   ],
-      // },
       {
         key: RouterName.TimedCourseSettings,
         label: "限時選課設定",

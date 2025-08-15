@@ -5,6 +5,7 @@ import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 import { decryptString } from "@/utils/misc";
 import { isFeatureEnabled } from "@/config/featureFlags";
+import { useNotificationStore } from "@/stores/notificationStore";
 
 const routes = [
   {
@@ -297,6 +298,10 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
+  if ([UserRole.Creator, UserRole.Admin, UserRole.Manager].includes(userStore.userProfile.userRole)) {
+    const notificationStore = useNotificationStore();
+    await notificationStore.fetchPendingNotification();
+  }
 
   // If no roles specified or user has the required role, proceed
   next();

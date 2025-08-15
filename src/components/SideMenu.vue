@@ -1,26 +1,23 @@
 <script setup>
-import { reactive, watch, h, computed, ref, onMounted } from "vue";
+import { reactive, watch, h, computed, ref, onMounted, unref } from "vue";
+import { storeToRefs } from "pinia";
 
 import { useRouter, useRoute } from "vue-router";
 import { MenuItems } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 import { courseService } from "@/services/course.service";
 import { RouterName } from "@/enums/appEnums";
-
-const props = defineProps({
-  collapsed: {
-    type: Boolean,
-    default: false,
-  },
-});
+import { useNotificationStore } from "@/stores/notificationStore";
 
 const router = useRouter();
 const route = useRoute();
 const userStore = useUserStore();
 const { userProfile } = userStore;
+const notificationStore = useNotificationStore();
+const { notifiedRouterNames } = storeToRefs(notificationStore);
 
 const state = reactive({
-  collapsed: props.collapsed,
+  collapsed: false,
   selectedKeys: [route.name],
   openKeys: ["sub1"],
   preOpenKeys: ["sub1"],
@@ -51,6 +48,7 @@ const menuItems = computed(() => {
         menuItem.highlight && !state.selectedKeys.includes(menuItem.route?.name)
           ? "menu-highlight"
           : "",
+      isNotified: false,
     };
 
     if (menuItem.children) {
@@ -77,11 +75,21 @@ const menuItems = computed(() => {
       transformed.class = hasEnrollment.value ? "menu-highlight" : "";
     }
 
+    if (
+      unref(notifiedRouterNames).length > 0 &&
+      menuItem.key === "applications"
+    ) {
+      transformed.isNotified = true;
+      transformed.children.forEach((child) => {
+        child.isNotified = child.key === RouterName.ApplicationRecord;
+      });
+    }
+
     return transformed;
   };
 
   const filteredAppMenuItems = MenuItems.map(transformAndFilter).filter(
-    (item) => item !== null
+    (item) => item !== null && !item.disabled
   );
 
   return filteredAppMenuItems;
@@ -103,15 +111,10 @@ watch(
   () => route.name,
   (newRouteName) => {
     state.selectedKeys = [newRouteName];
-  }
-);
-
-// Watch for changes in the collapsed prop
-watch(
-  () => props.collapsed,
-  (newVal) => {
-    state.collapsed = newVal;
-    state.openKeys = state.collapsed ? [] : state.preOpenKeys;
+    state.openKeys = [newRouteName];
+  },
+  {
+    immediate: true,
   }
 );
 
@@ -129,9 +132,41 @@ onMounted(async () => {
     v-model:selectedKeys="state.selectedKeys"
     mode="inline"
     theme="light"
-    :inline-collapsed="state.collapsed && false"
-    :items="menuItems"
-  ></a-menu>
+    :inline-collapsed="state.collapsed"
+  >
+    <template v-for="item in menuItems" :key="item.key">
+      <a-sub-menu
+        v-if="item.hasOwnProperty('children')"
+        :key="item.key"
+        :class="item.class"
+      >
+        <template #icon>
+          <component :is="item.icon" />
+        </template>
+        <template #title>
+          <p class="u-w-85px">
+            {{ item.label }}
+            <a-badge :dot="item.isNotified" />
+          </p>
+        </template>
+        <a-menu-item v-for="child in item.children" :key="child.key">
+          <span>
+            {{ child.label }}
+            <a-badge :dot="child.isNotified" />
+          </span>
+        </a-menu-item>
+      </a-sub-menu>
+      <a-menu-item v-else :key="item.key" :class="item.class">
+        <template #icon>
+          <component :is="item.icon" />
+        </template>
+        <span>
+          {{ item.label }}
+          <a-badge :dot="item.isNotified" />
+        </span>
+      </a-menu-item>
+    </template>
+  </a-menu>
 </template>
 
 <style scoped>
