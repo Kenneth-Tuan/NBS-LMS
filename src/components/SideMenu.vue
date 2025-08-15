@@ -14,7 +14,8 @@ const route = useRoute();
 const userStore = useUserStore();
 const { userProfile } = userStore;
 const notificationStore = useNotificationStore();
-const { notifiedRouterNames } = storeToRefs(notificationStore);
+const { notifiedRouterNames, isReadApplication } =
+  storeToRefs(notificationStore);
 
 const state = reactive({
   collapsed: false,
@@ -76,7 +77,7 @@ const menuItems = computed(() => {
     }
 
     if (
-      unref(notifiedRouterNames).length > 0 &&
+      (unref(notifiedRouterNames).length > 0 || !unref(isReadApplication)) &&
       menuItem.key === "applications"
     ) {
       transformed.isNotified = true;
@@ -111,12 +112,17 @@ watch(
   () => route.name,
   (newRouteName) => {
     state.selectedKeys = [newRouteName];
-    state.openKeys = [newRouteName];
   },
   {
     immediate: true,
   }
 );
+
+const onClickMenuChild = async (menuKey) => {
+  if (menuKey === RouterName.ApplicationRecord) {
+    await notificationStore.markAsRead();
+  }
+};
 
 onMounted(async () => {
   const courses = await courseService.fetchCoursesForEnrollment();
@@ -149,7 +155,11 @@ onMounted(async () => {
             <a-badge :dot="item.isNotified" />
           </p>
         </template>
-        <a-menu-item v-for="child in item.children" :key="child.key">
+        <a-menu-item
+          v-for="child in item.children"
+          :key="child.key"
+          @click="onClickMenuChild(child.key)"
+        >
           <span>
             {{ child.label }}
             <a-badge :dot="child.isNotified" />

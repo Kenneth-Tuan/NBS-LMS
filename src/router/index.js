@@ -298,9 +298,18 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  if ([UserRole.Creator, UserRole.Admin, UserRole.Manager].includes(userStore.userProfile.userRole)) {
-    const notificationStore = useNotificationStore();
+  const notificationStore = useNotificationStore();
+
+  if (
+    [UserRole.Creator, UserRole.Admin, UserRole.Manager].includes(
+      userStore.userProfile.userRole
+    )
+  ) {
     await notificationStore.fetchPendingNotification();
+  }
+
+  if (userStore.userProfile.userRole === UserRole.Student) {
+    await notificationStore.fetchMyNotification();
   }
 
   // If no roles specified or user has the required role, proceed
