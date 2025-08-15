@@ -129,21 +129,131 @@ export default {
 
   get announcements() {
     return {
+      /**
+       * 取得所有公告
+       * @param {string} course_id - 課程ID
+       * @returns {Promise} 返回包含公告列表的響應
+       * @example
+       * // 響應格式:
+       * // {
+       * //   "data": {
+       * //     "announcements": [
+       * //       {
+       * //         "id": "string",
+       * //         "title": "string", 
+       * //         "content": "string",
+       * //         "date": "2025-08-15T09:22:54.747Z"
+       * //       }
+       * //     ]
+       * //   }
+       * // }
+       */
       list: (course_id) => {
         return baseApiHelper.get(`/course-announcement/list?course_id=${course_id}`);
       },
+
+      /**
+       * 新增一筆課堂公告
+       * @param {string} course_id - 課程ID
+       * @param {Object} params - 公告參數
+       * @param {string} params.title - 公告標題
+       * @param {string} params.content - 公告內容
+       * @returns {Promise} 返回包含公告ID和創建日期的響應
+       * @example
+       * // 請求格式:
+       * // {
+       * //   "title": "string",
+       * //   "content": "string"
+       * // }
+       * // 
+       * // 響應格式:
+       * // {
+       * //   "data": {
+       * //     "announcement_id": "string",
+       * //     "date": "2025-08-15T09:23:23.159Z"
+       * //   }
+       * // }
+       * 
+       * @requires 限定角色: creator, admin, manager, teacher
+       */
       create: (course_id, params) => {
         return baseApiHelper.post(`/course-announcement/create-one?course_id=${course_id}`, params);
       },
+
+      /**
+       * 更新公告(以replace的方式更新資料)
+       * @param {string} course_id - 課程ID
+       * @param {Object} params - 公告參數
+       * @param {string} params.title - 公告標題
+       * @param {string} params.content - 公告內容
+       * @returns {Promise} 返回更新成功的消息
+       * @example
+       * // 請求格式:
+       * // {
+       * //   "title": "string",
+       * //   "content": "string"
+       * // }
+       * // 
+       * // 響應格式:
+       * // {
+       * //   "msg": "string"
+       * // }
+       * 
+       * @requires 限定角色: creator, admin, manager, teacher
+       */
       edit: (course_id, params) => {
         return baseApiHelper.put(`/course-announcement/replace-one?course_id=${course_id}`, params);
       },
+
+      /**
+       * 刪除一筆公告(真刪除)
+       * @param {string} course_id - 課程ID
+       * @returns {Promise} 返回刪除成功的消息
+       * @example
+       * // 響應格式:
+       * // {
+       * //   "msg": "string"
+       * // }
+       * 
+       * @requires 限定角色: creator, admin, manager, teacher
+       */
       delete: (course_id) => {
         return baseApiHelper.delete(`/course-announcement/delete-one?course_id=${course_id}`);
       },
+
+      /**
+       * (學生)取得課堂公告的通知
+       * @returns {Promise} 返回包含通知列表的響應
+       * @example
+       * // 響應格式:
+       * // {
+       * //   "data": {
+       * //     "notifications": [
+       * //       {
+       * //         "course_id": "string"
+       * //       }
+       * //     ]
+       * //   }
+       * // }
+       * 
+       * @requires 限定角色: student
+       */
       getNotification: () => {
         return baseApiHelper.get(`/course-announcement/notifications`);
       },
+
+      /**
+       * (學生)已讀課堂公告
+       * @param {string} course_id - 課程ID
+       * @returns {Promise} 返回標記已讀成功的消息
+       * @example
+       * // 響應格式:
+       * // {
+       * //   "msg": "string"
+       * // }
+       * 
+       * @requires 限定角色: student
+       */
       markAsRead: (course_id) => {
         return baseApiHelper.post(`/course-announcement/mark-as-read?course_id=${course_id}`);
       },
