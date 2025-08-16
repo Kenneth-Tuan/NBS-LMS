@@ -479,4 +479,34 @@ const assignmentService = {
   },
 };
 
-export { courseService, assignmentService };
+const announcementService = {
+  list: async (course_id) => {
+    const response = await courseApi.announcements.list(course_id);
+    return response.data.data;
+  },
+  create: async (course_id, params) => {
+    const response = await courseApi.announcements.create(course_id, params);
+    return response.data.data;
+  },
+  edit: async (announcement_id, params) => {
+    const response = await courseApi.announcements.edit(
+      announcement_id,
+      params
+    );
+    return response.data.data;
+  },
+  delete: async (announcement_id) => {
+    const response = await courseApi.announcements.delete(announcement_id);
+    return response.data.data;
+  },
+  getNotification: async () => {
+    const response = await courseApi.announcements.getNotification();
+    return response.data.data;
+  },
+  markAsRead: async (course_id) => {
+    const response = await courseApi.announcements.markAsRead(course_id);
+    return response.data.data;
+  },
+};
+
+export { courseService, assignmentService, announcementService };

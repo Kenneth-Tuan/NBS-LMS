@@ -40,7 +40,9 @@ export default {
   },
 
   deleteCourse(course_id) {
-    return baseApiHelper.delete(`/course-management/delete-one?course_id=${course_id}`);
+    return baseApiHelper.delete(
+      `/course-management/delete-one?course_id=${course_id}`
+    );
   },
 
   getCoursesForEnrollmentSettings(params) {
@@ -140,7 +142,7 @@ export default {
        * //     "announcements": [
        * //       {
        * //         "id": "string",
-       * //         "title": "string", 
+       * //         "title": "string",
        * //         "content": "string",
        * //         "date": "2025-08-15T09:22:54.747Z"
        * //       }
@@ -149,7 +151,9 @@ export default {
        * // }
        */
       list: (course_id) => {
-        return baseApiHelper.get(`/course-announcement/list?course_id=${course_id}`);
+        return baseApiHelper.get(
+          `/course-announcement/list?course_id=${course_id}`
+        );
       },
 
       /**
@@ -165,7 +169,7 @@ export default {
        * //   "title": "string",
        * //   "content": "string"
        * // }
-       * // 
+       * //
        * // 響應格式:
        * // {
        * //   "data": {
@@ -173,16 +177,19 @@ export default {
        * //     "date": "2025-08-15T09:23:23.159Z"
        * //   }
        * // }
-       * 
+       *
        * @requires 限定角色: creator, admin, manager, teacher
        */
       create: (course_id, params) => {
-        return baseApiHelper.post(`/course-announcement/create-one?course_id=${course_id}`, params);
+        return baseApiHelper.post(
+          `/course-announcement/create-one?course_id=${course_id}`,
+          params
+        );
       },
 
       /**
        * 更新公告(以replace的方式更新資料)
-       * @param {string} course_id - 課程ID
+       * @param {string} announcement_id - 公告ID
        * @param {Object} params - 公告參數
        * @param {string} params.title - 公告標題
        * @param {string} params.content - 公告內容
@@ -193,32 +200,37 @@ export default {
        * //   "title": "string",
        * //   "content": "string"
        * // }
-       * // 
+       * //
        * // 響應格式:
        * // {
        * //   "msg": "string"
        * // }
-       * 
+       *
        * @requires 限定角色: creator, admin, manager, teacher
        */
-      edit: (course_id, params) => {
-        return baseApiHelper.put(`/course-announcement/replace-one?course_id=${course_id}`, params);
+      edit: (announcement_id, params) => {
+        return baseApiHelper.put(
+          `/course-announcement/replace-one?announcement_id=${announcement_id}`,
+          params
+        );
       },
 
       /**
        * 刪除一筆公告(真刪除)
-       * @param {string} course_id - 課程ID
+       * @param {string} announcement_id - 公告ID
        * @returns {Promise} 返回刪除成功的消息
        * @example
        * // 響應格式:
        * // {
        * //   "msg": "string"
        * // }
-       * 
+       *
        * @requires 限定角色: creator, admin, manager, teacher
        */
-      delete: (course_id) => {
-        return baseApiHelper.delete(`/course-announcement/delete-one?course_id=${course_id}`);
+      delete: (announcement_id) => {
+        return baseApiHelper.delete(
+          `/course-announcement/delete-one?announcement_id=${announcement_id}`
+        );
       },
 
       /**
@@ -235,7 +247,7 @@ export default {
        * //     ]
        * //   }
        * // }
-       * 
+       *
        * @requires 限定角色: student
        */
       getNotification: () => {
@@ -251,11 +263,13 @@ export default {
        * // {
        * //   "msg": "string"
        * // }
-       * 
+       *
        * @requires 限定角色: student
        */
       markAsRead: (course_id) => {
-        return baseApiHelper.post(`/course-announcement/mark-as-read?course_id=${course_id}`);
+        return baseApiHelper.post(
+          `/course-announcement/mark-as-read?course_id=${course_id}`
+        );
       },
     };
   },
