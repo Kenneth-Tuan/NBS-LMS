@@ -108,7 +108,7 @@ onUnmounted(() => {
         />
       </div>
       <p class="u-c-blue u-font-bold u-flex u-flex-col u-items-start">
-        <span class="u-text-1.5rem u-font-bold">Lorem ipsum</span>
+        <span class="u-text-1.5rem u-font-bold">拿撒勒人會神學院選課系統</span>
         <span class="u-text-1rem u-font-bold">
           Taiwan Nazarene Thological College LMS
         </span>

@@ -1,9 +1,10 @@
 <script setup>
-import { ref, reactive } from "vue";
-import { v4 as uuidv4 } from "uuid";
+import { ref, reactive, watch, onMounted } from "vue";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import { PlusOutlined } from "@ant-design/icons-vue";
+import { announcementService } from "@/services/course.service";
+import { announcementSchema } from "@/schemas/announcement.schema";
 
 // Props
 const props = defineProps({
@@ -36,8 +37,13 @@ const announcementModal = reactive({
   content: "",
 });
 
+// Form ref
+const announcementFormRef = ref(null);
+
+// Loading state
+const loading = ref(false);
+
 // Watch for prop changes
-import { watch } from "vue";
 watch(
   () => props.announcements,
   (newVal) => {
@@ -46,6 +52,27 @@ watch(
 );
 
 // Methods
+const fetchAnnouncements = async () => {
+  loading.value = true;
+  try {
+    const response = await announcementService.list(props.courseId);
+    const announcements = response.announcements || [];
+    localAnnouncements.value = announcements.map((a) => ({
+      id: a.id,
+      courseId: props.courseId,
+      title: a.title,
+      content: a.content,
+      date: dayjs(a.date).format("YYYY-MM-DD HH:mm"),
+    }));
+    emit("update:announcements", localAnnouncements.value);
+  } catch (e) {
+    console.error(e);
+    message.error("無法載入公告");
+  } finally {
+    loading.value = false;
+  }
+};
+
 const openAddAnnouncementModal = () => {
   announcementModal.isEdit = false;
   announcementModal.id = null;
@@ -62,46 +89,55 @@ const openEditAnnouncementModal = (ann) => {
   announcementModal.visible = true;
 };
 
-const confirmAnnouncement = () => {
+const confirmAnnouncement = async () => {
   if (!announcementModal.title || !announcementModal.content) {
     message.error("請填寫標題和內容");
     return;
   }
 
-  if (announcementModal.isEdit) {
-    const index = localAnnouncements.value.findIndex(
-      (a) => a.id === announcementModal.id
-    );
-    if (index !== -1) {
-      localAnnouncements.value[index] = {
-        ...localAnnouncements.value[index],
+  loading.value = true;
+  try {
+    if (announcementModal.isEdit) {
+      await announcementService.edit(announcementModal.id, {
         title: announcementModal.title,
         content: announcementModal.content,
-      };
+      });
       message.success("公告更新成功");
+    } else {
+      await announcementService.create(props.courseId, {
+        title: announcementModal.title,
+        content: announcementModal.content,
+      });
+      message.success("公告新增成功");
     }
-  } else {
-    localAnnouncements.value.unshift({
-      id: uuidv4(),
-      courseId: props.courseId,
-      title: announcementModal.title,
-      content: announcementModal.content,
-      date: dayjs().format("YYYY-MM-DD HH:mm"),
-    });
-    message.success("公告新增成功");
+
+    await fetchAnnouncements();
+    announcementModal.visible = false;
+  } catch (e) {
+    console.error(e);
+    message.error(announcementModal.isEdit ? "公告更新失敗" : "公告新增失敗");
+  } finally {
+    loading.value = false;
   }
-
-  emit("update:announcements", localAnnouncements.value);
-  announcementModal.visible = false;
 };
 
-const deleteAnnouncement = (annId) => {
-  localAnnouncements.value = localAnnouncements.value.filter(
-    (a) => a.id !== annId
-  );
-  emit("update:announcements", localAnnouncements.value);
-  message.success("公告刪除成功");
+const deleteAnnouncement = async (annId) => {
+  loading.value = true;
+  try {
+    await announcementService.delete(annId);
+    message.success("公告刪除成功");
+    await fetchAnnouncements();
+  } catch (e) {
+    console.error(e);
+    message.error("公告刪除失敗");
+  } finally {
+    loading.value = false;
+  }
 };
+
+onMounted(() => {
+  fetchAnnouncements();
+});
 </script>
 
 <template>
@@ -165,24 +201,28 @@ const deleteAnnouncement = (annId) => {
     <a-modal
       v-model:visible="announcementModal.visible"
       :title="announcementModal.isEdit ? '編輯公告' : '新增公告'"
-      @ok="confirmAnnouncement"
       okText="確認"
       cancelText="取消"
+      @ok="confirmAnnouncement"
     >
-      <a-form layout="vertical">
-        <a-form-item
-          label="標題"
-          name="title"
-          :rules="[{ required: true, message: '請輸入標題!' }]"
-        >
-          <a-input v-model:value="announcementModal.title" />
+      <a-form
+        ref="announcementFormRef"
+        layout="vertical"
+        :model="announcementModal"
+        @finish="confirmAnnouncement"
+      >
+        <a-form-item v-bind="announcementSchema.title" name="title">
+          <a-input
+            v-model:value="announcementModal.title"
+            :placeholder="announcementSchema.title.placeholder"
+          />
         </a-form-item>
-        <a-form-item
-          label="內容"
-          name="content"
-          :rules="[{ required: true, message: '請輸入內容!' }]"
-        >
-          <a-textarea v-model:value="announcementModal.content" :rows="5" />
+        <a-form-item v-bind="announcementSchema.content" name="content">
+          <a-textarea
+            v-model:value="announcementModal.content"
+            :rows="announcementSchema.content.rows"
+            :placeholder="announcementSchema.content.placeholder"
+          />
         </a-form-item>
       </a-form>
     </a-modal>
