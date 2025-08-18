@@ -8,6 +8,7 @@ import { useUserStore } from "@/stores/user";
 import { courseService } from "@/services/course.service";
 import { RouterName } from "@/enums/appEnums";
 import { useNotificationStore } from "@/stores/notificationStore";
+import { UserRole } from "@/enums/appEnums";
 
 const router = useRouter();
 const route = useRoute();
