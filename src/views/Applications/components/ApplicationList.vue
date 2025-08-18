@@ -69,7 +69,12 @@ const columns = [
     dataIndex: "action",
     key: "action",
     width: "80px",
-    roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
+    roles: [
+      UserRole.Creator,
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Student,
+    ],
   },
 ];
 
@@ -210,21 +215,8 @@ const dateFormatter = (date) => {
               {{ APPLICATION_TYPE_TEXT[currentRecord.type] }}
             </a-tag>
           </a-descriptions-item>
-          <a-descriptions-item label="申請狀態">
-            <a-tag
-              :color="APPLICATION_STATUS_COLOR[currentRecord?.base?.status]"
-            >
-              {{ APPLICATION_STATUS_TEXT[currentRecord?.base?.status] }}
-            </a-tag>
-          </a-descriptions-item>
           <a-descriptions-item label="申請日期">{{
             dateFormatter(currentRecord?.base?.application_date)
-          }}</a-descriptions-item>
-          <a-descriptions-item label="審核日期">{{
-            dateFormatter(currentRecord?.base?.review_date) || "尚未審核"
-          }}</a-descriptions-item>
-          <a-descriptions-item label="審核人員">{{
-            currentRecord?.base?.reviewer_name || "尚未審核"
           }}</a-descriptions-item>
 
           <!-- 實習申請特定欄位 -->
@@ -283,17 +275,11 @@ const dateFormatter = (date) => {
                 :attachments="currentRecord?.info?.attachments"
               />
             </a-descriptions-item>
-          </template>ß
+          </template>
         </a-descriptions>
 
-        <!-- 審核狀況區塊 - 僅對待審核的申請顯示 -->
-        <div
-          v-if="
-            currentRecord &&
-            currentRecord?.base?.status === ApplicationStatus.Pending
-          "
-          class="review-section"
-        >
+        <!-- 審核狀況區塊 - 統一顯示所有審核相關資訊 -->
+        <div v-if="currentRecord" class="review-section">
           <a-divider>審核狀況</a-divider>
 
           <a-descriptions
@@ -301,31 +287,55 @@ const dateFormatter = (date) => {
             :column="2"
             class="u-border u-border-[#89c4d6] u-rounded-b-lg"
           >
-            <a-descriptions-item label="狀態">
+            <a-descriptions-item label="申請狀態">
               <a-tag
                 :color="APPLICATION_STATUS_COLOR[currentRecord?.base?.status]"
               >
                 {{ APPLICATION_STATUS_TEXT[currentRecord?.base?.status] }}
               </a-tag>
             </a-descriptions-item>
+            <a-descriptions-item label="審核日期">{{
+              dateFormatter(currentRecord?.base?.review_date) || "尚未審核"
+            }}</a-descriptions-item>
+            <a-descriptions-item label="審核人員" :span="2">{{
+              currentRecord?.base?.reviewer_name || "尚未審核"
+            }}</a-descriptions-item>
+            <a-descriptions-item label="審核結果" :span="2">{{
+              currentRecord?.base?.reviewer_note || "尚未審核"
+            }}</a-descriptions-item>
 
-            <a-descriptions-item label="審核結果" :span="2">
-              <a-radio-group v-model:value="reviewResult">
-                <a-radio :value="ApplicationStatus.Approved">同意</a-radio>
-                <a-radio :value="ApplicationStatus.Rejected">退回</a-radio>
-              </a-radio-group>
-            </a-descriptions-item>
+            <!-- 審核動作區域 - 僅對待審核申請且非學生用戶顯示 -->
+            <template
+              v-if="
+                currentRecord?.base?.status === ApplicationStatus.Pending &&
+                userProfile.userRole !== UserRole.Student
+              "
+            >
+              <a-descriptions-item label="審核結果" :span="2">
+                <a-radio-group v-model:value="reviewResult">
+                  <a-radio :value="ApplicationStatus.Approved">同意</a-radio>
+                  <a-radio :value="ApplicationStatus.Rejected">退回</a-radio>
+                </a-radio-group>
+              </a-descriptions-item>
 
-            <a-descriptions-item label="意見" :span="2">
-              <a-textarea
-                v-model:value="reviewComment"
-                placeholder="請輸入"
-                :rows="4"
-              />
-            </a-descriptions-item>
+              <a-descriptions-item label="審核意見" :span="2">
+                <a-textarea
+                  v-model:value="reviewComment"
+                  placeholder="請輸入審核意見"
+                  :rows="4"
+                />
+              </a-descriptions-item>
+            </template>
           </a-descriptions>
 
-          <div class="u-flex u-justify-center u-gap-4 u-mt-4 u-mb-4">
+          <!-- 審核動作按鈕 - 僅對待審核申請且非學生用戶顯示 -->
+          <div
+            v-if="
+              currentRecord?.base?.status === ApplicationStatus.Pending &&
+              userProfile.userRole !== UserRole.Student
+            "
+            class="u-flex u-justify-center u-gap-4 u-mt-4 u-mb-4"
+          >
             <a-button @click="cancelReview">取消</a-button>
             <a-button type="primary" @click="submitReview">確認</a-button>
           </div>
