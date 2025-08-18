@@ -4,7 +4,7 @@ const timeCourseSettingsSchema = {
     rules: [
       {
         type: "array",
-        min: 5,
+        min: 1,
         message: "可選課程最少需要5門",
       },
       {
