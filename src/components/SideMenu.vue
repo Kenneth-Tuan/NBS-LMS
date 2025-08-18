@@ -119,7 +119,10 @@ watch(
 );
 
 const onClickMenuChild = async (menuKey) => {
-  if (menuKey === RouterName.ApplicationRecord) {
+  if (
+    menuKey === RouterName.ApplicationRecord &&
+    userProfile.userRole === UserRole.Student
+  ) {
     await notificationStore.markAsRead();
   }
 };
