@@ -66,6 +66,26 @@ const onFinish = async (values) => {
     } = values;
     const [startTime, endTime] = timeRange;
 
+    if (dayjs(startTime).isBefore(dayjs())) {
+      message.error("選課開始時間不能小於今天");
+      return;
+    }
+
+    if (dayjs(endTime).isBefore(dayjs(startTime))) {
+      message.error("選課結束時間不能小於選課開始時間");
+      return;
+    }
+
+    if (creditLimit < 1) {
+      message.error("該學期學分上限不能小於1");
+      return;
+    }
+
+    if (courseIds.length < 1) {
+      message.error("可選課程最少需要1門");
+      return;
+    }
+
     const result = await courseService.createEnrollment(
       courseIds,
       dayjs(startTime).format(),
