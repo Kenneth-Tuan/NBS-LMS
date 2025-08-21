@@ -5,7 +5,7 @@ const timeCourseSettingsSchema = {
       {
         type: "array",
         min: 1,
-        message: "可選課程最少需要5門",
+        message: "可選課程最少需要1門",
       },
       {
         type: "array",
