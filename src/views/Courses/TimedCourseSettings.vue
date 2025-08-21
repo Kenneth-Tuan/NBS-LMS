@@ -1,6 +1,9 @@
 <script setup>
 import { reactive, onMounted, ref, computed } from "vue";
 import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
+dayjs.extend(isBetween);
+
 import { Divider, message, Table } from "ant-design-vue";
 
 import { timeCourseSettingsSchema } from "@/schemas/timeCourseSettings.schema";
@@ -65,6 +68,29 @@ const onFinish = async (values) => {
       "courses-credit": creditLimit,
     } = values;
     const [startTime, endTime] = timeRange;
+
+    const timeRangeOfEnrollmentList = enrollmentStatusData.value.map(
+      (enrollment) => {
+        return {
+          start_time: dayjs(enrollment.start_time),
+          end_time: dayjs(enrollment.end_time),
+        };
+      }
+    );
+
+    const isTimeRangeOverlapping = timeRangeOfEnrollmentList.some(
+      (enrollment) => {
+        return (
+          dayjs(startTime).isBetween(enrollment.start_time, enrollment.end_time, null, "[]") ||
+          dayjs(endTime).isBetween(enrollment.start_time, enrollment.end_time, null, "[]")
+        );
+      }
+    );
+
+    if (isTimeRangeOverlapping) {
+      message.error("選課時間不能與現有選課設定重疊");
+      return;
+    }
 
     if (dayjs(startTime).isBefore(dayjs())) {
       message.error("選課開始時間不能小於今天");
