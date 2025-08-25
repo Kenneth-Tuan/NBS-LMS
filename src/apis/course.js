@@ -57,6 +57,10 @@ export default {
     return baseApiHelper.post(`/enrollment/create-one`, params);
   },
 
+  deleteEnrollment(enrollment_id) {
+    return baseApiHelper.delete(`/enrollment?enrollment_id=${enrollment_id}`);
+  },
+
   pickCourse(params) {
     return baseApiHelper.post(`/enrollment/pick-course`, params);
   },

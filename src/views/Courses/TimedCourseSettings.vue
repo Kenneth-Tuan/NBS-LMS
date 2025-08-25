@@ -8,6 +8,7 @@ import { Divider, message, Table } from "ant-design-vue";
 
 import { timeCourseSettingsSchema } from "@/schemas/timeCourseSettings.schema";
 import { courseService } from "@/services/course.service";
+import courseApi from "@/apis/course";
 
 const formState = reactive({
   ["selectable-courses"]: [],
@@ -58,6 +59,13 @@ const columns = [
       return `${record.credit_limit} 學分`;
     },
   },
+  {
+    title: "操作",
+    key: "action",
+    dataIndex: "action",
+    width: 50,
+    align: "center",
+  },
 ];
 
 const onFinish = async (values) => {
@@ -81,8 +89,18 @@ const onFinish = async (values) => {
     const isTimeRangeOverlapping = timeRangeOfEnrollmentList.some(
       (enrollment) => {
         return (
-          dayjs(startTime).isBetween(enrollment.start_time, enrollment.end_time, null, "[]") ||
-          dayjs(endTime).isBetween(enrollment.start_time, enrollment.end_time, null, "[]")
+          dayjs(startTime).isBetween(
+            enrollment.start_time,
+            enrollment.end_time,
+            null,
+            "[]"
+          ) ||
+          dayjs(endTime).isBetween(
+            enrollment.start_time,
+            enrollment.end_time,
+            null,
+            "[]"
+          )
         );
       }
     );
@@ -160,6 +178,22 @@ const loadEnrollmentStatus = async () => {
   }
 };
 
+const handleDelete = async (enrollment_id) => {
+  try {
+    const result = await courseApi.deleteEnrollment(enrollment_id);
+
+    if (result.status === 200) {
+      message.success("刪除選課設定成功");
+      await loadEnrollmentStatus();
+    } else {
+      message.error("刪除選課設定失敗");
+    }
+  } catch (error) {
+    console.error("刪除選課設定失敗:", error);
+    message.error("刪除選課設定失敗");
+  }
+};
+
 onMounted(async () => {
   const courses = await courseService.fetchCoursesForEnrollmentSettings();
   selectableCourses.value = courses.map((course) => ({
@@ -191,7 +225,21 @@ onMounted(async () => {
             :pagination="false"
             :row-key="(record) => record.enrollment_id"
             size="middle"
-          />
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.key === 'action'">
+                <a-popconfirm
+                  title="所有相關的選課資料將會被刪除，確定要刪除此選課設定嗎？"
+                  ok-text="確定"
+                  cancel-text="取消"
+                  @confirm="handleDelete(record.enrollment_id)"
+                  placement="topLeft"
+                >
+                  <a-button type="link" danger>刪除</a-button>
+                </a-popconfirm>
+              </template>
+            </template>
+          </Table>
         </div>
 
         <Divider class="u-my16px" />
