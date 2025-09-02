@@ -22,7 +22,7 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   });
 
   const filters = reactive({
-    searchKeyword: "",
+    searchKeyword: null,
     role: null,
     status: null,
   });
@@ -39,7 +39,12 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   async function fetchUsers() {
     loading.value = true;
     try {
-      const response = await userService.getUserList(pagination);
+      const filtersParams = {
+        name: filters.searchKeyword,
+        role: filters.role,
+        status: filters.status,
+      };
+      const response = await userService.getUserList(pagination, filtersParams);
       users.value = [...response.data.data.users];
       pagination.total = response.data.total_page;
       pagination.pageSize = response.data.page_size;

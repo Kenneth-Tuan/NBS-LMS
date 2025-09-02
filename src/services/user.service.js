@@ -7,13 +7,14 @@ const userService = {
   //     "page": 1
   //   }
   // }
-  async getUserList(pageInfo) {
+  async getUserList(pageInfo, filter) {
     try {
       const params = {
         paged_info: {
           page: pageInfo.currentPage,
           page_size: pageInfo.pageSize,
         },
+        filter,
       };
       const result = await userApi.userList(params);
       return result;

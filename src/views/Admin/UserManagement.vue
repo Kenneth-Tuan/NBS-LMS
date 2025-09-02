@@ -23,7 +23,7 @@ const store = useUserManagementStore();
 
 // Setup Table Logic
 const {
-  filteredUsers,
+  users,
   loading,
   exportLoading,
   pagination,
@@ -161,10 +161,10 @@ onMounted(() => {
 
       <!-- Search and filters -->
       <a-form layout="inline" class="table-filter-form mb-4">
-        <a-form-item label="關鍵字">
+        <a-form-item label="姓名">
           <a-input
             v-model:value="filters.searchKeyword"
-            placeholder="姓名/帳號/電子郵件"
+            placeholder="輸入姓名"
             allow-clear
           />
         </a-form-item>
@@ -192,7 +192,7 @@ onMounted(() => {
         </a-form-item>
 
         <a-form-item>
-          <a-button v-if="false" type="primary" @click="handleSearch">
+          <a-button type="primary" @click="handleSearch">
             <template #icon><search-outlined /></template>
             搜尋
           </a-button>
@@ -242,7 +242,7 @@ onMounted(() => {
       <a-table
         :row-selection="rowSelection"
         :columns="columns"
-        :data-source="filteredUsers"
+        :data-source="users"
         :loading="loading"
         :pagination="{
           current: pagination.currentPage,
