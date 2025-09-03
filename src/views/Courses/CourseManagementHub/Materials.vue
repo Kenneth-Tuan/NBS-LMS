@@ -94,6 +94,7 @@ const beforeMaterialUpload = (file) => {
 };
 
 const uploadAction = async (file) => {
+  console.log("test material uploadAction", materialModal.file, file);
   materialModal.file = await Promise.all(
     materialModal.file.map(async (file) => {
       try {
@@ -257,9 +258,7 @@ const downloadMaterial = async (material) => {
               title="確定刪除此教材嗎?"
               @confirm="deleteMaterial(item.url)"
             >
-              <a-button type="link" size="small" danger>
-                刪除
-              </a-button>
+              <a-button type="link" size="small" danger> 刪除 </a-button>
             </a-popconfirm>
           </template>
         </a-list-item>
@@ -283,6 +282,7 @@ const downloadMaterial = async (material) => {
             :customRequest="uploadAction"
             :before-upload="beforeMaterialUpload"
             :disabled="materialModal.uploading"
+            :multiple="true"
           >
             <p class="ant-upload-drag-icon">
               <InboxOutlined />
