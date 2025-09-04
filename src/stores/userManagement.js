@@ -7,6 +7,7 @@ import { initialUserFormState } from "@/schemas/userManagementForm.schema";
 import { userService } from "../services/user.service";
 import { useUserStore } from "./user";
 import { UserRole } from "@/enums/appEnums";
+import { UserStatus } from "../enums/appEnums";
 
 export const useUserManagementStore = defineStore("userManagement", () => {
   // === State ===
@@ -24,7 +25,7 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   const filters = reactive({
     searchKeyword: null,
     role: null,
-    status: null,
+    status: UserStatus.Active,
   });
 
   const selectedRowKeys = ref([]);
@@ -40,9 +41,9 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     loading.value = true;
     try {
       const filtersParams = {
-        name: filters.searchKeyword,
-        role: filters.role,
-        status: filters.status,
+        name: filters.searchKeyword || null,
+        role: filters.role || null,
+        status: filters.status || null,
       };
       const response = await userService.getUserList(pagination, filtersParams);
       users.value = [...response.data.data.users];
@@ -72,9 +73,9 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   }
 
   function resetFilters() {
-    filters.searchKeyword = "";
+    filters.searchKeyword = null;
     filters.role = null;
-    filters.status = null;
+    filters.status = UserStatus.Active;
     pagination.currentPage = 1;
     fetchUsers();
   }
@@ -213,46 +214,6 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     fetchUsers();
   }
 
-  const filteredUsers = computed(() => {
-    const userStore = useUserStore();
-    const currentUserRole = userStore.userProfile.userRole;
-
-    return users.value.filter((user) => {
-      // 1. 當 userRole 不為 creator 時，過濾掉 creator 角色的用戶
-      if (
-        currentUserRole !== UserRole.Creator &&
-        user.role === UserRole.Creator
-      ) {
-        return false;
-      }
-
-      // 2. 應用關鍵字搜尋過濾條件
-      if (filters.searchKeyword && filters.searchKeyword.trim() !== "") {
-        const keyword = filters.searchKeyword.toLowerCase();
-        const matchesKeyword =
-          (user.name && user.name.toLowerCase().includes(keyword)) ||
-          (user.username && user.username.toLowerCase().includes(keyword)) ||
-          (user.email && user.email.toLowerCase().includes(keyword)) ||
-          (user.phone && user.phone.toLowerCase().includes(keyword));
-
-        if (!matchesKeyword) return false;
-      }
-
-      // 3. 應用角色過濾條件
-      if (filters.role && user.role !== filters.role) {
-        return false;
-      }
-
-      // 4. 應用狀態過濾條件
-      if (filters.status !== null && user.status !== filters.status) {
-        return false;
-      }
-
-      // 通過所有過濾條件
-      return true;
-    });
-  });
-
   return {
     // State
     users,
@@ -268,7 +229,6 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     // Getters
 
     hasSelected,
-    filteredUsers,
     // Actions
     fetchUsers,
     updatePagination,

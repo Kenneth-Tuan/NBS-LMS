@@ -17,7 +17,6 @@ export function useUserManagementTable() {
     filters,
     selectedRowKeys,
     hasSelected,
-    filteredUsers,
   } = storeToRefs(store);
 
   const {
@@ -147,7 +146,6 @@ export function useUserManagementTable() {
     // Computed
     columns,
     rowSelection,
-    filteredUsers,
 
     // Methods bound to store actions
     handlePageChange,
