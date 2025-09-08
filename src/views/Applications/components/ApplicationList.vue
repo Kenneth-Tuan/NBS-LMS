@@ -199,7 +199,7 @@ const dateFormatter = (date) => {
     <a-modal
       v-model:open="detailVisible"
       title="申請詳情"
-      width="700px"
+      width="850px"
       :footer="null"
     >
       <div v-if="currentRecord">
@@ -240,6 +240,9 @@ const dateFormatter = (date) => {
 
           <!-- 請假申請特定欄位 -->
           <template v-if="currentRecord.type === 'leave'">
+            <a-descriptions-item label="請假課程" :span="2">{{
+              currentRecord?.info?.course_name
+            }}</a-descriptions-item>
             <a-descriptions-item label="請假開始日期">{{
               dateFormatter(currentRecord?.info?.leave_start_date)
             }}</a-descriptions-item>

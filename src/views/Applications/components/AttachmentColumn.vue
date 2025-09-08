@@ -1,4 +1,8 @@
 <script setup>
+import { useFileDownload } from "@/composables/useFileDownload";
+
+const { downloadAndOpen } = useFileDownload();
+
 const props = defineProps({
   attachments: {
     type: Array,
@@ -13,7 +17,7 @@ const props = defineProps({
       <a-button
         class="u-p-0"
         type="link"
-        @click="handleAttachmentClick(attachment.url)"
+        @click="downloadAndOpen(attachment.url)"
       >
         {{ attachment.name }}
       </a-button>
