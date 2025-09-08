@@ -56,7 +56,7 @@ export const leaveApplicationSchema = {
   },
   attachments: {
     label: "相關附件",
-    rules: [{ required: true, message: "請上傳相關附件" }],
+    rules: [{ required: false, message: "請上傳相關附件" }],
   },
 };
 
