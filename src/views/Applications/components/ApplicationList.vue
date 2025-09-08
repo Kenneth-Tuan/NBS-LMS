@@ -73,7 +73,7 @@ const columns = [
       UserRole.Creator,
       UserRole.Admin,
       UserRole.Manager,
-      UserRole.Student,
+      UserRole.Teacher,
     ],
   },
 ];
