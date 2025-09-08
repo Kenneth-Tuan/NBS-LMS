@@ -144,7 +144,9 @@ const submitReview = async () => {
     reviewResult.value = ApplicationStatus.Approved;
     reviewComment.value = "";
   } catch (error) {
-    console.error("更新申請狀態失敗:", error.message);
+    console.error("更新申請狀態失敗:", error);
+    const errorMessage = error.response?.data?.msg || "更新申請狀態失敗";
+    message.error(errorMessage);
   }
 };
 
