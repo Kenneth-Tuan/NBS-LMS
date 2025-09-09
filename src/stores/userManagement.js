@@ -132,8 +132,6 @@ export const useUserManagementStore = defineStore("userManagement", () => {
         delete formData.password;
         delete formData.confirmPassword;
         delete formData.email;
-        delete formData.name;
-        delete formData.telephone;
         await userService.updateUser(formData);
         message.success("使用者更新成功");
       }

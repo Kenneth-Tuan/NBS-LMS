@@ -57,6 +57,8 @@ const userService = {
       const params = {
         id: userInfo.id,
         role: userInfo.role ?? UserRole.Student,
+        name: userInfo.name ?? "",
+        phone: userInfo.phone ?? "",
         is_active: userInfo.status === UserStatus.Active ? true : false,
       };
       const result = await userApi.updateUser(params);

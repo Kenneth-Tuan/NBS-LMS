@@ -318,11 +318,7 @@ onMounted(() => {
         ref="formRef"
       >
         <a-form-item label="姓名" name="name">
-          <a-input
-            v-model:value="userForm.name"
-            placeholder="請輸入姓名"
-            :disabled="store.formMode === 'edit'"
-          />
+          <a-input v-model:value="userForm.name" placeholder="請輸入姓名" />
         </a-form-item>
 
         <a-form-item label="電子郵件" name="email">
@@ -337,7 +333,6 @@ onMounted(() => {
           <a-input
             v-model:value="userForm.phone"
             placeholder="請輸入電話（選填）"
-            :disabled="store.formMode === 'edit'"
           />
         </a-form-item>
 

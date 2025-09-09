@@ -34,6 +34,22 @@ export const getUserFormRules = (formRef, formMode) => ({
     { type: "email", message: "請輸入有效的電子郵件", trigger: "blur" },
   ],
   role: [{ required: true, message: "請選擇角色", trigger: "change" }],
+  phone: [
+    { required: true, message: "請輸入電話", trigger: "blur" },
+    {
+      validator: (rule, value, cb) => {
+        if (value.length !== 10) {
+          return cb(true);
+        }
+        if (Number.isNaN(Number(value))) {
+          return cb(true);
+        }
+        return cb();
+      },
+      message: "請輸入有效的電話號碼",
+      trigger: "blur",
+    },
+  ],
   password: [
     {
       required: formMode.value === "create",
