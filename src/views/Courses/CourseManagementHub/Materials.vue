@@ -58,6 +58,7 @@ const openAddMaterialModal = () => {
 };
 
 const beforeMaterialUpload = (file) => {
+  console.log("fileType", file);
   // 支援的檔案類型
   const allowedTypes = [
     "application/pdf", // PDF
@@ -71,8 +72,10 @@ const beforeMaterialUpload = (file) => {
     "image/jpeg", // JPEG 圖片
     "image/png", // PNG 圖片
     "image/gif", // GIF 圖片
-    "video/mp4", // MP4 影片
-    "audio/mpeg", // MP3 音檔
+    "application/zip", // ZIP 檔案
+    "application/x-rar-compressed", // RAR 檔案
+    "application/x-7z-compressed", // 7Z 檔案
+    "application/x-tar", // TAR 檔案
   ];
 
   if (!allowedTypes.includes(file.type)) {
