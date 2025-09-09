@@ -35,7 +35,6 @@ export const getUserFormRules = (formRef, formMode) => ({
   ],
   role: [{ required: true, message: "請選擇角色", trigger: "change" }],
   phone: [
-    { required: true, message: "請輸入電話", trigger: "blur" },
     {
       validator: (rule, value, cb) => {
         if (value.length !== 10) {
