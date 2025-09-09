@@ -37,12 +37,15 @@ export const getUserFormRules = (formRef, formMode) => ({
   phone: [
     {
       validator: (rule, value, cb) => {
+        if (!value) return cb();
+
         if (value.length !== 10) {
           return cb(true);
         }
         if (Number.isNaN(Number(value))) {
           return cb(true);
         }
+
         return cb();
       },
       message: "請輸入有效的電話號碼",
