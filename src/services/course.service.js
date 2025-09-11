@@ -253,7 +253,9 @@ const courseService = {
   fetchCoursesForEnrollmentSettings: async () => {
     const params = {
       filter: {
-        start_time: dayjs().format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
+        start_time: dayjs()
+          .subtract(6, "month")
+          .format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
         end_time: dayjs()
           .add(6, "month")
           .format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),

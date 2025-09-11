@@ -167,8 +167,10 @@ const loadEnrollmentStatus = async () => {
   try {
     const data = await courseService.getEnrollmentStatus();
 
-    const filteredEnrollments = data.enrollments.filter((enrollment) =>
-      dayjs(enrollment.end_time).isAfter(dayjs())
+    const filteredEnrollments = data.enrollments.filter(
+      (enrollment) =>
+        // dayjs(enrollment.end_time).isAfter(dayjs())
+        true
     );
 
     enrollmentStatusData.value = [...filteredEnrollments];
