@@ -18,6 +18,9 @@ import { UserStatus } from "@/enums/appEnums";
 import { message } from "ant-design-vue";
 import userApi from "@/apis/user";
 
+// 響應式判斷
+const isMobile = computed(() => window.innerWidth < 768);
+
 // Initialize Store
 const store = useUserManagementStore();
 
@@ -159,146 +162,241 @@ onMounted(() => {
         </a-space>
       </template>
 
-      <!-- Search and filters -->
-      <a-form layout="inline" class="table-filter-form mb-4">
-        <a-form-item label="姓名">
-          <a-input
-            v-model:value="filters.searchKeyword"
-            placeholder="輸入姓名"
-            allow-clear
-          />
-        </a-form-item>
+      <!-- 桌機版 Table -->
+      <div class="u-hidden lg:u-block">
+        <!-- Search and filters -->
+        <a-form layout="inline" class="table-filter-form mb-4">
+          <a-form-item label="姓名">
+            <a-input
+              v-model:value="filters.searchKeyword"
+              placeholder="輸入姓名"
+              allow-clear
+            />
+          </a-form-item>
 
-        <a-form-item label="角色">
-          <a-select
-            v-model:value="filters.role"
-            placeholder="選擇角色"
-            style="width: 120px"
-            allow-clear
-            :options="roleOptions"
-          >
-          </a-select>
-        </a-form-item>
+          <a-form-item label="角色">
+            <a-select
+              v-model:value="filters.role"
+              placeholder="選擇角色"
+              style="width: 120px"
+              allow-clear
+              :options="roleOptions"
+            >
+            </a-select>
+          </a-form-item>
 
-        <a-form-item label="狀態">
-          <a-select
-            v-model:value="filters.status"
-            placeholder="選擇狀態"
-            style="width: 120px"
-            allow-clear
-            :options="statusOptions"
-          >
-          </a-select>
-        </a-form-item>
+          <a-form-item label="狀態">
+            <a-select
+              v-model:value="filters.status"
+              placeholder="選擇狀態"
+              style="width: 120px"
+              allow-clear
+              :options="statusOptions"
+            >
+            </a-select>
+          </a-form-item>
 
-        <a-form-item>
-          <a-button type="primary" @click="handleSearch">
-            <template #icon><search-outlined /></template>
-            搜尋
-          </a-button>
-        </a-form-item>
+          <a-form-item>
+            <a-button type="primary" @click="handleSearch">
+              <template #icon><search-outlined /></template>
+              搜尋
+            </a-button>
+          </a-form-item>
 
-        <a-form-item>
-          <a-button @click="handleResetFilters">
-            <template #icon><clear-outlined /></template>
-            重置
-          </a-button>
-        </a-form-item>
-      </a-form>
+          <a-form-item>
+            <a-button @click="handleResetFilters">
+              <template #icon><clear-outlined /></template>
+              重置
+            </a-button>
+          </a-form-item>
+        </a-form>
 
-      <!-- Bulk actions -->
-      <div class="bulk-actions mb-4" v-if="false">
-        <a-space>
-          <span v-if="hasSelected"
-            >已選擇 {{ store.selectedRowKeys.length }} 項</span
-          >
-          <a-button
-            type="primary"
-            :disabled="!hasSelected"
-            @click="confirmBulkOperation('activate')"
-          >
-            <template #icon><check-circle-outlined /></template>
-            批量啟用
-          </a-button>
-          <a-button
-            :disabled="!hasSelected"
-            @click="confirmBulkOperation('deactivate')"
-          >
-            <template #icon><stop-outlined /></template>
-            批量停用
-          </a-button>
-          <a-button
-            type="danger"
-            :disabled="!hasSelected"
-            @click="confirmBulkOperation('delete')"
-          >
-            <template #icon><delete-outlined /></template>
-            批量刪除
-          </a-button>
-        </a-space>
+        <!-- Bulk actions -->
+        <div class="bulk-actions mb-4" v-if="false">
+          <a-space>
+            <span v-if="hasSelected"
+              >已選擇 {{ store.selectedRowKeys.length }} 項</span
+            >
+            <a-button
+              type="primary"
+              :disabled="!hasSelected"
+              @click="confirmBulkOperation('activate')"
+            >
+              <template #icon><check-circle-outlined /></template>
+              批量啟用
+            </a-button>
+            <a-button
+              :disabled="!hasSelected"
+              @click="confirmBulkOperation('deactivate')"
+            >
+              <template #icon><stop-outlined /></template>
+              批量停用
+            </a-button>
+            <a-button
+              type="danger"
+              :disabled="!hasSelected"
+              @click="confirmBulkOperation('delete')"
+            >
+              <template #icon><delete-outlined /></template>
+              批量刪除
+            </a-button>
+          </a-space>
+        </div>
+
+        <!-- Users table -->
+        <a-table
+          :row-selection="rowSelection"
+          :columns="columns"
+          :data-source="users"
+          :loading="loading"
+          :pagination="{
+            current: pagination.currentPage,
+            pageSize: pagination.pageSize,
+            total: pagination.total * pagination.pageSize,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total) => `共 ${total} 條記錄`,
+          }"
+          :row-key="(record) => record.id"
+          @change="handlePageChange"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'avatar'">
+              <a-avatar :src="record.avatar" :alt="record.name" />
+            </template>
+            <template v-else-if="column.key === 'role'">
+              {{ getRoleText(record.role) }}
+            </template>
+            <template v-else-if="column.key === 'status'">
+              <a-tag
+                :color="record.status === UserStatus.Active ? 'green' : 'red'"
+              >
+                {{ getStatusText(record.status) }}
+              </a-tag>
+            </template>
+            <template v-else-if="column.key === 'lastLogin'">
+              {{ formatLocaleDateTime(record.lastLogin) }}
+            </template>
+            <template v-else-if="column.key === 'action'">
+              <span>
+                <a-button
+                  type="link"
+                  style="padding: 0 0 0 0"
+                  @click="showEditForm(record)"
+                  >編輯</a-button
+                >
+                <a-divider type="vertical" />
+                <a-button
+                  type="link"
+                  style="padding: 0 0 0 0"
+                  @click="confirmSingleResetPassword(record)"
+                  >重設密碼</a-button
+                >
+                <a-divider type="vertical" />
+                <a-button
+                  type="link"
+                  style="padding: 0 0 0 0"
+                  danger
+                  @click="confirmSingleDelete(record)"
+                  >刪除</a-button
+                >
+              </span>
+            </template>
+          </template>
+        </a-table>
       </div>
 
-      <!-- Users table -->
-      <a-table
-        :row-selection="rowSelection"
-        :columns="columns"
-        :data-source="users"
-        :loading="loading"
-        :pagination="{
-          current: pagination.currentPage,
-          pageSize: pagination.pageSize,
-          total: pagination.total * pagination.pageSize,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 條記錄`,
-        }"
-        :row-key="(record) => record.id"
-        @change="handlePageChange"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'avatar'">
-            <a-avatar :src="record.avatar" :alt="record.name" />
-          </template>
-          <template v-else-if="column.key === 'role'">
-            {{ getRoleText(record.role) }}
-          </template>
-          <template v-else-if="column.key === 'status'">
-            <a-tag
-              :color="record.status === UserStatus.Active ? 'green' : 'red'"
-            >
-              {{ getStatusText(record.status) }}
+      <!-- 手機版 卡片列表 -->
+      <div class="lg:u-hidden">
+        <!-- Mobile filters -->
+        <div class="u-mb-4 u-p-3 u-bg-gray-50 u-rounded">
+          <div class="u-mb-3">
+            <a-input
+              v-model:value="filters.searchKeyword"
+              placeholder="搜尋姓名"
+              allow-clear
+              @pressEnter="handleSearch"
+            />
+          </div>
+          <div class="u-flex u-gap-2 u-mb-2">
+            <a-select
+              v-model:value="filters.role"
+              placeholder="角色"
+              style="flex: 1"
+              allow-clear
+              :options="roleOptions"
+            />
+            <a-select
+              v-model:value="filters.status"
+              placeholder="狀態"
+              style="flex: 1"
+              allow-clear
+              :options="statusOptions"
+            />
+          </div>
+          <div class="u-flex u-gap-2">
+            <a-button type="primary" @click="handleSearch" style="flex: 1">
+              <template #icon><search-outlined /></template>
+              搜尋
+            </a-button>
+            <a-button @click="handleResetFilters" style="flex: 1">
+              <template #icon><clear-outlined /></template>
+              重置
+            </a-button>
+          </div>
+        </div>
+
+        <!-- Mobile user cards -->
+        <div
+          v-for="(user, index) in users"
+          :key="user.id"
+          class="u-mb-3 u-rounded u-border u-p-4 u-bg-white u-shadow-gls-base"
+        >
+          <div class="u-flex u-justify-between u-items-start u-mb-3">
+            <div class="u-font-medium u-text-lg">{{ user.name }}</div>
+            <a-tag :color="user.status === UserStatus.Active ? 'green' : 'red'">
+              {{ getStatusText(user.status) }}
             </a-tag>
-          </template>
-          <template v-else-if="column.key === 'lastLogin'">
-            {{ formatLocaleDateTime(record.lastLogin) }}
-          </template>
-          <template v-else-if="column.key === 'action'">
-            <span>
-              <a-button
-                type="link"
-                style="padding: 0 0 0 0"
-                @click="showEditForm(record)"
-                >編輯</a-button
-              >
-              <a-divider type="vertical" />
-              <a-button
-                type="link"
-                style="padding: 0 0 0 0"
-                @click="confirmSingleResetPassword(record)"
-                >重設密碼</a-button
-              >
-              <a-divider type="vertical" />
-              <a-button
-                type="link"
-                style="padding: 0 0 0 0"
-                danger
-                @click="confirmSingleDelete(record)"
-                >刪除</a-button
-              >
-            </span>
-          </template>
-        </template>
-      </a-table>
+          </div>
+
+          <div class="u-text-sm u-text-gray-600 u-space-y-1">
+            <div>帳號：{{ user.username || "-" }}</div>
+            <div>Email：{{ user.email || "-" }}</div>
+            <div>角色：{{ getRoleText(user.role) }}</div>
+            <div v-if="user.lastLogin">
+              最後登入：{{ formatLocaleDateTime(user.lastLogin) }}
+            </div>
+          </div>
+
+          <div class="u-flex u-justify-end u-gap-2 u-mt-4">
+            <a-button type="primary" size="small" @click="showEditForm(user)">
+              編輯
+            </a-button>
+            <a-button
+              type="default"
+              size="small"
+              @click="confirmSingleResetPassword(user)"
+            >
+              重設密碼
+            </a-button>
+            <a-button danger size="small" @click="confirmSingleDelete(user)">
+              刪除
+            </a-button>
+          </div>
+        </div>
+
+        <!-- Mobile pagination -->
+        <a-pagination
+          class="u-mt-4 u-flex u-justify-center"
+          :current="pagination.currentPage"
+          :pageSize="pagination.pageSize"
+          :total="pagination.total * pagination.pageSize"
+          :showSizeChanger="true"
+          :showQuickJumper="true"
+          :showTotal="(total) => `共 ${total} 條記錄`"
+          @change="handlePageChange"
+        />
+      </div>
     </a-card>
 
     <!-- Create/Edit user form dialog -->

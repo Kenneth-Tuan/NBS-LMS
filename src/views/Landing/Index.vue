@@ -466,12 +466,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="u-grid u-grid-cols-2 u-h100% u-w100% u-gap-4 u-p4 u-items-start">
+  <div
+    class="u-grid u-grid-cols-1 md:u-grid-cols-2 u-h100% u-w100% u-gap-2 md:u-gap-4 u-p2 md:u-p4 u-items-start"
+  >
     <div
-      class="u-p24px u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
+      class="u-p16px md:u-p24px u-col-span-1 md:u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
     >
-      <div class="u-flex u-justify-between u-items-center u-mb16px">
-        <h1 class="u-text-24px u-font-bold u-c-blue u-m0">
+      <div class="u-flex u-justify-between u-items-center u-mb12px md:u-mb16px">
+        <h1 class="u-text-18px md:u-text-24px u-font-bold u-c-blue u-m0">
           {{ "最新消息" }}
         </h1>
         <a-button
@@ -494,6 +496,9 @@ onMounted(async () => {
         :loading="isLoading"
         rowKey="key"
         bordered
+        :scroll="{ x: 600 }"
+        size="small"
+        class="u-text-14px md:u-text-16px"
       >
         <template #bodyCell="{ column, text, record }">
           <!-- Display cells for date, content, publisher -->
@@ -507,7 +512,7 @@ onMounted(async () => {
           <!-- Operation column -->
           <template v-else-if="column.dataIndex === 'operation'">
             <div>
-              <span class="u-grid u-grid-cols-2">
+              <span class="u-flex u-gap-2">
                 <a-button
                   type="link"
                   size="small"
@@ -539,10 +544,10 @@ onMounted(async () => {
     </div>
 
     <div
-      class="u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
+      class="u-p16px md:u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
     >
       <div class="u-flex u-justify-between u-items-center u-mb-2">
-        <h1 class="u-text-24px u-font-bold u-c-blue u-m0">
+        <h1 class="u-text-18px md:u-text-24px u-font-bold u-c-blue u-m0">
           {{ "課程公告" }}
         </h1>
         <a-button
@@ -569,7 +574,7 @@ onMounted(async () => {
                 {{ item.title }}
               </template>
             </a-list-item-meta>
-            <ul class="u-flex u-flex-col u-gap-16px">
+            <ul class="u-flex u-flex-col u-gap-8px md:u-gap-16px">
               <li
                 v-for="(content, index) in item.contents"
                 :key="`${item.key}-content-${index}`"
@@ -609,10 +614,10 @@ onMounted(async () => {
     </div>
 
     <div
-      class="u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
+      class="u-p16px md:u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
     >
       <div class="u-flex u-justify-between u-items-center u-mb-2">
-        <h1 class="u-text-24px u-font-bold u-c-blue u-m0">
+        <h1 class="u-text-18px md:u-text-24px u-font-bold u-c-blue u-m0">
           {{ "注意事項" }}
         </h1>
         <a-button
@@ -639,7 +644,7 @@ onMounted(async () => {
                 {{ item.title }}
               </template>
             </a-list-item-meta>
-            <ul class="u-flex u-flex-col u-gap-16px">
+            <ul class="u-flex u-flex-col u-gap-8px md:u-gap-16px">
               <li
                 v-for="(content, index) in item.contents"
                 :key="`${item.key}-content-${index}`"

@@ -1,11 +1,20 @@
 <script setup>
-import { reactive, unref, ref, onMounted, onUnmounted, computed } from "vue";
+import {
+  reactive,
+  unref,
+  ref,
+  onMounted,
+  onUnmounted,
+  computed,
+  watch,
+} from "vue";
 import { storeToRefs } from "pinia";
 import {
   LoginOutlined,
   UserOutlined,
   BellOutlined,
   CaretDownOutlined,
+  MenuOutlined,
 } from "@ant-design/icons-vue";
 import { useRouter } from "vue-router";
 
@@ -14,6 +23,7 @@ import SideMenu from "@/components/SideMenu.vue";
 import { UserRole } from "@/enums/appEnums";
 
 const router = useRouter();
+const open = ref(false);
 
 const userStore = useUserStore();
 const { isLoggedIn } = storeToRefs(userStore);
@@ -34,6 +44,10 @@ async function onClickLoginBtn() {
     logout();
   }
 }
+
+const onClose = () => {
+  open.value = false;
+};
 
 const handleRoleChange = (newRole) => {
   setUserRole(newRole);
@@ -84,6 +98,14 @@ const userRoleOptions = computed(() => {
 
 const isDEV = import.meta.env.DEV;
 
+// Close the drawer on route change (better UX on mobile)
+watch(
+  () => router.currentRoute.value.fullPath,
+  () => {
+    onClose();
+  }
+);
+
 onMounted(() => {
   window.addEventListener("keydown", handleKeyDown);
   window.addEventListener("keyup", handleKeyUp);
@@ -98,21 +120,43 @@ onUnmounted(() => {
 <template>
   <div class="u-flex u-flex-col u-min-h-screen">
     <header
-      class="u-bg-white u-text-white u-text-center u-flex u-items-center u-justify-start u-flex-gap-x-2rem u-py-1rem u-px-2rem"
+      class="u-bg-white u-text-white u-text-center u-flex u-items-center u-justify-between lg:u-py-1rem lg:u-px-2rem u-py-0.5rem u-px-1rem lg:u-relative u-fixed u-top-0 u-left-0 u-right-0 u-z-10"
     >
-      <div class="u-flex u-items-center u-justify-center u-h-full">
-        <img
-          src="/src/assets/icon/logo2.jpeg"
-          alt="Logo"
-          class="u-w-16 u-h-16"
-        />
+      <div
+        class="u-flex u-items-center u-justify-start u-h-full lg:u-flex-gap-x-2rem u-flex-gap-x-0.5rem"
+      >
+        <div
+          class="lg:u-flex u-hidden u-items-center u-justify-center u-h-full"
+        >
+          <img
+            src="/src/assets/icon/logo2.jpeg"
+            alt="Logo"
+            class="lg:u-w-16 lg:u-h-16 u-w-12 u-h-12"
+          />
+        </div>
+        <a-button
+          type="text"
+          class="lg:u-hidden u-inline-flex u-items-center u-justify-center u-px-0 u-border-none u-bg-transparent u-shadow-none"
+          aria-label="開啟選單"
+          @click="open = true"
+        >
+          <MenuOutlined class="u-text-1.25rem u-c-blue" />
+        </a-button>
+        <div
+          class="u-c-blue u-font-bold u-flex u-flex-col u-items-start u-leading-tight lg:u-leading-normal"
+        >
+          <span
+            class="xl:u-text-1.5rem lg:u-text-1.25rem u-font-bold u-text-0.875rem"
+          >
+            拿撒勒人會神學院選課系統
+          </span>
+          <span
+            class="lg:u-text-1rem u-text-0.75rem u-font-bold lg:u-inline u-hidden"
+          >
+            Taiwan Nazarene Theological College LMS
+          </span>
+        </div>
       </div>
-      <p class="u-c-blue u-font-bold u-flex u-flex-col u-items-start">
-        <span class="u-text-1.5rem u-font-bold">拿撒勒人會神學院選課系統</span>
-        <span class="u-text-1rem u-font-bold">
-          Taiwan Nazarene Thological College LMS
-        </span>
-      </p>
       <div class="u-flex-1"></div>
 
       <!-- DEV ONLY: Role Switcher -->
@@ -160,7 +204,9 @@ onUnmounted(() => {
             class="u-flex u-items-center u-justify-center u-flex-gap-x-0.5rem"
           >
             <UserOutlined class="u-text-1.5rem u-font-bold u-c-blue" />
-            <span class="u-text-1rem u-font-bold u-c-blue">
+            <span
+              class="md:u-text-1rem u-text-0.875rem u-font-bold u-c-blue md:u-inline u-hidden"
+            >
               {{ userProfile.userName }}
             </span>
 
@@ -186,14 +232,15 @@ onUnmounted(() => {
     </header>
 
     <main
-      class="u-relative u-flex-grow u-flex u-flex-col u-justify-start u-h100% u-w100% u-bg-cover u-bg-center u-bg-opacity-10 u-bg-[url('/src/assets/image/loginPoster.jpg')]"
+      class="lg:u-pt-0 u-pt-4rem u-relative u-flex-grow u-flex u-flex-col u-justify-start u-h100% u-w100% u-bg-cover u-bg-center u-bg-opacity-10 u-bg-[url('/src/assets/image/loginPoster.jpg')]"
     >
       <div class="u-absolute u-inset-0 u-bg-white u-opacity-40 u-h100%"></div>
       <div class="u-w100% u-h100% u-z-9 u-flex-1 u-flex u-flex-nowrap">
-        <Transition name="fade" :duration="550" mode="out-in" appear>
-          <SideMenu v-if="isLoggedIn" />
-        </Transition>
-        <router-view />
+        <!-- Desktop sidebar -->
+        <SideMenu class="u-hidden lg:u-block u-w-[260px] u-flex-shrink-0" />
+        <div class="u-w-full u-h-full lg:u-p-1rem u-p-0.5rem">
+          <router-view />
+        </div>
       </div>
     </main>
 
@@ -205,6 +252,21 @@ onUnmounted(() => {
         Theological College LMS
       </p>
     </footer>
+
+    <!-- Mobile drawer for the side menu -->
+    <a-drawer
+      title="選單"
+      placement="left"
+      :open="open"
+      @close="onClose"
+      :closable="false"
+      :destroyOnClose="true"
+      class="lg:u-hidden"
+      :bodyStyle="{ padding: 0 }"
+      width="min-content"
+    >
+      <SideMenu />
+    </a-drawer>
   </div>
 </template>
 

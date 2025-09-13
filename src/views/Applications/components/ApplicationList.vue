@@ -3,6 +3,9 @@ import { ref, computed } from "vue";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 
+// 響應式判斷
+const isMobile = computed(() => window.innerWidth < 768);
+
 import { useUserStore } from "@/stores/user";
 import { useApplicationStore } from "@/stores/application";
 import { ApplicationStatus, UserRole } from "@/enums/appEnums";
@@ -168,35 +171,77 @@ const dateFormatter = (date) => {
   <div class="u-mt-1rem">
     <a-empty v-if="!data || data.length === 0" description="暫無申請記錄" />
 
-    <a-table
-      v-else
-      :dataSource="data"
-      :columns="filterColumns"
-      rowKey="application_id"
-      :pagination="{ pageSize: 30 }"
-    >
-      <!-- 申請編號列 -->
-      <template #bodyCell="{ column, record }">
-        <!-- 申請狀態 -->
-        <template v-if="column.dataIndex === 'status'">
-          <a-tag :color="APPLICATION_STATUS_COLOR[record.status]">
-            {{ APPLICATION_STATUS_TEXT[record.status] }}
-          </a-tag>
-        </template>
+    <!-- 桌機版 Table -->
+    <div v-else class="u-hidden lg:u-block">
+      <a-table
+        :dataSource="data"
+        :columns="filterColumns"
+        rowKey="application_id"
+        :pagination="{ pageSize: 30 }"
+      >
+        <!-- 申請編號列 -->
+        <template #bodyCell="{ column, record }">
+          <!-- 申請狀態 -->
+          <template v-if="column.dataIndex === 'status'">
+            <a-tag :color="APPLICATION_STATUS_COLOR[record.status]">
+              {{ APPLICATION_STATUS_TEXT[record.status] }}
+            </a-tag>
+          </template>
 
-        <!-- 申請類型 -->
-        <template v-if="column.dataIndex === 'type'">
-          <a-tag :color="APPLICATION_TYPE_COLOR[record.type]">
-            {{ APPLICATION_TYPE_TEXT[record.type] }}
-          </a-tag>
-        </template>
+          <!-- 申請類型 -->
+          <template v-if="column.dataIndex === 'type'">
+            <a-tag :color="APPLICATION_TYPE_COLOR[record.type]">
+              {{ APPLICATION_TYPE_TEXT[record.type] }}
+            </a-tag>
+          </template>
 
-        <!-- 詳細資訊 -->
-        <template v-if="column.dataIndex === 'action'">
-          <a-button type="link" @click="showDetail(record)">詳細</a-button>
+          <!-- 詳細資訊 -->
+          <template v-if="column.dataIndex === 'action'">
+            <a-button type="link" @click="showDetail(record)">詳細</a-button>
+          </template>
         </template>
-      </template>
-    </a-table>
+      </a-table>
+    </div>
+
+    <!-- 手機版 卡片列表 -->
+    <div v-if="data && data.length > 0" class="lg:u-hidden">
+      <div
+        v-for="(application, index) in data"
+        :key="application.application_id"
+        class="u-mb-3 u-rounded u-border u-p-4 u-bg-white u-shadow-gls-base"
+      >
+        <div class="u-flex u-justify-between u-items-start u-mb-3">
+          <div class="u-font-medium u-text-lg">
+            {{ application.applicant_name }}
+          </div>
+          <div class="u-flex u-flex-col u-gap-1">
+            <a-tag :color="APPLICATION_STATUS_COLOR[application.status]">
+              {{ APPLICATION_STATUS_TEXT[application.status] }}
+            </a-tag>
+            <a-tag :color="APPLICATION_TYPE_COLOR[application.type]">
+              {{ APPLICATION_TYPE_TEXT[application.type] }}
+            </a-tag>
+          </div>
+        </div>
+
+        <div class="u-text-sm u-text-gray-600 u-space-y-1">
+          <div>申請編號：{{ application.applicant_id }}</div>
+          <div>
+            申請日期：{{ dayjs(application.date).format("YYYY-MM-DD") }}
+          </div>
+        </div>
+
+        <div class="u-flex u-justify-end u-mt-4">
+          <a-button
+            type="primary"
+            size="small"
+            @click="showDetail(application)"
+          >
+            查看詳情
+          </a-button>
+        </div>
+      </div>
+    </div>
 
     <!-- 詳細資訊對話框 -->
     <a-modal
