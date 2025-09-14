@@ -20,6 +20,7 @@ import { useUserStore } from "@/stores/user"; // Import user store
 import { UserRole } from "@/enums/appEnums"; // Import UserRole enum
 import { announcementService } from "@/services/announcement.service";
 import dayjs from "dayjs";
+import WYSIWYG from "@/components/WYSIWYG.vue";
 
 // --- Store and User Role ---
 const userStore = useUserStore();
@@ -706,10 +707,8 @@ onMounted(async () => {
           placeholder="請輸入發佈單位"
           :disabled="isNewsModalLoading"
         />
-        <a-textarea
-          v-model:value="currentEditingNews.content"
-          placeholder="請輸入內容"
-          :rows="5"
+        <WYSIWYG
+          v-model:content="currentEditingNews.content"
           :disabled="isNewsModalLoading"
         />
       </a-space>
@@ -731,10 +730,8 @@ onMounted(async () => {
           placeholder="請輸入標題"
           :disabled="isAnnouncementModalLoading"
         />
-        <a-textarea
-          v-model:value="currentEditingAnnouncement.contentsString"
-          placeholder="請輸入內容 (每行一個項目)"
-          :rows="5"
+        <WYSIWYG
+          v-model:content="currentEditingAnnouncement.contentsString"
           :disabled="isAnnouncementModalLoading"
         />
       </a-space>
@@ -756,10 +753,8 @@ onMounted(async () => {
           placeholder="請輸入標題"
           :disabled="isNoticeModalLoading"
         />
-        <a-textarea
-          v-model:value="currentEditingNotice.contentsString"
-          placeholder="請輸入內容 (每行一個項目)"
-          :rows="5"
+        <WYSIWYG
+          v-model:content="currentEditingNotice.contentsString"
           :disabled="isNoticeModalLoading"
         />
       </a-space>
