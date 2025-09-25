@@ -142,7 +142,7 @@ const confirmMaterial = async () => {
       outline_files:
         props.currentCourse.outlineFile
           .concat(materialModal.file)
-          .map((f) => f.url) || [],
+          .map((f) => f.url).filter(Boolean) || [],
     };
 
     const result = await courseService.updateCourse(courseUpdateParams);

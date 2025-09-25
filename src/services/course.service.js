@@ -203,7 +203,7 @@ const courseService = {
           fileType,
           isUploaded: true,
         };
-      });
+      }).filter(Boolean);
 
       return courseAdapter.apiToFrontend(courseData);
     } catch (error) {
