@@ -66,16 +66,25 @@ export async function encryptString(plainText, password, saltHex) {
 
   const cipherBytes = new Uint8Array(cipherBuffer);
   const cipherTextBase64 = bytesToBase64(cipherBytes);
-  return { cipherTextBase64, ivHex: bytesToHex(ivBytes), saltHex: effectiveSaltHex };
+  return {
+    cipherTextBase64,
+    ivHex: bytesToHex(ivBytes),
+    saltHex: effectiveSaltHex,
+  };
 }
 
 /**
  * Decrypt a payload produced by encryptString using the same password.
  */
-export async function decryptString({ cipherTextBase64, ivHex, saltHex }, password) {
+export async function decryptString(
+  { cipherTextBase64, ivHex, saltHex },
+  password
+) {
   if (!password) throw new Error("decryptString: password is required");
   if (!cipherTextBase64 || !ivHex || !saltHex) {
-    throw new Error("decryptString: cipherTextBase64, ivHex, and saltHex are required");
+    throw new Error(
+      "decryptString: cipherTextBase64, ivHex, and saltHex are required"
+    );
   }
 
   const saltBytes = hexToBytes(saltHex);
@@ -161,4 +170,16 @@ async function deriveAesGcmKey(password, saltBytes) {
     ["encrypt", "decrypt"]
   );
   return key;
+}
+
+export function isValidJson(data) {
+  if (typeof data !== "string") {
+    return false; // 非字串，無法解析
+  }
+  try {
+    JSON.parse(data);
+    return true;
+  } catch (error) {
+    return false;
+  }
 }

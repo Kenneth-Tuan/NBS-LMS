@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { useCourseStore } from "../stores/course";
 import courseAdapter from "@/adapters/course.adapter";
 import { UserRole } from "@/enums/appEnums";
+import { isValidJson } from "@/utils/misc";
 
 const courseService = {
   getTeachers: async () => {
@@ -190,33 +191,42 @@ const courseService = {
       // Apply adapter to convert API response to frontend format
       const courseData = response.data.data;
 
-      courseData.outline_files = courseData.outline_files.map((file) => {
-        if (!file) return null;
+      courseData.outline_files = courseData.outline_files
+        .map((file) => {
+          if (!file) return null;
 
-        if (file.startsWith("gs://")) {
-          const fileName = file?.split("_").pop();
-          const fileType = fileName?.split(".").pop();
+          if (file.startsWith("gs://")) {
+            const fileName = file?.split("_").pop();
+            const fileType = fileName?.split(".").pop();
 
-          return {
-            uid: "-1",
-            name: fileName,
-            status: "done",
-            url: file,
-            fileType,
-            isUploaded: true,
-          };
-        } else {
-          const linkObj = JSON.parse(file);
-          return {
-            uid: "-1",
-            name: linkObj.file_name,
-            status: "done",
-            url: linkObj.link,
-            fileType: 'link',
-            isUploaded: true,
-          };
-        }
-      }).filter(Boolean);
+            return {
+              uid: "-1",
+              name: fileName,
+              status: "done",
+              url: file,
+              fileType,
+              isUploaded: true,
+            };
+          }
+
+          if (isValidJson(file)) {
+            const linkObj = JSON.parse(file);
+
+            if (linkObj.hasOwnProperty("isParsed") && linkObj.isParsed) {
+              return {
+                uid: "-1",
+                name: linkObj.fileName,
+                status: "done",
+                url: linkObj.url,
+                fileType: linkObj.fileType,
+                isUploaded: true,
+              };
+            }
+          }
+
+          return null;
+        })
+        .filter(Boolean);
 
       return courseAdapter.apiToFrontend(courseData);
     } catch (error) {

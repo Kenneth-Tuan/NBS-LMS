@@ -136,10 +136,28 @@ const confirmMaterial = async () => {
   materialModal.uploading = true;
 
   let outline_files =
-    props.currentCourse.outlineFile.map((f) => f.url).filter(Boolean) || [];
+    props.currentCourse.outlineFile.filter(Boolean).map((file) => {
+      if (typeof file !== "string" && !file.hasOwnProperty("isParsed")) {
+        return JSON.stringify({
+          fileName: file.name,
+          url: file.url,
+          fileType: file.fileType,
+          isParsed: true,
+        });
+      }
+      return file;
+    }) || [];
 
   if (materialModal.type === 1) {
-    const files = materialModal.file.map((f) => f.url).filter(Boolean) || [];
+    const files =
+      materialModal.file.filter(Boolean).map((file) => {
+        return JSON.stringify({
+          fileName: file.name,
+          url: file.url,
+          fileType: file.fileType,
+          isParsed: true,
+        });
+      }) || [];
 
     outline_files = outline_files.concat(files);
   }
@@ -149,8 +167,10 @@ const confirmMaterial = async () => {
       materialModal.link_name && materialModal.link_url
         ? [
             JSON.stringify({
-              file_name: materialModal.link_name,
-              link: materialModal.link_url,
+              fileName: materialModal.link_name,
+              url: materialModal.link_url,
+              fileType: "link",
+              isParsed: true,
             }),
           ]
         : [];
@@ -276,15 +296,35 @@ const downloadMaterial = async (material) => {
             </template>
             <template #title>
               <a
-                @click="downloadMaterial(item)"
-                class="u-text-md u-font-semibold u-c-blue-600 hover:u-underline"
+                v-if="item.fileType === 'link'"
+                :href="item.url"
+                target="_blank"
+                class="u-text-md u-font-semibold! u-c-blue-600! hover:u-underline!"
               >
                 {{ item.name }}
               </a>
+              <a
+                v-else
+                @click="downloadMaterial(item)"
+                class="u-text-md u-font-semibold! u-c-blue-600! hover:u-underline!"
+              >
+                {{ item.name }}
+              </a>
+              <div
+                v-if="item.fileType === 'link'"
+                class="u-text-sm u-c-gray-500"
+              >
+                {{ item.url }}
+              </div>
             </template>
           </a-list-item-meta>
           <template #actions>
-            <a-button type="link" size="small" @click="downloadMaterial(item)">
+            <a-button
+              v-if="item.fileType !== 'link'"
+              type="link"
+              size="small"
+              @click="downloadMaterial(item)"
+            >
               下載
             </a-button>
             <a-popconfirm
