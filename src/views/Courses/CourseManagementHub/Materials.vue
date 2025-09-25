@@ -40,6 +40,9 @@ const materialModal = reactive({
   visible: false,
   file: null,
   uploading: false,
+  type: 1,
+  link_name: "",
+  link_url: "",
 });
 
 // Helper functions
@@ -58,7 +61,6 @@ const openAddMaterialModal = () => {
 };
 
 const beforeMaterialUpload = (file) => {
-  console.log("fileType", file);
   // 支援的檔案類型
   const allowedTypes = [
     "application/pdf", // PDF
@@ -97,7 +99,6 @@ const beforeMaterialUpload = (file) => {
 };
 
 const uploadAction = async (file) => {
-  console.log("test material uploadAction", materialModal.file, file);
   materialModal.file = await Promise.all(
     materialModal.file.map(async (file) => {
       try {
@@ -118,11 +119,44 @@ const uploadAction = async (file) => {
 };
 
 const confirmMaterial = async () => {
-  if (!materialModal.file || materialModal.file.length === 0) {
+  if (
+    materialModal.type === 1 &&
+    (!materialModal.file || materialModal.file.length === 0)
+  ) {
     return message.error("請選擇要上傳的檔案");
   }
 
+  if (
+    materialModal.type === 2 &&
+    (!materialModal.link_name || !materialModal.link_url)
+  ) {
+    return message.error("請輸入連結名稱和連結");
+  }
+
   materialModal.uploading = true;
+
+  let outline_files =
+    props.currentCourse.outlineFile.map((f) => f.url).filter(Boolean) || [];
+
+  if (materialModal.type === 1) {
+    const files = materialModal.file.map((f) => f.url).filter(Boolean) || [];
+
+    outline_files = outline_files.concat(files);
+  }
+
+  if (materialModal.type === 2) {
+    const link =
+      materialModal.link_name && materialModal.link_url
+        ? [
+            JSON.stringify({
+              file_name: materialModal.link_name,
+              link: materialModal.link_url,
+            }),
+          ]
+        : [];
+
+    outline_files = outline_files.concat(link);
+  }
 
   try {
     // 構建課程更新參數
@@ -139,10 +173,7 @@ const confirmMaterial = async () => {
       weekly_schedule: props.currentCourse.weeklySchedule || [],
       prerequisite_course_ids: props.currentCourse.prerequisites || [],
       description: props.currentCourse.description || "",
-      outline_files:
-        props.currentCourse.outlineFile
-          .concat(materialModal.file)
-          .map((f) => f.url).filter(Boolean) || [],
+      outline_files,
     };
 
     const result = await courseService.updateCourse(courseUpdateParams);
@@ -278,7 +309,11 @@ const downloadMaterial = async (material) => {
       :confirmLoading="materialModal.uploading"
       :okButtonProps="{ disabled: materialModal.uploading }"
     >
-      <a-form layout="vertical">
+      <a-radio-group v-model:value="materialModal.type">
+        <a-radio :value="1">教材</a-radio>
+        <a-radio :value="2">連結</a-radio>
+      </a-radio-group>
+      <a-form v-if="materialModal.type === 1" layout="vertical">
         <a-form-item label="選擇檔案" name="file">
           <a-upload-dragger
             v-model:file-list="materialModal.file"
@@ -296,6 +331,14 @@ const downloadMaterial = async (material) => {
               50MB，可選擇多個檔案
             </p>
           </a-upload-dragger>
+        </a-form-item>
+      </a-form>
+      <a-form v-if="materialModal.type === 2" layout="vertical">
+        <a-form-item label="連結名稱" name="link_name">
+          <a-input v-model:value="materialModal.link_name" />
+        </a-form-item>
+        <a-form-item label="連結" name="link_url">
+          <a-input v-model:value="materialModal.link_url" />
         </a-form-item>
       </a-form>
     </a-modal>

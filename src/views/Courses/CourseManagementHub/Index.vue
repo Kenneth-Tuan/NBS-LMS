@@ -31,7 +31,6 @@ const isStudent = computed(() => userProfile.userRole === UserRole.Student);
 // --- Shared State ---
 const announcements = ref([]);
 const assignments = ref([]);
-const materials = ref([]);
 const students = ref([]); // Course student roster
 const grades = reactive({}); // { studentId: { assignmentId: score } } - Teacher's gradebook data
 const currentUserSubmissions = ref([]); // [{ assignmentId, status, fileName, grade }]
@@ -78,7 +77,6 @@ async function fetchCourseData() {
   try {
     const apiCourse = await courseService.getCourse(currentCourseId.value);
     currentCourse.value = apiCourse;
-    console.log("apiCourse", apiCourse);
   } catch (err) {
     // Keep silent failure – fall back to dummy data
     console.error(

@@ -192,17 +192,30 @@ const courseService = {
 
       courseData.outline_files = courseData.outline_files.map((file) => {
         if (!file) return null;
-        const fileName = file?.split("_").pop();
-        const fileType = fileName?.split(".").pop();
 
-        return {
-          uid: "-1",
-          name: fileName,
-          status: "done",
-          url: file,
-          fileType,
-          isUploaded: true,
-        };
+        if (file.startsWith("gs://")) {
+          const fileName = file?.split("_").pop();
+          const fileType = fileName?.split(".").pop();
+
+          return {
+            uid: "-1",
+            name: fileName,
+            status: "done",
+            url: file,
+            fileType,
+            isUploaded: true,
+          };
+        } else {
+          const linkObj = JSON.parse(file);
+          return {
+            uid: "-1",
+            name: linkObj.file_name,
+            status: "done",
+            url: linkObj.link,
+            fileType: 'link',
+            isUploaded: true,
+          };
+        }
       }).filter(Boolean);
 
       return courseAdapter.apiToFrontend(courseData);
