@@ -126,6 +126,11 @@ export default {
           `/assignment/student/list-by-course?course_id=${course_id}`
         );
       },
+      listSubmissions: (assignment_id) => {
+        return baseApiHelper.get(
+          `/assignment/teacher/list-submissions?assignment_id=${assignment_id}`
+        );
+      },
     };
   },
 

@@ -8,8 +8,6 @@ export const handlers = [
       // 獲取課程列表
       const courses = getCourseList();
 
-      console.log("test courses: ", courses);
-
       return HttpResponse.json({
         success: true,
         data: courses,

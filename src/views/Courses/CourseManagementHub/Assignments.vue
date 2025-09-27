@@ -10,6 +10,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons-vue";
 import { assignmentService, courseService } from "@/services/course.service";
+import { useFileDownload } from "@/composables/useFileDownload";
 
 // Props
 const props = defineProps({
@@ -46,6 +47,8 @@ const props = defineProps({
     default: () => [],
   },
 });
+
+const { downloadAndOpen } = useFileDownload();
 
 // Emits
 const emit = defineEmits(["update"]);
@@ -110,10 +113,8 @@ const submissionDetailModal = reactive({
 });
 
 const submissionTableColumns = [
-  { title: "學生姓名", dataIndex: "studentName", key: "studentName" },
-  { title: "學號", dataIndex: "studentId", key: "studentId" },
-  { title: "繳交狀態", dataIndex: "statusText", key: "status" },
-  { title: "繳交內容", dataIndex: "files", key: "files" },
+  { title: "學生姓名", dataIndex: "student_name", key: "student_name" },
+  { title: "繳交內容", dataIndex: "submitted_files", key: "submitted_files" },
 ];
 
 // --- Helper Functions ---
@@ -169,7 +170,9 @@ const fetchAssignments = async () => {
         title: assignment.title,
         description: assignment.description,
         dueDate: dayjs(assignment.expDate).format("YYYY-MM-DD"),
-        status: AssignmentStatus.OPEN, // 預設狀態
+        status: dayjs(assignment.expDate).isAfter(dayjs())
+          ? AssignmentStatus.OPEN
+          : AssignmentStatus.CLOSED, // 預設狀態
       }));
     } else if (props.isStudent) {
       // 學生使用 listByCourse API
@@ -185,7 +188,9 @@ const fetchAssignments = async () => {
         title: assignment.title,
         description: assignment.description,
         dueDate: dayjs(assignment.exp_date).format("YYYY-MM-DD"),
-        status: AssignmentStatus.OPEN,
+        status: dayjs(assignment.exp_date).isAfter(dayjs())
+          ? AssignmentStatus.OPEN
+          : AssignmentStatus.CLOSED,
       }));
 
       // 更新學生的繳交狀態
@@ -333,10 +338,14 @@ const handleStudentMockUpload = async (assignment, file) => {
       url: url,
     }));
 
+    const currentSubmission = localCurrentUserSubmissions.value.find(
+      (submission) => submission.assignmentId === assignment.id
+    );
+
     // 提交作業
     await assignmentService.submit({
       assignment_id: assignment.id,
-      files: uploadedFiles,
+      files: currentSubmission.files.concat(uploadedFiles),
     });
 
     message.success(`作業 "${assignment.title}" 已成功繳交`);
@@ -387,41 +396,18 @@ const deleteSubmittedFile = async (assignment, fileToDelete) => {
   }
 };
 
-const openSubmissionDetailModal = (assignment) => {
+const openSubmissionDetailModal = async (assignment) => {
   submissionDetailModal.assignmentTitle = `"${assignment.title}" 的繳交狀況`;
 
-  // 這裡需要實際的 API 來取得所有學生的繳交狀況
-  // 目前先使用 mock data
-  const mockSubmissions = props.students.map((student) => {
-    const grade = localGrades[student.id]?.[assignment.id];
-    let status, files;
+  try {
+    const response = await assignmentService.listSubmissions(assignment.id);
 
-    // Create varied mock data
-    const randomChoice = Math.random();
-    if (grade !== null && grade !== undefined) {
-      status = AssignmentStatus.GRADED;
-      files = [{ file_name: `submission_${student.id.slice(0, 4)}.pdf` }];
-    } else if (randomChoice > 0.6) {
-      status = AssignmentStatus.SUBMITTED;
-      files = [{ file_name: `submission_${student.id.slice(0, 4)}.docx` }];
-    } else {
-      status = AssignmentStatus.NOT_SUBMITTED;
-      files = [];
-    }
-
-    return {
-      key: student.id,
-      studentName: student.name,
-      studentId: student.id,
-      status: status,
-      statusText: getStatusText(status),
-      statusColor: getStatusColor(status),
-      files: files,
-    };
-  });
-
-  submissionDetailModal.submissions = mockSubmissions;
-  submissionDetailModal.visible = true;
+    submissionDetailModal.submissions = response.list;
+    submissionDetailModal.visible = true;
+  } catch (error) {
+    console.error("Failed to fetch submissions:", error);
+    message.error("無法載入繳交狀況");
+  }
 };
 
 // Load assignments on mount
@@ -658,17 +644,18 @@ onMounted(() => {
         row-key="key"
       >
         <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'status'">
-            <a-tag :color="record.statusColor">{{ record.statusText }}</a-tag>
-          </template>
-          <template v-else-if="column.key === 'files'">
-            <div v-if="record.files && record.files.length > 0">
-              <div
-                v-for="file in record.files"
+          <template v-if="column.key === 'submitted_files'">
+            <div
+              v-if="record.submitted_files && record.submitted_files.length > 0"
+            >
+              <a-tag
+                v-for="file in record.submitted_files"
                 :key="file.url || file.file_name"
+                color="geekblue"
+                @click="downloadAndOpen(file)"
               >
-                <FileOutlined /> {{ file.file_name }}
-              </div>
+                <FileOutlined /> {{ file.file_name }}</a-tag
+              >
             </div>
             <span v-else>--</span>
           </template>

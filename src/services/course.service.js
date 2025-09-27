@@ -123,7 +123,6 @@ const courseService = {
   },
 
   uploadFile: async (data) => {
-    console.log("uploadFile called with data:", data);
     const formData = new FormData();
 
     data.forEach((file) => {
@@ -132,7 +131,6 @@ const courseService = {
 
     try {
       const response = await courseApi.uploadFile(formData);
-      console.log("Upload response:", response);
       return response.data.data.upload_urls;
     } catch (error) {
       console.error("Upload error:", error);
@@ -500,6 +498,29 @@ const assignmentService = {
   // }
   listByCourse: async (course_id) => {
     const response = await courseApi.assignments.listByCourse(course_id);
+    return response.data.data;
+  },
+
+  // 老師取得指定作業的所有繳交狀況
+  // response
+  // {
+  //   "data": {
+  //     "list": [
+  //       {
+  //         "student_id": "string",
+  //         "student_name": "string",
+  //         "submitted_files": [
+  //           {
+  //             "file_name": "string",
+  //             "url": "string"
+  //           }
+  //         ]
+  //       }
+  //     ]
+  //   }
+  // }
+  listSubmissions: async (assignment_id) => {
+    const response = await courseApi.assignments.listSubmissions(assignment_id);
     return response.data.data;
   },
 };

@@ -94,7 +94,6 @@ const beforeMaterialUpload = (file) => {
     return Upload.LIST_IGNORE;
   }
 
-  console.log("File validation passed, returning true");
   return true;
 };
 

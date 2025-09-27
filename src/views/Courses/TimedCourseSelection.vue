@@ -461,7 +461,7 @@ async function fetchCourseData() {
 async function fetchMyCourseData() {
   try {
     const { slots } = await courseService.getMyCourseSchedule();
-    console.log("test", slots);
+
     selectedCourses.value = [...slots];
   } catch (error) {
     console.error("Failed to fetch my courses:", error);

@@ -41,7 +41,6 @@ const originalEnrollmentLimit = ref(null);
 
 // 上傳課程大綱前檢查
 const beforeOutlineUpload = async (file) => {
-  console.log("beforeOutlineUpload called with file:", file);
   // Check file type
   const isPDF = file.type === "application/pdf";
   const isExcel =
@@ -61,7 +60,6 @@ const beforeOutlineUpload = async (file) => {
     return false;
   }
 
-  console.log("File validation passed, returning true");
   return true;
 };
 

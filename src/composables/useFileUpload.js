@@ -57,7 +57,6 @@ export function useFileUpload(options = {}) {
 
   // Ant Design Vue Upload customRequest handler
   const customRequest = async ({ file, onSuccess, onError }) => {
-    console.log("customRequest", file, onSuccess, onError);
     try {
       const updated = await uploadSingle(file);
       onSuccess?.(updated);
@@ -78,5 +77,3 @@ export function useFileUpload(options = {}) {
     processFileList,
   };
 }
-
-
