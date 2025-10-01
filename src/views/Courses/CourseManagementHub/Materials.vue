@@ -192,7 +192,7 @@ const confirmMaterial = async () => {
       weekly_schedule: props.currentCourse.weeklySchedule || [],
       prerequisite_course_ids: props.currentCourse.prerequisites || [],
       description: props.currentCourse.description || "",
-      outline_files,
+      outline_files: outline_files.filter(Boolean),
     };
 
     const result = await courseService.updateCourse(courseUpdateParams);
