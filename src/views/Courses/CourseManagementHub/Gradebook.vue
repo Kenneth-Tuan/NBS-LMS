@@ -70,10 +70,20 @@ const gradebookColumns = computed(() => {
       align: "center",
       sorter: true,
       render: (value) => value || "-",
+      children: [
+        {
+          title: "編輯",
+          dataIndex: item.item_id,
+          key: "operation",
+          width: 100,
+        },
+      ],
     };
   });
 
-  return isTeacherOrCreator.value ? [...baseColumns, ...gradeItemColumns] : [...gradeItemColumns];
+  return isTeacherOrCreator.value
+    ? [...baseColumns, ...gradeItemColumns]
+    : [...gradeItemColumns];
 });
 
 const gradebookDataSource = computed(() => {
@@ -85,36 +95,36 @@ const gradebookDataSource = computed(() => {
   }
 
   if (isTeacherOrCreator.value) {
-  // 根據 ordering 對 scoreItems 進行排序
-  const sortedScoreItems = [...scoreItems.value].sort(
-    (a, b) => a.ordering - b.ordering
-  );
+    // 根據 ordering 對 scoreItems 進行排序
+    const sortedScoreItems = [...scoreItems.value].sort(
+      (a, b) => a.ordering - b.ordering
+    );
 
-  // 建立 scoreItemId 到 ordering 的映射
-  const scoreItemOrderMap = {};
-  sortedScoreItems.forEach((item) => {
-    scoreItemOrderMap[item.item_id] = item.ordering;
-  });
-
-  return scoreSheet.value.map((studentRecord) => {
-    // 建立新的學生記錄物件
-    const formattedRecord = {
-      student_id: studentRecord.student_id,
-      student_name: studentRecord.student_name,
-    };
-
-    // 根據 ordering 排序的 scoreItems 來建立成績欄位
-    sortedScoreItems.forEach((scoreItem) => {
-      const itemId = scoreItem.item_id;
-
-      // 在學生的 scores 陣列中找到對應的成績
-      const scoreData = studentRecord.scores?.find(
-        (score) => score.score_item_id === itemId
-      );
-
-      // 將成績值設定到對應的欄位
-      formattedRecord[itemId] = scoreData?.score || null;
+    // 建立 scoreItemId 到 ordering 的映射
+    const scoreItemOrderMap = {};
+    sortedScoreItems.forEach((item) => {
+      scoreItemOrderMap[item.item_id] = item.ordering;
     });
+
+    return scoreSheet.value.map((studentRecord) => {
+      // 建立新的學生記錄物件
+      const formattedRecord = {
+        student_id: studentRecord.student_id,
+        student_name: studentRecord.student_name,
+      };
+
+      // 根據 ordering 排序的 scoreItems 來建立成績欄位
+      sortedScoreItems.forEach((scoreItem) => {
+        const itemId = scoreItem.item_id;
+
+        // 在學生的 scores 陣列中找到對應的成績
+        const scoreData = studentRecord.scores?.find(
+          (score) => score.score_item_id === itemId
+        );
+
+        // 將成績值設定到對應的欄位
+        formattedRecord[itemId] = scoreData?.score || null;
+      });
 
       return formattedRecord;
     });
@@ -241,6 +251,7 @@ async function reorderScoreItem(item_id, ordering) {
 }
 
 async function deleteScoreItem(item_id) {
+  console.log("deleteScoreItem", item_id);
   try {
     const response = await scoreApi.deleteScoreItem(item_id);
 
@@ -369,6 +380,19 @@ onMounted(async () => {
     :scroll="{ x: 'max-content' }"
     row-key="student_id"
   >
+    <template #headerCell="{ column }">
+      <div
+        v-if="column.key === 'operation'"
+        class="u-flex u-items-center u-justify-center u-gap-2"
+      >
+        <a-button type="text" class="u-c-blue-5" disabled>
+          <EditOutlined /> 編輯
+        </a-button>
+        <a-button type="text" danger @click="deleteScoreItem(column.dataIndex)">
+          <DeleteOutlined /> 刪除
+        </a-button>
+      </div>
+    </template>
     <template #bodyCell="{ column, record, value }">
       <template v-if="isTeacherOrCreator && column.key !== 'student_name'">
         <div class="grade-input-wrapper">

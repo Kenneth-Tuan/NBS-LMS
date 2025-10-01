@@ -33,6 +33,10 @@ const columns = ref([
     ellipsis: {
       showTitle: true,
     },
+    width: 120,
+    resizable: true,
+    maxWidth: 400,
+    minWidth: 120,
   },
   {
     title: "授課老師名稱",
@@ -74,7 +78,7 @@ const columns = ref([
   {
     title: "上課時間",
     key: "weekly_schedule",
-    width: 200,
+    width: 120,
     customRender: ({ text, record }) => {
       return formatWeeklySchedule(record.weekly_schedule);
     },
@@ -215,6 +219,9 @@ const deleteCourseHandler = async (course_id) => {
     },
   });
 };
+function handleResizeColumn(w, col) {
+  col.width = w;
+}
 
 onMounted(async () => {
   courseData.value = await courseService.getCourses();
@@ -248,6 +255,7 @@ onMounted(async () => {
           :pagination="{ pageSize: 10, hideOnSinglePage: true }"
           bordered
           size="small"
+          @resizeColumn="handleResizeColumn"
         >
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'status'">
@@ -299,7 +307,7 @@ onMounted(async () => {
           class="u-mb-3 u-rounded u-border u-p-4 u-bg-white u-shadow-gls-base"
         >
           <div class="u-flex u-justify-between u-items-start u-mb-3">
-            <div class="u-font-medium u-text-lg">{{ course.name }}</div>
+            <div class="u-font-medium u-text-lg u-text-gray-600">{{ course.name }}</div>
             <ATag
               :color="getCourseStatus(course.start_date, course.end_date).color"
             >
