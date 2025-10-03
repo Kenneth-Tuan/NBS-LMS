@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { PlusOutlined } from "@ant-design/icons-vue";
 import { announcementService } from "@/services/course.service";
 import { announcementSchema } from "@/schemas/announcement.schema";
+import WYSIWYG from "../../../components/WYSIWYG.vue";
 
 // Props
 const props = defineProps({
@@ -118,6 +119,9 @@ const confirmAnnouncement = async () => {
     message.error(announcementModal.isEdit ? "公告更新失敗" : "公告新增失敗");
   } finally {
     loading.value = false;
+    announcementFormRef.value.resetFields();
+    announcementModal.content = "";
+    announcementModal.title = "";
   }
 };
 
@@ -173,8 +177,7 @@ onMounted(() => {
               >
             </template>
           </a-list-item-meta>
-          <div class="u-mt-2 u-c-gray-700 u-whitespace-pre-line">
-            {{ item.content }}
+          <div class="u-mt-2 u-c-gray-700 u-whitespace-pre-line" v-html="item.content">
           </div>
           <template v-if="isTeacherOrCreator" #actions>
             <a-button
@@ -218,11 +221,7 @@ onMounted(() => {
           />
         </a-form-item>
         <a-form-item v-bind="announcementSchema.content" name="content">
-          <a-textarea
-            v-model:value="announcementModal.content"
-            :rows="announcementSchema.content.rows"
-            :placeholder="announcementSchema.content.placeholder"
-          />
+          <WYSIWYG v-model:content="announcementModal.content" />
         </a-form-item>
       </a-form>
     </a-modal>

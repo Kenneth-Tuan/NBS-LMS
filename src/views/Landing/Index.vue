@@ -628,7 +628,7 @@ onMounted(async () => {
           size="small"
           :disabled="isLoading"
         >
-          新增注意
+          新增注意事項
         </a-button>
       </div>
       <Divider class="u-my8px" />

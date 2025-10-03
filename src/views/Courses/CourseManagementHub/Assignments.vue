@@ -1,6 +1,5 @@
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from "vue";
-import { v4 as uuidv4 } from "uuid";
+import { ref, reactive, watch, onMounted } from "vue";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
 import {
@@ -9,6 +8,7 @@ import {
   FileOutlined,
   DeleteOutlined,
 } from "@ant-design/icons-vue";
+
 import { assignmentService, courseService } from "@/services/course.service";
 import { useFileDownload } from "@/composables/useFileDownload";
 
@@ -115,6 +115,7 @@ const submissionDetailModal = reactive({
 const submissionTableColumns = [
   { title: "學生姓名", dataIndex: "student_name", key: "student_name" },
   { title: "繳交內容", dataIndex: "submitted_files", key: "submitted_files" },
+  {title: "繳交時間", dataIndex: "time", key: "time"},
 ];
 
 // --- Helper Functions ---
@@ -658,6 +659,9 @@ onMounted(() => {
               >
             </div>
             <span v-else>--</span>
+          </template>
+          <template v-if="column.key === 'time'">
+            <span>{{ dayjs(record.time).format("YYYY-MM-DD HH:mm:ss") }}</span>
           </template>
         </template>
       </a-table>
