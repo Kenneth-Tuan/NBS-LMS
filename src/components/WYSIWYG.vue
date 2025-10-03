@@ -46,12 +46,7 @@ const allowedTags = [
   "h6",
 ];
 
-const allowedAttributes = {
-  // 連結屬性
-  a: ["href", "target", "rel"],
-  // 全域屬性（允許所有元素使用這些屬性）
-  "*": ["class"],
-};
+const allowedAttributes = ["href", "target", "rel", "class"];
 
 // 自訂 DOMPurify 配置
 const purifyConfig = {
@@ -91,39 +86,14 @@ const purifyConfig = {
 // 應用配置到 DOMPurify
 DOMPurify.setConfig(purifyConfig);
 
-// 清理輸入內容的函數
 const sanitizeInput = (content) => {
   if (!content || typeof content !== "string") return "";
   return DOMPurify.sanitize(content);
 };
 
-// 清理輸出內容的函數（雙重保護）
 const sanitizeOutput = (content) => {
   if (!content || typeof content !== "string") return "";
-  // 先清理一次，然後再次檢查確保沒有殘留的危險內容
-  return DOMPurify.sanitize(content, {
-    ALLOWED_TAGS: allowedTags,
-    ALLOWED_ATTR: allowedAttributes,
-    FORBID_TAGS: [
-      "script",
-      "style",
-      "iframe",
-      "object",
-      "embed",
-      "form",
-      "input",
-    ],
-    FORBID_ATTR: [
-      "onclick",
-      "onload",
-      "onerror",
-      "onmouseover",
-      "onmouseout",
-      "onkeydown",
-      "onkeyup",
-      "onkeypress",
-    ],
-  });
+  return DOMPurify.sanitize(content);
 };
 
 const handleContentChange = (newContent) => {
@@ -133,11 +103,11 @@ const handleContentChange = (newContent) => {
 };
 
 const toolbar = [
-[{ header: [1, 2, 3, 4, 5, 6, false] }],
+  [{ header: [1, 2, 3, 4, 5, 6, false] }],
   ["bold", "italic", "underline", "strike"],
-  ["blockquote",],
-  // [{ header: 1 }, { header: 2 }],
   [{ list: "ordered" }, { list: "bullet" }],
+  // ["blockquote"],
+  ["link"],
   // [{ script: "sub" }, { script: "super" }],
   [{ indent: "-1" }, { indent: "+1" }],
   // [{ direction: "rtl" }],
@@ -146,7 +116,7 @@ const toolbar = [
   [{ color: [] }, { background: [] }],
   // [{ align: [] }],
   ["clean"],
-]
+];
 </script>
 
 <template>
