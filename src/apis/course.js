@@ -1,5 +1,6 @@
-import { baseApiHelper, fileApiHelper } from "@/utils/axios";
+import axios from "axios";
 
+import { baseApiHelper, fileApiHelper } from "@/utils/axios";
 import { UserRole } from "@/enums/appEnums";
 
 export default {
@@ -15,8 +16,33 @@ export default {
     return baseApiHelper.post("/course-management/create-one", params);
   },
 
-  uploadFile(formData) {
-    return fileApiHelper.post("/upload", formData);
+  async uploadFile(fileName, contentType, file) {
+    try {
+      // return fileApiHelper.post("/upload", file);
+      const step1_res = await baseApiHelper.post("/upload/v2/sign", {
+        fileName: fileName,
+        contentType: contentType,
+      });
+
+      const {
+        data: {
+          data: { downloadUrl, uploadUrl },
+        },
+      } = step1_res;
+
+      const binaryData = new Blob([file], { type: contentType });
+
+      axios.put(uploadUrl, binaryData, {
+        headers: {
+          "Content-Type": contentType,
+        },
+      });
+
+      return downloadUrl;
+    } catch (error) {
+      console.error("Upload error:", error);
+      return null;
+    }
   },
 
   downloadFile(link) {

@@ -15,6 +15,8 @@ import { courseSchema } from "@/schemas/course.schema";
 import { courseService } from "@/services/course.service";
 import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
+import { useFileUpload } from "@/composables/useFileUpload";
+import { useFileDownload } from "@/composables/useFileDownload";
 
 const route = useRoute();
 const isEdit = computed(() => {
@@ -79,33 +81,55 @@ const filterOption = (input, option) => {
   );
 };
 
+const { uploading, uploadMultiple } = useFileUpload();
+const { downloading, downloadAndOpen } = useFileDownload();
+
 const handleFileChange = async () => {
-  courseStore.courseForm.outlineFile = await Promise.all(
-    courseStore.courseForm.outlineFile.map(async (file) => {
-      try {
-        if (!file?.isUploaded) {
-          const fileUrl = await courseService.uploadFile([file]);
-          file.url = fileUrl[0];
-          file.fileType = file.name.split(".").pop();
-          file.isUploaded = true;
-        }
-        file.status = "done";
-        return file;
-      } catch (error) {
-        console.error(error);
-        return file;
-      }
+  console.log("handleFileChange", courseStore.courseForm.outlineFile);
+  courseStore.courseForm.outlineFile = courseStore.courseForm.outlineFile.map(
+    (file) => ({
+      ...file,
+      status: "done",
     })
   );
+  // courseStore.courseForm.outlineFile = await Promise.all(
+  //   courseStore.courseForm.outlineFile.map(async (file) => {
+  //     try {
+  //       if (!file?.isUploaded) {
+  //         const fileUrl = await courseService.uploadFile(
+  //           file.name,
+  //           file.type,
+  //           file.originFileObj
+  //         );
+  //         file.url = fileUrl[0];
+  //         file.fileType = file.name.split(".").pop();
+  //         file.isUploaded = true;
+  //       }
+  //       file.status = "done";
+  //       return file;
+  //     } catch (error) {
+  //       console.error(error);
+  //       return file;
+  //     }
+  //   })
+  // );
+};
+
+const customRequest = async (options) => {
+  console.log("customRequest", options);
+  const { file, onProgress, onError, onSuccess } = options;
+
+  try {
+    const fileUrl = await uploadMultiple([file]);
+    onProgress({ percent: 100 });
+    onSuccess(fileUrl, file);
+  } catch (error) {
+    onError(error, file);
+  }
 };
 
 const handlePreview = async (file) => {
-  try {
-    const url = await courseService.downloadFile(file.url);
-    window.open(url, "_blank");
-  } catch (error) {
-    console.error(error);
-  }
+  await downloadAndOpen(file.url);
 };
 
 const handleSubmit = async () => {
@@ -457,8 +481,7 @@ onMounted(async () => {
             <a-upload-dragger
               v-model:file-list="courseStore.courseForm.outlineFile"
               @change="handleFileChange"
-              :custom-request="() => {}"
-              :before-upload="beforeOutlineUpload"
+              :custom-request="customRequest"
               :placeholder="courseSchema.outlineFile.placeholder"
               @preview="handlePreview"
             >

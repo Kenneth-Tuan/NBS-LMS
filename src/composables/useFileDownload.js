@@ -1,6 +1,6 @@
 import { ref } from "vue";
 import { message } from "ant-design-vue";
-import { courseService } from "@/services/course.service";
+import courseApi from "@/apis/course";
 
 /**
  * Reusable file download composable.
@@ -20,7 +20,14 @@ export function useFileDownload() {
     if (isHttpUrl(raw)) return raw;
 
     // Otherwise, ask backend to generate a signed URL
-    return await courseService.downloadFile(raw);
+
+    try {
+      const response = await courseApi.downloadFile(raw);
+      return response.data.data.link;
+    } catch (error) {
+      console.error(error);
+      return null;
+    }
   };
 
   const downloadAndOpen = async (input) => {
@@ -42,5 +49,3 @@ export function useFileDownload() {
 
   return { downloading, getDownloadUrl, downloadAndOpen };
 }
-
-
