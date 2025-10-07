@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import { message, Upload } from "ant-design-vue";
 import { courseService } from "@/services/course.service";
+import courseApi from "@/apis/course";
 
 /**
  * Generic file upload composable
@@ -39,6 +40,42 @@ export function useFileUpload(options = {}) {
     return true;
   };
 
+  const uploadMultiple = async (fileList) => {
+    if (!fileList || !Array.isArray(fileList) || fileList.length === 0) {
+      throw new Error("請選擇要上傳的檔案");
+    }
+
+    if (fileList.length > 10) {
+      throw new Error("一次最多只能上傳 10 個檔案");
+    }
+
+    uploading.value = true;
+
+    try {
+      const fileUrls = fileList
+        .map(async (fileObj) => {
+          const { name, type } = fileObj;
+
+          try {
+            const fileUrl = await courseApi.uploadFile(
+              name,
+              type,
+              fileObj
+            );
+            return fileUrl;
+          } catch (error) {
+            console.error(error);
+            return null;
+          }
+        })
+        .filter(Boolean);
+
+      return await Promise.all(fileUrls);
+    } finally {
+      uploading.value = false;
+    }
+  };
+
   const uploadSingle = async (file) => {
     uploading.value = true;
     try {
@@ -72,8 +109,10 @@ export function useFileUpload(options = {}) {
 
   return {
     uploading,
+
     beforeUpload,
     customRequest,
     processFileList,
+    uploadMultiple,
   };
 }
