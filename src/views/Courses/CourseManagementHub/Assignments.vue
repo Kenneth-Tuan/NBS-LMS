@@ -115,7 +115,7 @@ const submissionDetailModal = reactive({
 const submissionTableColumns = [
   { title: "學生姓名", dataIndex: "student_name", key: "student_name" },
   { title: "繳交內容", dataIndex: "submitted_files", key: "submitted_files" },
-  {title: "繳交時間", dataIndex: "time", key: "time"},
+  { title: "繳交時間", dataIndex: "time", key: "time" },
 ];
 
 // --- Helper Functions ---
@@ -480,9 +480,12 @@ onMounted(() => {
                       :key="file.url"
                       class="u-flex u-items-center u-gap-1"
                     >
-                      <span class="u-text-sm u-c-gray-600">{{
-                        file.file_name
-                      }}</span>
+                      <a-tag
+                        class="u-text-sm u-c-blue-600 u-cursor-pointer"
+                        @click="downloadAndOpen(file.url)"
+                      >
+                        {{ file.file_name }}
+                      </a-tag>
                       <a-button
                         v-if="
                           getStudentSubmissionForAssignment(item.id).status !==
