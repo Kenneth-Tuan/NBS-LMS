@@ -4,12 +4,102 @@ import vue from "@vitejs/plugin-vue";
 import UnoCSS from "unocss/vite";
 
 export default ({ mode }) => {
+  // 智能環境檢測函數
+  const detectEnvironment = (mode) => {
+    // 優先檢查環境變數（適用於部署環境）
+    const deployEnv = process.env.DEPLOY_ENV ||
+                      process.env.VERCEL_ENV ||
+                      process.env.NODE_ENV;
+
+    // 檢查部署 URL（適用於瀏覽器環境）
+    const currentUrl = typeof window !== 'undefined' ? window.location.origin : null;
+
+    // 環境優先級：明確指定的環境變數 > URL檢測 > mode參數 > 默認本地開發
+
+    // 1. 檢查環境變數
+    if (deployEnv === 'test' || deployEnv === 'staging') {
+      return 'test';
+    }
+    if (deployEnv === 'production' || deployEnv === 'prod') {
+      return 'production';
+    }
+
+    // 2. 檢查當前 URL（適用於瀏覽器環境）
+    if (currentUrl) {
+      if (currentUrl.includes('nbs-lms.vercel.app')) {
+        return 'test';
+      }
+      if (currentUrl.includes('tntc-select.org.tw')) {
+        return 'production';
+      }
+    }
+
+    // 3. 回退到 mode 參數
+    if (mode === 'test') {
+      return 'test';
+    }
+    if (mode === 'production') {
+      return 'production';
+    }
+
+    // 4. 默認本地開發環境
+    return 'development';
+  };
+
+  // 根據環境動態配置服務器設置
+  const getEnvironmentConfig = (environment) => {
+    if (environment === 'development') {
+      return {
+        origin: 'http://localhost:7001',
+        cors: {
+          origin: [
+            'http://localhost:7001',
+            'http://localhost:3000',
+            'http://localhost:5173',
+            'http://127.0.0.1:7001',
+            'http://127.0.0.1:3000',
+            'http://127.0.0.1:5173'
+          ],
+          credentials: true
+        }
+      };
+    } else if (environment === 'test') {
+      return {
+        origin: 'https://nbs-lms.vercel.app',
+        cors: {
+          origin: ['https://nbs-lms.vercel.app'],
+          credentials: true
+        }
+      };
+    } else if (environment === 'production') {
+      return {
+        origin: 'https://www.tntc-select.org.tw',
+        cors: {
+          origin: ['https://www.tntc-select.org.tw'],
+          credentials: true
+        }
+      };
+    }
+
+    // 默認回退到開發環境配置
+    return {
+      origin: 'http://localhost:7001',
+      cors: {
+        origin: ['http://localhost:7001'],
+        credentials: true
+      }
+    };
+  };
+
+  const currentEnv = detectEnvironment(mode);
+  const envConfig = getEnvironmentConfig(currentEnv);
+
   return defineConfig({
     base: "/",
     server: {
       port: 7001,
-      cors: true,
-      origin: `http://localhost:7001`,
+      cors: envConfig.cors,
+      origin: envConfig.origin,
       proxy: {
         // 代理 Google Cloud Storage 上傳請求來解決 CORS 問題
         "^/proxy/storage": {
@@ -21,7 +111,7 @@ export default ({ mode }) => {
               console.log("代理錯誤:", err);
             });
             proxy.on("proxyReq", (proxyReq, req, _res) => {
-              console.log("發送請求到目標:", req.method, req.url, req.body);
+              console.log("發送請求到目標:", req.method, req.url);
             });
             proxy.on("proxyRes", (proxyRes, req, _res) => {
               console.log("收到目標響應:", proxyRes.statusCode, req.url);
