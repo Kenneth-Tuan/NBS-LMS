@@ -39,7 +39,7 @@ export default {
         "/proxy/storage"
       );
 
-      await axios.put(proxyUrl, binaryData, {
+      await axios.put(uploadUrl, binaryData, {
         headers: {
           "Content-Type": contentType,
         },
