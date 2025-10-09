@@ -32,7 +32,14 @@ export default {
 
       const binaryData = new Blob([file], { type: contentType });
 
-      axios.put(uploadUrl, binaryData, {
+      // 使用代理來解決 CORS 問題
+      // 將 Google Cloud Storage URL 轉換為代理路徑
+      const proxyUrl = uploadUrl.replace(
+        "https://storage.googleapis.com",
+        "/proxy/storage"
+      );
+
+      await axios.put(proxyUrl, binaryData, {
         headers: {
           "Content-Type": contentType,
         },
