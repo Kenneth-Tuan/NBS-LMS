@@ -18,22 +18,23 @@ const applicationStore = useApplicationStore();
 const { leaveApplicationForm, resetLeaveForm, submitLeaveForm } =
   applicationStore;
 
-const { uploading, beforeUpload: beforeAttachmentUpload, processFileList } = useFileUpload({ maxSizeMB: 50 });
+const {
+  uploading,
+  beforeUpload: beforeAttachmentUpload,
+  processFileList,
+} = useFileUpload({ maxSizeMB: 50 });
 const { downloading, downloadAndOpen } = useFileDownload();
 
 // 表單 Ref
 const leaveFormRef = ref(null);
-
 
 // file upload handled by useFileUpload composable
 const handlePreview = async (file) => {
   await downloadAndOpen(file);
 };
 
-const customRequest = async () => {
-  await processFileList(leaveApplicationForm.attachments)
-}
-
+const customRequest = async () =>
+  await processFileList(leaveApplicationForm.attachments);
 
 // 狀態變量
 const submitting = ref(false);
@@ -67,7 +68,7 @@ const handleReset = () => {
 const handleSuccessOk = () => {
   successVisible.value = false;
   handleReset();
-  router.push({ name: RouterName.ApplicationRecord })
+  router.push({ name: RouterName.ApplicationRecord });
 };
 
 // 下拉搜尋（選填）
@@ -79,21 +80,23 @@ const filterOption = (input, option) => {
   );
 };
 
-
 const courseOptions = ref([]);
 
-
 const fetchCoursesListForLeave = async () => {
-  try { 
-    const {data:{data: {courses}}} = await applicationApi.getCoursesListForLeave();
-    courseOptions.value = courses.map(course => ({
+  try {
+    const {
+      data: {
+        data: { courses },
+      },
+    } = await applicationApi.getCoursesListForLeave();
+    courseOptions.value = courses.map((course) => ({
       label: course.name,
       value: course.id,
     }));
   } catch (error) {
     console.error("Error fetching courses list:", error);
   }
-}
+};
 
 onMounted(async () => {
   await fetchCoursesListForLeave();
@@ -118,7 +121,10 @@ onMounted(async () => {
 
         <a-row :gutter="16">
           <a-col :span="12">
-            <a-form-item v-bind="leaveApplicationSchema.course_id" name="course_id">
+            <a-form-item
+              v-bind="leaveApplicationSchema.course_id"
+              name="course_id"
+            >
               <a-select
                 v-model:value="leaveApplicationForm.course_id"
                 :options="courseOptions"
@@ -132,7 +138,10 @@ onMounted(async () => {
           </a-col>
 
           <a-col :span="12">
-            <a-form-item v-bind="leaveApplicationSchema.leave_type" name="leave_type">
+            <a-form-item
+              v-bind="leaveApplicationSchema.leave_type"
+              name="leave_type"
+            >
               <a-select
                 v-model:value="leaveApplicationForm.leave_type"
                 :options="leaveApplicationSchema.leave_type.options"
@@ -144,19 +153,29 @@ onMounted(async () => {
           </a-col>
 
           <a-col :span="12">
-            <a-form-item v-bind="leaveApplicationSchema.leave_date_range" name="leave_date_range">
+            <a-form-item
+              v-bind="leaveApplicationSchema.leave_date_range"
+              name="leave_date_range"
+            >
               <a-range-picker
                 v-model:value="leaveApplicationForm.leave_date_range"
                 :format="leaveApplicationSchema.leave_date_range.format"
-                :value-format="leaveApplicationSchema.leave_date_range.valueFormat"
-                :placeholder="leaveApplicationSchema.leave_date_range.placeholder"
+                :value-format="
+                  leaveApplicationSchema.leave_date_range.valueFormat
+                "
+                :placeholder="
+                  leaveApplicationSchema.leave_date_range.placeholder
+                "
                 class="u-w-full"
               />
             </a-form-item>
           </a-col>
 
           <a-col :span="24">
-            <a-form-item v-bind="leaveApplicationSchema.leave_reason" name="leave_reason">
+            <a-form-item
+              v-bind="leaveApplicationSchema.leave_reason"
+              name="leave_reason"
+            >
               <a-textarea
                 v-model:value="leaveApplicationForm.leave_reason"
                 :rows="4"
@@ -166,7 +185,10 @@ onMounted(async () => {
           </a-col>
 
           <a-col :span="24">
-            <a-form-item v-bind="leaveApplicationSchema.attachments" name="attachments">
+            <a-form-item
+              v-bind="leaveApplicationSchema.attachments"
+              name="attachments"
+            >
               <a-upload
                 list-type="picture"
                 v-model:file-list="leaveApplicationForm.attachments"

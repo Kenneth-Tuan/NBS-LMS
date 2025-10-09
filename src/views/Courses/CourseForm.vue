@@ -85,48 +85,27 @@ const { uploading, uploadMultiple } = useFileUpload();
 const { downloading, downloadAndOpen } = useFileDownload();
 
 const handleFileChange = async () => {
-  console.log("handleFileChange", courseStore.courseForm.outlineFile);
-  courseStore.courseForm.outlineFile = courseStore.courseForm.outlineFile.map(
-    (file) => ({
-      ...file,
-      status: "done",
+  courseStore.courseForm.outlineFile = await Promise.all(
+    courseStore.courseForm.outlineFile.map(async (file) => {
+      try {
+        if (!file?.isUploaded) {
+          const fileUrl = await uploadMultiple([file]);
+          file.url = fileUrl[0];
+          file.fileType = file.name.split(".").pop();
+          file.isUploaded = true;
+        }
+        file.status = "done";
+        return file;
+      } catch (error) {
+        console.error(error);
+        return file;
+      }
     })
   );
-  // courseStore.courseForm.outlineFile = await Promise.all(
-  //   courseStore.courseForm.outlineFile.map(async (file) => {
-  //     try {
-  //       if (!file?.isUploaded) {
-  //         const fileUrl = await courseService.uploadFile(
-  //           file.name,
-  //           file.type,
-  //           file.originFileObj
-  //         );
-  //         file.url = fileUrl[0];
-  //         file.fileType = file.name.split(".").pop();
-  //         file.isUploaded = true;
-  //       }
-  //       file.status = "done";
-  //       return file;
-  //     } catch (error) {
-  //       console.error(error);
-  //       return file;
-  //     }
-  //   })
-  // );
 };
 
-const customRequest = async (options) => {
-  console.log("customRequest", options);
-  const { file, onProgress, onError, onSuccess } = options;
-
-  try {
-    const fileUrl = await uploadMultiple([file]);
-    console.log("fileUrl", fileUrl);
-    onProgress({ percent: 100 });
-    onSuccess(fileUrl, file);
-  } catch (error) {
-    onError(error, file);
-  }
+const handleFileRemove = async (file) => {
+  console.log("handleFileRemove", file);
 };
 
 const handlePreview = async (file) => {
@@ -482,9 +461,10 @@ onMounted(async () => {
             <a-upload-dragger
               v-model:file-list="courseStore.courseForm.outlineFile"
               @change="handleFileChange"
-              :custom-request="customRequest"
+              :custom-request="() => {}"
               :placeholder="courseSchema.outlineFile.placeholder"
               @preview="handlePreview"
+              @remove="handleFileRemove"
             >
               <p class="ant-upload-drag-icon">
                 <InboxOutlined />

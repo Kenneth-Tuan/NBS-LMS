@@ -11,6 +11,8 @@ import {
   InboxOutlined,
 } from "@ant-design/icons-vue";
 import { courseService } from "@/services/course.service";
+import { useFileDownload } from "../../../composables/useFileDownload";
+import { useFileUpload } from "../../../composables/useFileUpload";
 
 // Props
 const props = defineProps({
@@ -60,49 +62,15 @@ const openAddMaterialModal = () => {
   materialModal.visible = true;
 };
 
-const beforeMaterialUpload = (file) => {
-  // 支援的檔案類型
-  const allowedTypes = [
-    "application/pdf", // PDF
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // Excel (.xlsx)
-    "application/vnd.ms-excel", // Excel (.xls)
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // Word (.docx)
-    "application/msword", // Word (.doc)
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation", // PowerPoint (.pptx)
-    "application/vnd.ms-powerpoint", // PowerPoint (.ppt)
-    "text/plain", // 純文字檔案
-    "image/jpeg", // JPEG 圖片
-    "image/png", // PNG 圖片
-    "image/gif", // GIF 圖片
-    "application/zip", // ZIP 檔案
-    "application/x-rar-compressed", // RAR 檔案
-    "application/x-7z-compressed", // 7Z 檔案
-    "application/x-tar", // TAR 檔案
-  ];
-
-  if (!allowedTypes.includes(file.type)) {
-    message.error(
-      "不支援的檔案格式！請上傳 PDF、Office 文件、圖片、影片或音檔。"
-    );
-    return Upload.LIST_IGNORE;
-  }
-
-  // 檔案大小限制（50MB）
-  const isLt50M = file.size / 1024 / 1024 < 50;
-  if (!isLt50M) {
-    message.error("檔案大小不能超過 50MB！");
-    return Upload.LIST_IGNORE;
-  }
-
-  return true;
-};
+const { downloadAndOpen } = useFileDownload();
+const { uploadMultiple } = useFileUpload();
 
 const uploadAction = async (file) => {
   materialModal.file = await Promise.all(
     materialModal.file.map(async (file) => {
       try {
         if (!file?.isUploaded) {
-          const fileUrl = await courseService.uploadFile([file]);
+          const fileUrl = await uploadMultiple([file]);
           file.url = fileUrl[0];
           file.fileType = file.name.split(".").pop();
           file.isUploaded = true;
@@ -116,6 +84,9 @@ const uploadAction = async (file) => {
     })
   );
 };
+
+const downloadMaterial = async (material) =>
+  await downloadAndOpen(material.url);
 
 const confirmMaterial = async () => {
   if (
@@ -250,16 +221,6 @@ const deleteMaterial = async (materialUrl) => {
     message.error("教材刪除失敗：" + (error.message || "未知錯誤"));
   }
 };
-
-const downloadMaterial = async (material) => {
-  try {
-    const url = await courseService.downloadFile(material.url);
-    window.open(url, "_blank");
-  } catch (error) {
-    console.error(error);
-    message.error("教材下載失敗");
-  }
-};
 </script>
 
 <template>
@@ -357,7 +318,6 @@ const downloadMaterial = async (material) => {
           <a-upload-dragger
             v-model:file-list="materialModal.file"
             :customRequest="uploadAction"
-            :before-upload="beforeMaterialUpload"
             :disabled="materialModal.uploading"
             :multiple="true"
           >

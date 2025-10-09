@@ -11,6 +11,7 @@ import {
 
 import { assignmentService, courseService } from "@/services/course.service";
 import { useFileDownload } from "@/composables/useFileDownload";
+import { useFileUpload } from "../../../composables/useFileUpload";
 
 // Props
 const props = defineProps({
@@ -324,15 +325,13 @@ const getStudentSubmissionForAssignment = (assignmentId) => {
   );
 };
 
+const { uploading, uploadMultiple } = useFileUpload();
+
 const handleStudentMockUpload = async (assignment, file) => {
   loading.value = true;
   try {
-    // 先上傳檔案
-    const formData = new FormData();
-    formData.append("files", file);
-
-    const uploadResponse = await courseService.uploadFile([
-      { originFileObj: file },
+    const uploadResponse = await uploadMultiple([
+      { originFileObj: file, name: file.name, type: file.type },
     ]);
     const uploadedFiles = uploadResponse.map((url) => ({
       file_name: file.name,

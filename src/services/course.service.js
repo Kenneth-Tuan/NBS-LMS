@@ -1,6 +1,7 @@
 import courseApi from "@/apis/course";
 import { storeToRefs } from "pinia";
 import dayjs from "dayjs";
+import { v4 as uuidv4 } from "uuid";
 
 import { useCourseStore } from "../stores/course";
 import courseAdapter from "@/adapters/course.adapter";
@@ -198,7 +199,7 @@ const courseService = {
             const fileType = fileName?.split(".").pop();
 
             return {
-              uid: "-1",
+              uid: uuidv4(),
               name: fileName,
               status: "done",
               url: file,
