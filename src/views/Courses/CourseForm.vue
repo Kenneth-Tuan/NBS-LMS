@@ -121,6 +121,7 @@ const customRequest = async (options) => {
 
   try {
     const fileUrl = await uploadMultiple([file]);
+    console.log("fileUrl", fileUrl);
     onProgress({ percent: 100 });
     onSuccess(fileUrl, file);
   } catch (error) {

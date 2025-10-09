@@ -10,6 +10,25 @@ export default ({ mode }) => {
       port: 7001,
       cors: true,
       origin: `http://localhost:7001`,
+      proxy: {
+        // 代理 Google Cloud Storage 上傳請求來解決 CORS 問題
+        "^/proxy/storage": {
+          target: "https://storage.googleapis.com",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/proxy\/storage/, ""),
+          configure: (proxy, _options) => {
+            proxy.on("error", (err, _req, _res) => {
+              console.log("代理錯誤:", err);
+            });
+            proxy.on("proxyReq", (proxyReq, req, _res) => {
+              console.log("發送請求到目標:", req.method, req.url);
+            });
+            proxy.on("proxyRes", (proxyRes, req, _res) => {
+              console.log("收到目標響應:", proxyRes.statusCode, req.url);
+            });
+          },
+        },
+      },
     },
     plugins: [vue(), UnoCSS()],
     resolve: {
