@@ -30,7 +30,7 @@ export default {
         },
       } = step1_res;
 
-      const binaryData = new Blob([file], { type: contentType });
+      const binaryData = new Blob([file.originFileObj], { type: contentType });
 
       // 使用代理來解決 CORS 問題
       // 將 Google Cloud Storage URL 轉換為代理路徑

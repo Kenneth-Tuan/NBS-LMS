@@ -21,7 +21,7 @@ export default ({ mode }) => {
               console.log("代理錯誤:", err);
             });
             proxy.on("proxyReq", (proxyReq, req, _res) => {
-              console.log("發送請求到目標:", req.method, req.url);
+              console.log("發送請求到目標:", req.method, req.url, req.body);
             });
             proxy.on("proxyRes", (proxyRes, req, _res) => {
               console.log("收到目標響應:", proxyRes.statusCode, req.url);

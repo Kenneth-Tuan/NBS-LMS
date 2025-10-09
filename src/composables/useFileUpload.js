@@ -52,25 +52,23 @@ export function useFileUpload(options = {}) {
     uploading.value = true;
 
     try {
-      const fileUrls = fileList
-        .map(async (fileObj) => {
-          const { name, type } = fileObj;
+      const fileUrls = await Promise.all(
+        fileList
+          .map(async (fileObj) => {
+            const { name, type } = fileObj;
 
-          try {
-            const fileUrl = await courseApi.uploadFile(
-              name,
-              type,
-              fileObj
-            );
-            return fileUrl;
-          } catch (error) {
-            console.error(error);
-            return null;
-          }
-        })
-        .filter(Boolean);
+            try {
+              const fileUrl = await courseApi.uploadFile(name, type, fileObj);
+              return fileUrl;
+            } catch (error) {
+              console.error(error);
+              return null;
+            }
+          })
+          .filter(Boolean)
+      );
 
-      return await Promise.all(fileUrls);
+      return fileUrls;
     } finally {
       uploading.value = false;
     }
@@ -80,7 +78,7 @@ export function useFileUpload(options = {}) {
     uploading.value = true;
     try {
       if (!file?.isUploaded) {
-        const fileUrl = await uploadFn([file]);
+        const fileUrl = await uploadMultiple([file]);
         file.url = Array.isArray(fileUrl) ? fileUrl[0] : fileUrl;
         file.fileType = file.name?.split(".")?.pop?.();
         file.isUploaded = true;
