@@ -112,6 +112,23 @@ export default ({ mode }) => {
             });
             proxy.on("proxyReq", (proxyReq, req, _res) => {
               console.log("發送請求到目標:", req.method, req.url);
+
+              // 確保轉發重要的請求頭
+              if (req.headers['content-type']) {
+                proxyReq.setHeader('Content-Type', req.headers['content-type']);
+              }
+
+              // 轉發授權相關的頭部（如果有的話）
+              if (req.headers['authorization']) {
+                proxyReq.setHeader('Authorization', req.headers['authorization']);
+              }
+
+              // 設置 Origin 頭部來模擬來自正確的域名
+              if (currentEnv === 'test') {
+                proxyReq.setHeader('Origin', 'https://nbs-lms.vercel.app');
+              } else if (currentEnv === 'production') {
+                proxyReq.setHeader('Origin', 'https://www.tntc-select.org.tw');
+              }
             });
             proxy.on("proxyRes", (proxyRes, req, _res) => {
               console.log("收到目標響應:", proxyRes.statusCode, req.url);
