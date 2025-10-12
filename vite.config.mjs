@@ -95,7 +95,7 @@ export default ({ mode }) => {
   const envConfig = getEnvironmentConfig(currentEnv);
 
   return defineConfig({
-    base: "/NBS-LMS",
+    base: "/",
     server: {
       port: 7001,
       cors: envConfig.cors,
