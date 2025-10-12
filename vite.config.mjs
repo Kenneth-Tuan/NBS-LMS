@@ -94,17 +94,8 @@ export default ({ mode }) => {
   const currentEnv = detectEnvironment(mode);
   const envConfig = getEnvironmentConfig(currentEnv);
 
-  // 動態設置 base path 以支援 GitHub Pages
-  const getBasePath = () => {
-    // 檢查是否在生產環境且是 GitHub Pages
-    if (mode === "production" && process.env.GITHUB_PAGES) {
-      return "/NBS-LMS/";
-    }
-    return "/";
-  };
-
   return defineConfig({
-    base: getBasePath(),
+    base: mode === "production" ? "/NBS-LMS/" : "/",
     server: {
       port: 7001,
       cors: envConfig.cors,
