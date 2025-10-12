@@ -1,3 +1,4 @@
+# .github/workflows/deploy.yml
 name: Deploy to GitHub Pages
 
 on:
@@ -36,6 +37,8 @@ jobs:
         run: yarn build:prod
         env:
           GITHUB_PAGES: true
+          VITE_API_BASE_URL: "https://campus-system-dev-749888051547.asia-east1.run.app"
+          VITE_APP_IS_MOCK: "FALSE"
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
