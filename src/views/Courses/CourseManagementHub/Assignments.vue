@@ -480,8 +480,9 @@ onMounted(() => {
                       class="u-flex u-items-center u-gap-1"
                     >
                       <a-tag
-                        class="u-text-sm u-c-blue-600 u-cursor-pointer"
+                        class="u-text-sm u-c-blue-600 u-cursor-pointer!"
                         @click="downloadAndOpen(file.url)"
+                        clickable
                       >
                         {{ file.file_name }}
                       </a-tag>
@@ -656,6 +657,7 @@ onMounted(() => {
                 :key="file.url || file.file_name"
                 color="geekblue"
                 @click="downloadAndOpen(file)"
+                class="u-cursor-pointer!"
               >
                 <FileOutlined /> {{ file.file_name }}</a-tag
               >

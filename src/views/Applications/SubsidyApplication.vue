@@ -1,4 +1,3 @@
-
 <script setup>
 import { ref } from "vue";
 import { useRouter } from "vue-router";
@@ -22,7 +21,7 @@ const { subsidyApplicationForm, resetSubsidyForm, submitSubsidyForm } =
 const subsidyFormRef = ref(null);
 
 // 上傳/下載 composables
-const { uploading, beforeUpload, processFileList } = useFileUpload({ maxSizeMB: 50 });
+const { uploading, processFileList } = useFileUpload({ maxSizeMB: 50 });
 const { downloadAndOpen } = useFileDownload();
 
 const handlePreview = async (file) => {
@@ -81,10 +80,16 @@ const handleSuccessOk = () => {
 
         <a-row :gutter="16">
           <a-col :span="12">
-            <a-form-item v-bind="subsidyApplicationSchema.subsidy_type" name="subsidy_type">
+            <a-form-item
+              v-bind="subsidyApplicationSchema.subsidy_type"
+              name="subsidy_type"
+            >
               <a-select
                 v-model:value="subsidyApplicationForm.subsidy_type"
-                :placeholder="subsidyApplicationSchema.subsidy_type.placeholder || '請選擇補助類型'"
+                :placeholder="
+                  subsidyApplicationSchema.subsidy_type.placeholder ||
+                  '請選擇補助類型'
+                "
                 :options="subsidyApplicationSchema.subsidy_type.options"
                 class="u-w-full"
                 allow-clear
@@ -93,12 +98,18 @@ const handleSuccessOk = () => {
           </a-col>
 
           <a-col :span="12">
-            <a-form-item v-bind="subsidyApplicationSchema.attachments" name="attachments">
+            <a-form-item
+              v-bind="subsidyApplicationSchema.attachments"
+              name="attachments"
+            >
               <a-upload
                 list-type="picture"
                 v-model:file-list="subsidyApplicationForm.attachments"
-                :before-upload="beforeUpload"
-                :custom-request="async () => { await processFileList(subsidyApplicationForm.attachments) }"
+                :custom-request="
+                  async () => {
+                    await processFileList(subsidyApplicationForm.attachments);
+                  }
+                "
                 :disabled="uploading"
               >
                 <a-button>
@@ -133,14 +144,17 @@ const handleSuccessOk = () => {
       </a-form>
 
       <!-- 成功提示 -->
-      <a-modal v-model:open="successVisible" title="申請提交成功" @ok="handleSuccessOk">
+      <a-modal
+        v-model:open="successVisible"
+        title="申請提交成功"
+        @ok="handleSuccessOk"
+      >
         <p>您的補助申請已成功提交</p>
         <p>目前狀態：待審核</p>
       </a-modal>
     </div>
   </div>
 </template>
-
 
 <style scoped>
 .u-shadow-md {

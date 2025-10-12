@@ -36,7 +36,7 @@ const selectedItem = computed(() =>
 );
 
 // 上傳/下載相關
-const { uploading, beforeUpload, processFileList } = useFileUpload();
+const { uploading, processFileList } = useFileUpload();
 const { downloadAndOpen } = useFileDownload();
 
 const handlePreview = async (file) => {
@@ -159,7 +159,6 @@ onMounted(async () => {
               <a-upload
                 list-type="picture"
                 v-model:file-list="otherApplicationForm.attachments"
-                :before-upload="beforeUpload"
                 :custom-request="
                   async () => {
                     await processFileList(otherApplicationForm.attachments);

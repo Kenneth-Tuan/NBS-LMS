@@ -18,11 +18,7 @@ const applicationStore = useApplicationStore();
 const { leaveApplicationForm, resetLeaveForm, submitLeaveForm } =
   applicationStore;
 
-const {
-  uploading,
-  beforeUpload: beforeAttachmentUpload,
-  processFileList,
-} = useFileUpload({ maxSizeMB: 50 });
+const { uploading, processFileList } = useFileUpload();
 const { downloading, downloadAndOpen } = useFileDownload();
 
 // 表單 Ref
@@ -193,7 +189,6 @@ onMounted(async () => {
                 list-type="picture"
                 v-model:file-list="leaveApplicationForm.attachments"
                 :customRequest="customRequest"
-                :before-upload="beforeAttachmentUpload"
                 :disabled="uploading"
               >
                 <a-button>
