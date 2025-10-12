@@ -209,8 +209,21 @@ const routes = [
   },
 ];
 
+// 動態設置 base path 以支援 GitHub Pages
+const getBasePath = () => {
+  // 檢查是否在 GitHub Pages 上運行
+  if (typeof window !== 'undefined' && window.location.hostname.includes('github.io')) {
+    // 對於 kenneth-tuan.github.io/NBS-LMS/，base path 應該是 /NBS-LMS/
+    const pathArray = window.location.pathname.split('/').filter(Boolean);
+    if (pathArray.length > 0) {
+      return `/${pathArray[0]}`;
+    }
+  }
+  return '/';
+};
+
 const router = createRouter({
-  history: createWebHistory("/"),
+  history: createWebHistory(getBasePath()),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (to.hash)
