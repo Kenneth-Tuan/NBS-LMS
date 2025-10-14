@@ -109,7 +109,13 @@ export const MenuItems = [
         key: RouterName.CourseOverview,
         label: "課程總覽",
         route: { name: RouterName.CourseOverview },
-        roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager,UserRole.Teacher,UserRole.Student],
+        roles: [
+          UserRole.Creator,
+          UserRole.Admin,
+          UserRole.Manager,
+          UserRole.Teacher,
+          UserRole.Student,
+        ],
       },
       {
         key: "course-create",
@@ -170,6 +176,13 @@ export const MenuItems = [
         key: "application-record",
         label: "申請記錄",
         route: { name: RouterName.ApplicationRecord },
+        roles: [
+          UserRole.Creator,
+          UserRole.Admin,
+          UserRole.Manager,
+          UserRole.Student,
+          UserRole.Teacher,
+        ],
       },
     ],
   },
@@ -185,7 +198,7 @@ export const MenuItems = [
     label: "通知中心",
     icon: BellOutlined,
     route: { name: RouterName.Notifications },
-    roles: [UserRole.Creator, UserRole.Admin],
+    roles: [UserRole.Creator],
     highlight: false,
   },
 ];
