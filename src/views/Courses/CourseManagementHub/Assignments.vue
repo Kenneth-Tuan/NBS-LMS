@@ -325,7 +325,7 @@ const getStudentSubmissionForAssignment = (assignmentId) => {
   );
 };
 
-const { uploading, uploadMultiple } = useFileUpload();
+const { uploadMultiple } = useFileUpload();
 
 const handleStudentMockUpload = async (assignment, file) => {
   loading.value = true;

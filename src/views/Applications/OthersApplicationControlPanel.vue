@@ -21,7 +21,7 @@ const form = reactive({
   attachments: [], // Ant Upload file list
 });
 
-const { uploading, processFileList } = useFileUpload({ maxSizeMB: 50 });
+const { processFileList } = useFileUpload();
 const { downloadAndOpen } = useFileDownload();
 
 const resetForm = () => {
@@ -197,7 +197,6 @@ const columns = [
                     await processFileList(form.attachments);
                   }
                 "
-                :disabled="uploading"
               >
                 <a-button> <upload-outlined /> 上傳附件 </a-button>
               </a-upload>

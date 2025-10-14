@@ -1,7 +1,9 @@
 import axios from "axios";
+import { storeToRefs } from "pinia";
 
 import { baseApiHelper, fileApiHelper } from "@/utils/axios";
 import { UserRole } from "@/enums/appEnums";
+import { useMiscStore } from "@/stores/misc.store";
 
 export default {
   getTeachers() {
@@ -17,6 +19,10 @@ export default {
   },
 
   async uploadFile(fileName, contentType, file) {
+    const miscStore = useMiscStore();
+    const { globalLoading } = storeToRefs(miscStore);
+
+    globalLoading.value = true;
     try {
       // return fileApiHelper.post("/upload", file);
       const step1_res = await baseApiHelper.post("/upload/v2/sign", {
@@ -42,6 +48,8 @@ export default {
     } catch (error) {
       console.error("Upload error:", error);
       return null;
+    } finally {
+      globalLoading.value = false;
     }
   },
 

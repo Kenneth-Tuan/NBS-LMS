@@ -21,7 +21,7 @@ const { subsidyApplicationForm, resetSubsidyForm, submitSubsidyForm } =
 const subsidyFormRef = ref(null);
 
 // 上傳/下載 composables
-const { uploading, processFileList } = useFileUpload({ maxSizeMB: 50 });
+const { processFileList } = useFileUpload();
 const { downloadAndOpen } = useFileDownload();
 
 const handlePreview = async (file) => {
@@ -110,7 +110,6 @@ const handleSuccessOk = () => {
                     await processFileList(subsidyApplicationForm.attachments);
                   }
                 "
-                :disabled="uploading"
               >
                 <a-button>
                   <upload-outlined />

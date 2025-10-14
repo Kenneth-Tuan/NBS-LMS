@@ -36,7 +36,7 @@ const selectedItem = computed(() =>
 );
 
 // 上傳/下載相關
-const { uploading, processFileList } = useFileUpload();
+const { processFileList } = useFileUpload();
 const { downloadAndOpen } = useFileDownload();
 
 const handlePreview = async (file) => {
@@ -164,7 +164,6 @@ onMounted(async () => {
                     await processFileList(otherApplicationForm.attachments);
                   }
                 "
-                :disabled="uploading"
               >
                 <a-button> <upload-outlined /> 上傳附件 </a-button>
                 <template #itemRender="{ file, actions }">

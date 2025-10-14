@@ -1,6 +1,4 @@
 <script setup>
-import { onMounted } from "vue";
-
 import LoginDialog from "@/components/LoginDialog.vue";
 </script>
 

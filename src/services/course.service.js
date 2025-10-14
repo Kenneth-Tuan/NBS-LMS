@@ -123,21 +123,21 @@ const courseService = {
     }
   },
 
-  uploadFile: async (data) => {
-    const formData = new FormData();
+  // uploadFile: async (data) => {
+  //   const formData = new FormData();
 
-    data.forEach((file) => {
-      formData.append("files", file.originFileObj);
-    });
+  //   data.forEach((file) => {
+  //     formData.append("files", file.originFileObj);
+  //   });
 
-    try {
-      const response = await courseApi.uploadFile(formData);
-      return response.data.data.upload_urls;
-    } catch (error) {
-      console.error("Upload error:", error);
-      return [];
-    }
-  },
+  //   try {
+  //     const response = await courseApi.uploadFile(formData);
+  //     return response.data.data.upload_urls;
+  //   } catch (error) {
+  //     console.error("Upload error:", error);
+  //     return [];
+  //   }
+  // },
 
   downloadFile: async (file) => {
     try {

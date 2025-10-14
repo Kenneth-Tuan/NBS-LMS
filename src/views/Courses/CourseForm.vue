@@ -81,7 +81,7 @@ const filterOption = (input, option) => {
   );
 };
 
-const { uploading, uploadMultiple } = useFileUpload();
+const { uploadMultiple } = useFileUpload();
 const { downloading, downloadAndOpen } = useFileDownload();
 
 const handleFileChange = async () => {
