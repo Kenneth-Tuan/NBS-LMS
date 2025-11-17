@@ -171,7 +171,7 @@ const fetchAssignments = async () => {
         courseId: props.currentCourseId,
         title: assignment.title,
         description: assignment.description,
-        dueDate: dayjs(assignment.expDate).format("YYYY-MM-DD"),
+        dueDate: dayjs(assignment.expDate).format("YYYY-MM-DD HH:mm:ss"),
         status: dayjs(assignment.expDate).isAfter(dayjs())
           ? AssignmentStatus.OPEN
           : AssignmentStatus.CLOSED, // 預設狀態
@@ -189,7 +189,7 @@ const fetchAssignments = async () => {
         courseId: props.currentCourseId,
         title: assignment.title,
         description: assignment.description,
-        dueDate: dayjs(assignment.exp_date).format("YYYY-MM-DD"),
+        dueDate: dayjs(assignment.exp_date).format("YYYY-MM-DD HH:mm:ss"),
         status: dayjs(assignment.exp_date).isAfter(dayjs())
           ? AssignmentStatus.OPEN
           : AssignmentStatus.CLOSED,
@@ -628,8 +628,9 @@ onMounted(() => {
         >
           <a-date-picker
             v-model:value="assignmentModal.dueDate"
-            format="YYYY-MM-DD"
+            format="YYYY-MM-DD HH:mm:ss"
             style="width: 100%"
+            show-time
           />
         </a-form-item>
       </a-form>
