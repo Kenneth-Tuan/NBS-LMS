@@ -198,7 +198,7 @@ const fetchAssignments = async () => {
       // 更新學生的繳交狀態
       localCurrentUserSubmissions.value = assignments.map((assignment) => ({
         assignmentId: assignment.assignment_id,
-        status: assignment.is_submitted
+        status: assignment.is_submitted && assignment.submitted_files.length > 0
           ? AssignmentStatus.SUBMITTED
           : AssignmentStatus.NOT_SUBMITTED,
         files: assignment.submitted_files || [],

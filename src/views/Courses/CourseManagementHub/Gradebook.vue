@@ -61,7 +61,19 @@ const gradebookColumns = computed(() => {
     : [];
 
   // Generate columns based on sorted grade items
-  const gradeItemColumns = sortedScoreItems.map((item) => {
+  const commonGradeItemColumns = sortedScoreItems.map((item) => {
+    return {
+      title: item.item_name,
+      dataIndex: item.item_id,
+      key: item.item_id,
+      width: 100,
+      align: "center",
+      sorter: true,
+      render: (value) => value || "-",
+    };
+  });
+
+  const teacherGradeItemColumns = sortedScoreItems.map((item) => {
     return {
       title: item.item_name,
       dataIndex: item.item_id,
@@ -81,9 +93,11 @@ const gradebookColumns = computed(() => {
     };
   });
 
+
+
   return isTeacherOrCreator.value
-    ? [...baseColumns, ...gradeItemColumns]
-    : [...gradeItemColumns];
+    ? [...baseColumns, ...teacherGradeItemColumns]
+    : [...commonGradeItemColumns];
 });
 
 const gradebookDataSource = computed(() => {
@@ -131,9 +145,11 @@ const gradebookDataSource = computed(() => {
   }
 
   if (isStudent.value) {
-    return myScores.value.map((score) => ({
-      [score.score_item_id]: score.score,
-    }));
+    const myScoresObject = myScores.value.reduce((acc, score) => {
+      acc[score.score_item_id] = score.score;
+      return acc;
+    }, {});
+    return [myScoresObject]
   }
 });
 
@@ -382,7 +398,7 @@ onMounted(async () => {
   >
     <template #headerCell="{ column }">
       <div
-        v-if="column.key === 'operation'"
+        v-if="column.key === 'operation' && isTeacherOrCreator"
         class="u-flex u-items-center u-justify-center u-gap-2"
       >
         <a-button type="text" class="u-c-blue-5" disabled>
