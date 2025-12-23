@@ -22,7 +22,7 @@ const {
   uploading,
   beforeUpload: beforeAttachmentUpload,
   processFileList,
-} = useFileUpload({ maxSizeMB: 50 });
+} = useFileUpload();
 const { downloading, downloadAndOpen } = useFileDownload();
 
 // 表單 Ref
