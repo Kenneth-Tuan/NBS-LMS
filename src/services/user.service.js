@@ -39,7 +39,6 @@ const userService = {
         password: userInfo.password ?? "Aa123456.",
         telephone: userInfo.telephone ?? "",
         role: userInfo.role ?? "student",
-        departments: userInfo.departments ?? [],
       };
       const result = await userApi.createUser(params);
       return result;
@@ -61,7 +60,6 @@ const userService = {
         name: userInfo.name ?? "",
         phone: userInfo.phone ?? "",
         is_active: userInfo.status === UserStatus.Active ? true : false,
-        departments: userInfo.departments ?? [],
       };
       const result = await userApi.updateUser(params);
       return result;

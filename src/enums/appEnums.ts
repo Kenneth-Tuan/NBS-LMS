@@ -6,7 +6,6 @@ import {
   TeamOutlined,
   BellOutlined,
   DesktopOutlined,
-  SettingOutlined,
 } from "@ant-design/icons-vue";
 
 export enum RouterName {
@@ -36,7 +35,6 @@ export enum RouterName {
   AdminCourseDetail = "admin-course-detail",
   UserManagement = "user-management",
   Notifications = "notifications",
-  SystemSettings = "system-settings",
 }
 
 // user role enums
@@ -201,14 +199,6 @@ export const MenuItems = [
     icon: BellOutlined,
     route: { name: RouterName.Notifications },
     roles: [UserRole.Creator],
-    highlight: false,
-  },
-  {
-    key: "system-settings",
-    label: "系統設定",
-    icon: SettingOutlined,
-    route: { name: RouterName.SystemSettings },
-    roles: [UserRole.Creator, UserRole.Admin],
     highlight: false,
   },
 ];

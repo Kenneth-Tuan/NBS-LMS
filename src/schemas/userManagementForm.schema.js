@@ -10,7 +10,6 @@ export const initialUserFormState = () =>
     email: "",
     phone: "",
     role: null,
-    departments: [],
     status: UserStatus.Active,
     password: "",
     confirmPassword: "",
