@@ -207,6 +207,16 @@ const routes = [
       layout: DefaultLayout,
     },
   },
+  {
+    path: "/system-settings",
+    name: RouterName.SystemSettings,
+    component: () => import("@/views/Admin/SystemSettings.vue"),
+    meta: {
+      title: "系統設定 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+      roles: [UserRole.Creator, UserRole.Admin],
+    },
+  },
 ];
 
 const router = createRouter({

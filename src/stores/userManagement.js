@@ -105,6 +105,7 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       role: userRecord.role,
       status: userRecord.status,
       notes: userRecord.notes || "",
+      departments: userRecord.departments || [],
       // Passwords are not pre-filled for edit
     };
     formVisible.value = true;
@@ -122,6 +123,10 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       const formData = { ...userForm.value };
       // Remove confirmPassword before sending
       delete formData.confirmPassword;
+
+      if(formData.role !== UserRole.Student && formData.departments.length > 0) {
+        delete formData.departments;
+      }
 
       if (formMode.value === "create") {
         delete formData.status;
