@@ -17,6 +17,7 @@ import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 import { useFileUpload } from "@/composables/useFileUpload";
 import { useFileDownload } from "@/composables/useFileDownload";
+import { DEPARTMENT_OPTIONS } from "@/constant/common.constant";
 
 const route = useRoute();
 const isEdit = computed(() => {
@@ -37,6 +38,12 @@ const formRef = ref(null);
 const isTeacherRole = computed(() => {
   return userStore.userProfile?.userRole === UserRole.Teacher;
 });
+
+const filteredPrerequisiteCourseCodes = computed(() =>
+  courseStore.courseInfos.prerequisite_course_codes.filter(
+    (course) => course.value !== courseStore.courseForm.code
+  )
+);
 
 // 保存原始的選課人數上限，用於編輯時的最小值限制
 const originalEnrollmentLimit = ref(null);
@@ -195,19 +202,17 @@ onMounted(async () => {
               </a-form-item>
             </a-col>
 
-            <a-col :span="12">
-              <a-form-item v-bind="courseSchema.classMode" name="classMode">
+            <a-col :span="6">
+              <a-form-item v-bind="courseSchema.code" name="code">
                 <a-input
-                  v-model:value="courseStore.courseForm.classMode"
-                  :placeholder="courseSchema.classMode.placeholder"
+                  v-model:value="courseStore.courseForm.code"
+                  :placeholder="courseSchema.code.placeholder"
                   :disabled="isTeacherRole"
                 />
               </a-form-item>
             </a-col>
-          </a-row>
 
-          <a-row :gutter="16">
-            <a-col :span="12">
+            <a-col :span="6">
               <a-form-item v-bind="courseSchema.instructor" name="instructor">
                 <a-select
                   v-model:value="courseStore.courseForm.instructor"
@@ -220,6 +225,18 @@ onMounted(async () => {
                   :disabled="isTeacherRole"
                 >
                 </a-select>
+              </a-form-item>
+            </a-col>
+          </a-row>
+
+          <a-row :gutter="16">
+            <a-col :span="6">
+              <a-form-item v-bind="courseSchema.classMode" name="classMode">
+                <a-input
+                  v-model:value="courseStore.courseForm.classMode"
+                  :placeholder="courseSchema.classMode.placeholder"
+                  :disabled="isTeacherRole"
+                />
               </a-form-item>
             </a-col>
 
@@ -248,10 +265,8 @@ onMounted(async () => {
                 />
               </a-form-item>
             </a-col>
-          </a-row>
 
-          <a-row :gutter="16">
-            <a-col :span="12">
+            <a-col :span="6">
               <a-form-item
                 v-bind="courseSchema.enrollmentLimit"
                 name="enrollmentLimit"
@@ -268,24 +283,60 @@ onMounted(async () => {
                   class="u-w-full"
                   :disabled="isTeacherRole"
                 />
-                <div
-                  v-if="isEdit && originalEnrollmentLimit"
-                  class="u-text-xs u-text-gray-500 u-mt-1"
-                >
-                  原始設定：{{ originalEnrollmentLimit }} 人（不可少於此數量）
-                </div>
+                <!-- <a-tooltip  v-if="isEdit && originalEnrollmentLimit || true" :title="`原始設定：{{ originalEnrollmentLimit }} 人（不可少於此數量）`">
+                  <a-icon type="info-circle" class="u-ml8px" />
+                </a-tooltip> -->
               </a-form-item>
             </a-col>
+          </a-row>
+
+          <a-row :gutter="16">
             <a-col :span="12">
               <a-form-item
-                v-bind="courseSchema.prerequisites"
-                name="prerequisites"
+                v-bind="courseSchema.required_for_departments"
+                name="required_for_departments"
               >
                 <a-select
-                  v-model:value="courseStore.courseForm.prerequisites"
+                  v-model:value="
+                    courseStore.courseForm.required_for_departments
+                  "
                   mode="multiple"
-                  :placeholder="courseSchema.prerequisites.placeholder"
-                  :options="courseStore.courseInfos.prerequisites"
+                  :placeholder="
+                    courseSchema.required_for_departments.placeholder
+                  "
+                  :options="DEPARTMENT_OPTIONS"
+                  allow-clear
+                  class="u-w-full"
+                  :filter-option="filterOption"
+                  :disabled="isTeacherRole"
+                >
+                  <!-- Optional: Customize tag rendering -->
+                  <template #tagRender="{ label, closable, onClose }">
+                    <a-tag
+                      :closable="closable"
+                      @close="onClose"
+                      style="margin-right: 3px"
+                      >{{ label }}</a-tag
+                    >
+                  </template>
+                </a-select>
+              </a-form-item>
+            </a-col>
+
+            <a-col :span="12">
+              <a-form-item
+                v-bind="courseSchema.prerequisite_course_codes"
+                name="prerequisite_course_codes"
+              >
+                <a-select
+                  v-model:value="
+                    courseStore.courseForm.prerequisite_course_codes
+                  "
+                  mode="multiple"
+                  :placeholder="
+                    courseSchema.prerequisite_course_codes.placeholder
+                  "
+                  :options="filteredPrerequisiteCourseCodes"
                   allow-clear
                   class="u-w-full"
                   :filter-option="filterOption"

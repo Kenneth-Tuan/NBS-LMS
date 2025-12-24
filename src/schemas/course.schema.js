@@ -4,6 +4,15 @@ const courseSchema = {
     rules: [{ required: true, message: "請輸入課程名稱" }],
     placeholder: "請輸入課程名稱",
   },
+  code: {
+    label: "課程代碼",
+    rules: [
+      { required: true, message: "請輸入課程代碼" },
+      { len: 4, message: "課程代碼必須4個字符" },
+      { pattern: /^[A-Z][0-9]{3}$/, message: "課程代碼格式必須為大寫字母+三位數字（如A000）" },
+    ],
+    placeholder: "請輸入課程代碼",
+  },
   classMode: {
     label: "上課方式",
     rules: [{ required: true, message: "請輸入上課方式" }],
@@ -153,6 +162,16 @@ const courseSchema = {
       },
     ],
     placeholder: "請上傳課程大綱附件",
+  },
+  required_for_departments: {
+    label: "必修科系",
+    options: [],
+    placeholder: "請選擇必修科系 (可多選)",
+  },
+  prerequisite_course_codes: {
+    label: "先修課程代碼",
+    options: [],
+    placeholder: "請選擇先修課程代碼 (可多選)",
   },
 };
 
