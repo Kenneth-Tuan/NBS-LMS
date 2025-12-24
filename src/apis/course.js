@@ -95,6 +95,22 @@ export default {
     return baseApiHelper.delete(`/enrollment?enrollment_id=${enrollment_id}`);
   },
 
+  updateEnrollment(enrollment_id, params) {
+    //     {
+    //   "course_ids": [
+    //     "6433ab4a-89d6-43e3-a19c-62d1b59f885d",
+    //     "f49a88e3-6110-431f-bef1-dfa7de8be471"
+    //   ],
+    //   "start_time": "2025-04-01T09:00:00.000+08:00",
+    //   "end_time": "2025-08-01T21:00:00.000+08:00",
+    //   "credit_limit": 21
+    // }
+    return baseApiHelper.patch(
+      `/enrollment/replace-one?enrollment_id=${enrollment_id}`,
+      params
+    );
+  },
+
   pickCourse(params) {
     return baseApiHelper.post(`/enrollment/pick-course`, params);
   },

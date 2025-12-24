@@ -327,6 +327,33 @@ const courseService = {
     }
   },
 
+  updateEnrollment: async (
+    enrollment_id,
+    course_ids,
+    start_time,
+    end_time,
+    credit_limit
+  ) => {
+    try {
+      const response = await courseApi.updateEnrollment(enrollment_id, {
+        course_ids,
+        start_time,
+        end_time,
+        credit_limit,
+      });
+      console.log("response", response);
+      return { result: true, msg: "設定成功" };
+    } catch (error) {
+      console.error("updateEnrollment error:", error);
+
+      // 處理 API 錯誤響應
+      if (error.response?.data?.msg) {
+        return { result: false, msg: error.response.data.msg };
+      }
+
+      return { result: false, msg: "網路連線錯誤或伺服器異常" };
+    }
+  },
   pickCourse: async (course_ids) => {
     const params = {
       course_ids,
