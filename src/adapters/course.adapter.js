@@ -16,6 +16,9 @@ const apiToFrontendMap = {
   prerequisite_course_ids: "prerequisites",
   description: "description",
   outline_files: "outlineFile",
+  code: "code",
+  prerequisite_course_codes: "prerequisite_course_codes",
+  required_for_departments: "required_for_departments",
 };
 
 // Frontend to API field mapping (reverse mapping)
@@ -32,6 +35,9 @@ const frontendToApiMap = {
   prerequisites: "prerequisite_course_ids",
   description: "description",
   outlineFile: "outline_files",
+  code: "code",
+  prerequisite_course_codes: "prerequisite_course_codes",
+  required_for_departments: "required_for_departments",
 };
 
 /**
@@ -52,12 +58,9 @@ export const apiToFrontend = (apiData) => {
   Object.entries(apiData).forEach(([apiKey, value]) => {
     const frontendKey = apiToFrontendMap[apiKey];
 
-    if (frontendKey) {
+    if (frontendKey && value !== null && value !== "" && value !== undefined) {
       // No special handling for weekly_schedule - keep the same structure
       frontendData[frontendKey] = value;
-    } else {
-      // Keep fields that don't have mapping
-      frontendData[apiKey] = value;
     }
   });
 

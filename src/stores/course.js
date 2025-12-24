@@ -39,6 +39,9 @@ export const useCourseStore = defineStore(
       prerequisites: [],
       description: "-",
       outlineFile: [],
+      code: "",
+      prerequisite_course_codes: [],
+      required_for_departments: [],
     });
 
     const loading = ref(false);
@@ -47,6 +50,7 @@ export const useCourseStore = defineStore(
       courseList: [],
       teachers: [],
       prerequisites: [],
+      prerequisite_course_codes: [],
       weekDays: [
         { label: "週一", value: "週一" },
         { label: "週二", value: "週二" },
@@ -71,6 +75,9 @@ export const useCourseStore = defineStore(
       courseForm.prerequisites = [];
       courseForm.description = "-";
       courseForm.outlineFile = [];
+      courseForm.code = "";
+      courseForm.prerequisite_course_codes = [];
+      courseForm.required_for_departments = [];
       addWeeklySchedule();
     };
 

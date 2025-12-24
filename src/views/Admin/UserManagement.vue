@@ -18,6 +18,7 @@ import { UserStatus } from "@/enums/appEnums";
 import { message } from "ant-design-vue";
 import userApi from "@/apis/user";
 import { UserRole } from "@/enums/appEnums";
+import { DEPARTMENT_OPTIONS } from "@/constant/common.constant";
 
 // 響應式判斷
 const isMobile = computed(() => window.innerWidth < 768);
@@ -452,7 +453,7 @@ onMounted(() => {
           <a-select
             v-model:value="userForm.departments"
             placeholder="請選擇科系"
-            :options="departments"
+            :options="DEPARTMENT_OPTIONS"
             mode="multiple"
             style="width: 100%"
             allow-clear
@@ -531,27 +532,6 @@ onMounted(() => {
     </a-modal>
   </div>
 </template>
-
-<script>
-const departments = Object.freeze([
-  {
-    label: "道學碩士",
-    value: "master_of_divinity",
-  },
-  {
-    label: "基督教研究碩士",
-    value: "master_of_christian_studies",
-  },
-  {
-    label: "神學學士",
-    value: "bachelor_of_theology",
-  },
-  {
-    label: "信徒領袖科",
-    value: "lay_leadership_program",
-  },
-]);
-</script>
 
 <style scoped>
 .user-management {

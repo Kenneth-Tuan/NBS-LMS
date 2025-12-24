@@ -43,6 +43,17 @@ const courseService = {
         label: course.name,
         value: course.id,
       }));
+      courseInfos.prerequisite_course_codes = courses
+        .filter(
+          (course) =>
+            course.code !== null &&
+            course.code !== "" &&
+            course.code !== undefined
+        )
+        .map((course) => ({
+          label: course.code,
+          value: course.code,
+        }));
     } catch (error) {
       console.error(error);
       return [];
@@ -103,6 +114,9 @@ const courseService = {
 
       return {
         course_id: courseForm.course_id,
+        code: courseForm.code,
+        prerequisite_course_codes: courseForm.prerequisite_course_codes,
+        required_for_departments: courseForm.required_for_departments,
         name: courseForm.title,
         class_mode: courseForm.classMode,
         duration: courseForm.duration,

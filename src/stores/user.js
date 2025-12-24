@@ -15,6 +15,7 @@ export const useUserStore = defineStore(
       userTel: "",
       userRole: 0,
       userStatus: "",
+      departments : [],
     });
 
     const isLoggedIn = computed(() => {
@@ -65,6 +66,7 @@ export const useUserStore = defineStore(
           userTel: data.user_phone,
           userRole: data.user_role,
           userStatus: data.user_status,
+          departments: data.departments,
         };
 
         setUserProfile(adaptedUserProfile);
