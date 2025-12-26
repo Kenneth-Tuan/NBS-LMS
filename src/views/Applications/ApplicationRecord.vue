@@ -70,76 +70,74 @@ const isNotified = (routerName) => {
 </script>
 
 <template>
-  <div class="u-p-1rem u-w-100%">
-    <div class="u-bg-white u-rounded-0.5rem u-p-1.5rem u-shadow-md">
-      <h1 class="u-text-1.5rem u-fw600 u-mb-1.5rem u-c-blue">申請紀錄</h1>
+  <div class="u-w-full u-bg-white u-rounded-0.5rem u-p-1.5rem u-shadow-md">
+    <h1 class="u-text-1.5rem u-fw600 u-mb-1.5rem u-c-blue">申請紀錄</h1>
 
-      <a-spin :spinning="loading">
-        <a-tabs v-model:activeKey="activeTabKey">
-          <a-tab-pane key="all">
-            <template #tab>
-              <span>
-                全部申請
-                <a-badge :dot="unref(notifiedRouterNames).length > 0" />
-              </span>
-            </template>
+    <a-spin :spinning="loading">
+      <a-tabs v-model:activeKey="activeTabKey">
+        <a-tab-pane key="all">
+          <template #tab>
+            <span>
+              全部申請
+              <a-badge :dot="unref(notifiedRouterNames).length > 0" />
+            </span>
+          </template>
 
-            <application-list
-              :data="filteredApplications"
-              @afterReview="getApplicationList"
-            />
-          </a-tab-pane>
-          <a-tab-pane key="internship">
-            <template #tab>
-              <span>
-                實習申請
-                <a-badge :dot="isNotified(RouterName.InternshipApplication)" />
-              </span>
-            </template>
-            <application-list
-              :data="internshipApplications"
-              @afterReview="getApplicationList"
-            />
-          </a-tab-pane>
-          <a-tab-pane key="leave">
-            <template #tab>
-              <span>
-                請假申請
-                <a-badge :dot="isNotified(RouterName.LeaveApplication)" />
-              </span>
-            </template>
-            <application-list
-              :data="leaveApplications"
-              @afterReview="getApplicationList"
-            />
-          </a-tab-pane>
-          <a-tab-pane key="subsidy">
-            <template #tab>
-              <span>
-                補助申請
-                <a-badge :dot="isNotified(RouterName.SubsidyApplication)" />
-              </span>
-            </template>
-            <application-list
-              :data="subsidyApplications"
-              @afterReview="getApplicationList"
-            />
-          </a-tab-pane>
-          <a-tab-pane key="others">
-            <template #tab>
-              <span>
-                其他申請
-                <a-badge :dot="isNotified(RouterName.OthersApplication)" />
-              </span>
-            </template>
-            <application-list
-              :data="othersApplications"
-              @afterReview="getApplicationList"
-            />
-          </a-tab-pane>
-        </a-tabs>
-      </a-spin>
-    </div>
+          <application-list
+            :data="filteredApplications"
+            @afterReview="getApplicationList"
+          />
+        </a-tab-pane>
+        <a-tab-pane key="internship">
+          <template #tab>
+            <span>
+              實習申請
+              <a-badge :dot="isNotified(RouterName.InternshipApplication)" />
+            </span>
+          </template>
+          <application-list
+            :data="internshipApplications"
+            @afterReview="getApplicationList"
+          />
+        </a-tab-pane>
+        <a-tab-pane key="leave">
+          <template #tab>
+            <span>
+              請假申請
+              <a-badge :dot="isNotified(RouterName.LeaveApplication)" />
+            </span>
+          </template>
+          <application-list
+            :data="leaveApplications"
+            @afterReview="getApplicationList"
+          />
+        </a-tab-pane>
+        <a-tab-pane key="subsidy">
+          <template #tab>
+            <span>
+              補助申請
+              <a-badge :dot="isNotified(RouterName.SubsidyApplication)" />
+            </span>
+          </template>
+          <application-list
+            :data="subsidyApplications"
+            @afterReview="getApplicationList"
+          />
+        </a-tab-pane>
+        <a-tab-pane key="others">
+          <template #tab>
+            <span>
+              其他申請
+              <a-badge :dot="isNotified(RouterName.OthersApplication)" />
+            </span>
+          </template>
+          <application-list
+            :data="othersApplications"
+            @afterReview="getApplicationList"
+          />
+        </a-tab-pane>
+      </a-tabs>
+    </a-spin>
   </div>
 </template>
 

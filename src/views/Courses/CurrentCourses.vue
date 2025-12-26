@@ -48,6 +48,15 @@ const filteredColumns = computed(() => {
       visible: true,
     },
     {
+      title: "課程編號",
+      dataIndex: "code",
+      key: "code",
+      visible: true,
+      customRender: ({ text, record }) => {
+        return record.code || "-";
+      },
+    },
+    {
       title: "授課老師名稱",
       dataIndex: "teacher_name",
       key: "teacher_name",
@@ -109,7 +118,7 @@ const filteredColumns = computed(() => {
     {
       title: "操作",
       key: "actions",
-      width: 200,
+      width: 100,
       fixed: "right",
       visible: true,
     },
@@ -204,65 +213,66 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="u-p-4 u-w-full">
-    <div v-if="canViewPage" class="u-bg-white u-rounded-16px u-p-6 u-shadow-lg">
-      <h1 class="u-text-2xl u-font-bold u-mb-4 u-c-gray-700">本期課程</h1>
+  <div
+    v-if="canViewPage"
+    class="u-w-full u-bg-white u-rounded-16px u-p-6 u-shadow-lg"
+  >
+    <h1 class="u-text-2xl u-font-bold u-mb-4 u-c-gray-700">本期課程</h1>
 
-      <ADivider class="u-my-4" />
+    <ADivider class="u-my-4" />
 
-      <CourseFilterBar
-        v-model:modelValueKeyword="filters.keyword"
-        v-model:modelValueTeacher="filters.teacher"
-        :teacher-options="teacherOptions"
-      />
+    <CourseFilterBar
+      v-model:modelValueKeyword="filters.keyword"
+      v-model:modelValueTeacher="filters.teacher"
+      :teacher-options="teacherOptions"
+    />
 
-      <ATable
-        :columns="filteredColumns"
-        :data-source="filteredCourses"
-        row-key="id"
-        :loading="loading"
-        :pagination="{ pageSize: 10, hideOnSinglePage: true }"
-        bordered
-        size="small"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'actions'">
-            <ASpace>
-              <AButton
-                type="primary"
-                size="small"
-                @click="goToCourseManagementHub(record.course_id)"
-              >
-                詳細内容
-              </AButton>
-            </ASpace>
-          </template>
-          <!-- <template v-else-if="column.key === 'start_date'">
+    <ATable
+      :columns="filteredColumns"
+      :data-source="filteredCourses"
+      row-key="id"
+      :loading="loading"
+      :pagination="{ pageSize: 10, hideOnSinglePage: true }"
+      bordered
+      size="small"
+    >
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'actions'">
+          <ASpace>
+            <AButton
+              type="primary"
+              size="small"
+              @click="goToCourseManagementHub(record.course_id)"
+            >
+              詳細内容
+            </AButton>
+          </ASpace>
+        </template>
+        <!-- <template v-else-if="column.key === 'start_date'">
             {{ dayjs(record.start_date).format("YYYY-MM-DD") }}
           </template>
           <template v-else-if="column.key === 'end_date'">
             {{ dayjs(record.end_date).format("YYYY-MM-DD") }}
           </template> -->
-          <!-- <template v-else-if="column.key === 'status'">
+        <!-- <template v-else-if="column.key === 'status'">
             <ATag
               :color="getCourseStatus(record.start_date, record.end_date).color"
             >
               {{ getCourseStatus(record.start_date, record.end_date).text }}
             </ATag>
           </template> -->
-        </template>
-        <template #emptyText>
-          <AEmpty description="沒有符合條件的本期課程。" />
-        </template>
-      </ATable>
-    </div>
-    <div v-else class="u-p-4">
-      <AAlert
-        message="權限不足"
-        description="您沒有權限查看此頁面。此功能僅供教師、學生及系統建立者使用。"
-        type="warning"
-        show-icon
-      />
-    </div>
+      </template>
+      <template #emptyText>
+        <AEmpty description="沒有符合條件的本期課程。" />
+      </template>
+    </ATable>
   </div>
+
+  <AAlert
+    v-else
+    message="權限不足"
+    description="您沒有權限查看此頁面。此功能僅供教師、學生及系統建立者使用。"
+    type="warning"
+    show-icon
+  />
 </template>

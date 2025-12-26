@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, reactive, computed } from "vue";
-import { message } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 
 import userApi from "@/apis/user";
 import { initialUserFormState } from "@/schemas/userManagementForm.schema";
@@ -8,13 +8,14 @@ import { userService } from "../services/user.service";
 import { useUserStore } from "./user";
 import { UserRole } from "@/enums/appEnums";
 import { UserStatus } from "../enums/appEnums";
+import { getRoleText, getStatusText } from "@/utils/mappers";
+import { getUserFormRules } from "@/schemas/userManagementForm.schema";
 
 export const useUserManagementStore = defineStore("userManagement", () => {
   // === State ===
   const users = ref([]);
   const loading = ref(false);
   const formLoading = ref(false);
-  const exportLoading = ref(false);
 
   const pagination = reactive({
     currentPage: 1,
@@ -32,6 +33,7 @@ export const useUserManagementStore = defineStore("userManagement", () => {
   const formVisible = ref(false);
   const formMode = ref("create"); // 'create' or 'edit'
   const userForm = initialUserFormState();
+  const formRef = ref(null); // For ant design form instance
 
   const hasSelected = computed(() => selectedRowKeys.value.length > 0);
 
@@ -59,6 +61,29 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       loading.value = false;
     }
   }
+
+  const formTitle = computed(() =>
+    formMode.value === "create" ? "新增使用者" : "編輯使用者"
+  );
+
+  const formRules = computed(() => getUserFormRules(userForm, formMode));
+
+  // --- Form Actions ---
+  const handleFormSubmit = async () => {
+    try {
+      await formRef.value.validate(); // Validate Ant Design form
+      await submitForm(); // Call store action to submit data
+      formRef.value.resetFields(); // Reset fields on success
+    } catch (errorInfo) {
+      console.log("Form validation failed:", errorInfo);
+      // Error message is handled within the store's submitForm action
+    }
+  };
+
+  const handleFormCancel = () => {
+    hideForm();
+    formRef.value.resetFields(); // Reset fields on cancel
+  };
 
   // --- Pagination & Filtering ---
   function updatePagination(page, size) {
@@ -124,7 +149,10 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       // Remove confirmPassword before sending
       delete formData.confirmPassword;
 
-      if(formData.role !== UserRole.Student && formData.departments.length > 0) {
+      if (
+        formData.role !== UserRole.Student &&
+        formData.departments.length > 0
+      ) {
         delete formData.departments;
       }
 
@@ -165,74 +193,129 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     }
   }
 
-  // --- Bulk Operations ---
-  async function bulkOperation(operation) {
+  // === Initial Fetch ===
+  function initialize() {
+    fetchUsers();
+  }
+
+  // --- Table Columns Definition ---
+  const columns = computed(() => [
+    // { title: "頭像", dataIndex: "avatar", key: "avatar", width: 80 },
+    // { title: "帳號", dataIndex: "username", key: "username" },
+    { title: "姓名", dataIndex: "name", key: "name" },
+    { title: "電子郵件", dataIndex: "email", key: "email" },
+    {
+      title: "角色",
+      dataIndex: "role",
+      key: "role",
+      customRender: ({ text }) => getRoleText(text),
+    },
+    {
+      title: "電話",
+      dataIndex: "telephone",
+      key: "telephone",
+      customRender: ({ text }) => (text ? text : "-"),
+    },
+    {
+      title: "狀態",
+      dataIndex: "status",
+      key: "status",
+      customRender: ({ text }) => getStatusText(text),
+    },
+    // {
+    //   title: "最後登入",
+    //   dataIndex: "lastLogin",
+    //   key: "lastLogin",
+    //   customRender: ({ text }) => formatLocaleDateTime(text),
+    // },
+    { title: "操作", key: "action", fixed: "right", width: 200 },
+  ]);
+
+  // --- Event Handlers ---
+  const handlePageChange = (pagination, filters, sorter) => {
+    // Log filters and sorter for debugging or future implementation
+    // console.log('Table Filters:', filters);
+    // console.log('Table Sorter:', sorter);
+
+    // Update pagination state using the store action
+    updatePagination(pagination.current, pagination.pageSize);
+  };
+
+  const handleSearch = () => {
+    applyFilters();
+  };
+
+  const handleResetFilters = () => {
+    resetFilters();
+  };
+
+  const handleExportUsers = () => {
+    exportUsers();
+  };
+
+  // --- Row Selection ---
+  const rowSelection = computed(() => ({
+    selectedRowKeys: selectedRowKeys.value,
+    onChange: (keys) => {
+      updateSelectedRowKeys(keys);
+    },
+  }));
+
+  // --- Bulk Operations Confirmation ---
+  const confirmBulkOperation = (operation) => {
     const operationText =
       operation === "delete"
         ? "刪除"
         : operation === "activate"
         ? "啟用"
         : "停用";
-    try {
-      const response = await userApi.bulkOperateUsers(
-        operation,
-        selectedRowKeys.value
-      );
-      message.success(response.data.message || `批量${operationText}成功`);
-      fetchUsers(); // Refresh list
-    } catch (error) {
-      message.error(`批量${operationText}失敗`);
-      console.error("Bulk operation failed:", error);
-    }
-  }
 
-  // --- Export ---
-  async function exportUsers() {
-    exportLoading.value = true;
-    try {
-      const response = await userApi.exportUsersAsCsv();
-      // Create a download link
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `users_${new Date().toISOString().slice(0, 10)}.csv`
-      );
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url); // Clean up blob URL
-      message.success("用戶資料導出成功");
-    } catch (error) {
-      message.error("導出用戶資料失敗");
-      console.error("Failed to export users:", error);
-    } finally {
-      exportLoading.value = false;
-    }
-  }
+    Modal.confirm({
+      title: `確認批量${operationText}`,
+      content: `確定要${operationText}所選的 ${
+        selectedRowKeys.value.length
+      } 個用戶嗎？${operation === "delete" ? "此操作不可撤銷。" : ""}`,
+      okText: "確認",
+      okType: operation === "delete" ? "danger" : "primary",
+      cancelText: "取消",
+      onOk: async () => {
+        await bulkOperation(operation);
+      },
+    });
+  };
 
-  // === Initial Fetch ===
-  function initialize() {
-    fetchUsers();
-  }
+  // --- Single Delete Confirmation ---
+  const confirmSingleDelete = (record) => {
+    Modal.confirm({
+      title: "確認刪除",
+      content: `確定要刪除使用者 "${record.name}" 嗎？此操作不可撤銷。`,
+      okText: "確認",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: async () => {
+        await deleteUser(record.id, record.name);
+      },
+    });
+  };
 
   return {
     // State
     users,
     loading,
     formLoading,
-    exportLoading,
     pagination,
     filters,
     selectedRowKeys,
     formVisible,
     formMode,
     userForm,
-    // Getters
-
+    formRef,
+    formTitle,
+    formRules,
     hasSelected,
-    // Actions
+    columns,
+    rowSelection,
+
     fetchUsers,
     updatePagination,
     applyFilters,
@@ -243,8 +326,14 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     hideForm,
     submitForm,
     deleteUser,
-    bulkOperation,
-    exportUsers,
     initialize,
+    handleFormSubmit,
+    handleFormCancel,
+    handlePageChange,
+    handleSearch,
+    handleResetFilters,
+    handleExportUsers,
+    confirmBulkOperation,
+    confirmSingleDelete,
   };
 });
