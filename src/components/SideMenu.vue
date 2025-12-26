@@ -1,14 +1,12 @@
 <script setup>
-import { reactive, watch, h, computed, ref, onMounted, unref } from "vue";
+import { reactive, watch, h, computed, onMounted, unref } from "vue";
 import { storeToRefs } from "pinia";
-
 import { useRouter, useRoute } from "vue-router";
-import { MenuItems } from "@/enums/appEnums";
+
+import { MenuItems, RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
-import { courseService } from "@/services/course.service";
-import { RouterName } from "@/enums/appEnums";
 import { useNotificationStore } from "@/stores/notificationStore";
-import { UserRole } from "@/enums/appEnums";
+import { useEnrollmentStore } from "@/stores/enrollment.store";
 
 const router = useRouter();
 const route = useRoute();
@@ -18,14 +16,16 @@ const notificationStore = useNotificationStore();
 const { notifiedRouterNames, isReadApplication } =
   storeToRefs(notificationStore);
 
+const enrollmentStore = useEnrollmentStore();
+const { hasEnrollment } = storeToRefs(enrollmentStore);
+const { fetchCoursesForEnrollment } = enrollmentStore;
+
 const state = reactive({
   collapsed: false,
   selectedKeys: [route.name],
   openKeys: ["sub1"],
   preOpenKeys: ["sub1"],
 });
-
-const hasEnrollment = ref(false);
 
 // 從appEnums.ts的MenuItems轉換成ant design menu需要的格式
 const menuItems = computed(() => {
@@ -73,8 +73,8 @@ const menuItems = computed(() => {
     }
 
     if (menuItem.key === RouterName.TimedCourseSelection) {
-      transformed.disabled = !hasEnrollment.value;
-      transformed.class = hasEnrollment.value ? "menu-highlight" : "";
+      transformed.disabled = !unref(hasEnrollment);
+      transformed.class = unref(hasEnrollment) ? "menu-highlight" : "";
     }
 
     if (
@@ -98,6 +98,9 @@ const menuItems = computed(() => {
 });
 
 const handleMenuSelect = ({ item, key, selectedKeys }) => {
+  if ([UserRole.Creator, UserRole.Student].includes(userProfile.userRole))
+    fetchCoursesForEnrollment();
+
   router.push({ name: key });
 };
 
@@ -128,9 +131,9 @@ const onClickMenuChild = async (menuKey) => {
   }
 };
 
-onMounted(async () => {
-  const courses = await courseService.fetchCoursesForEnrollment();
-  hasEnrollment.value = courses.length > 0;
+onMounted(() => {
+  if ([UserRole.Creator, UserRole.Student].includes(userProfile.userRole))
+    fetchCoursesForEnrollment();
 });
 </script>
 

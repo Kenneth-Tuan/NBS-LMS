@@ -545,7 +545,7 @@ onMounted(async () => {
     </div>
 
     <div
-      class="u-p16px md:u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
+      class="u-p16px md:u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px u-overflow-x-auto"
     >
       <div class="u-flex u-justify-between u-items-center u-mb-2">
         <h1 class="u-text-18px md:u-text-24px u-font-bold u-c-blue u-m0">
@@ -615,7 +615,7 @@ onMounted(async () => {
     </div>
 
     <div
-      class="u-p16px md:u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px"
+      class="u-p16px md:u-p24px u-col-span-1 u-bg-white u-w100% u-shadow u-rounded-16px u-overflow-x-auto"
     >
       <div class="u-flex u-justify-between u-items-center u-mb-2">
         <h1 class="u-text-18px md:u-text-24px u-font-bold u-c-blue u-m0">

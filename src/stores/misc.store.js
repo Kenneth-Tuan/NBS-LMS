@@ -18,7 +18,6 @@ export const useMiscStore = defineStore(
       try {
         globalLoading.value = true;
         const response = await othersApi.getCreditFee();
-        console.log(response);
         creditFee.value = response.data.data.multiplier;
       } catch (error) {
         console.error(error);

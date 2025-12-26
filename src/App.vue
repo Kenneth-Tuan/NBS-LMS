@@ -10,7 +10,7 @@ import LoginDialog from "@/components/LoginDialog.vue";
       },
     }"
   >
-    <component :is="$route.meta.layout || 'div'" class="h-100%">
+    <component :is="$route.meta.layout || 'div'" class="u-h-full u-w-full">
       <router-view />
     </component>
   </a-config-provider>

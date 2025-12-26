@@ -307,16 +307,6 @@ const courseService = {
     }
   },
 
-  fetchCoursesForEnrollment: async () => {
-    try {
-      const response = await courseApi.getCoursesForEnrollment();
-      return response.data.data.courses;
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
-  },
-
   createEnrollment: async (course_ids, start_time, end_time, credit_limit) => {
     const params = {
       course_ids,
@@ -366,43 +356,6 @@ const courseService = {
       }
 
       return { result: false, msg: "網路連線錯誤或伺服器異常" };
-    }
-  },
-  pickCourse: async (course_ids) => {
-    const params = {
-      course_ids,
-    };
-
-    try {
-      const response = await courseApi.pickCourse(params);
-      return response.data.data;
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
-  },
-
-  dropCourse: async (course_id) => {
-    const params = {
-      course_id,
-    };
-
-    try {
-      const response = await courseApi.dropCourse(params);
-      return response.data.data;
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
-  },
-
-  getMyCourseSchedule: async () => {
-    try {
-      const response = await courseApi.myCourseSchedule();
-      return response.data.data;
-    } catch (error) {
-      console.error(error);
-      return [];
     }
   },
 

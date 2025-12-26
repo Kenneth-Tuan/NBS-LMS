@@ -100,58 +100,57 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div>
-    <a-modal v-model:open="loginDialogOpen" :footer="null">
-      <div class="u-text-center u-my8">
-        <h1 class="u-text-2xl u-text-blue u-font-normal">
-          Taiwan Nazarene Theological College LMS
-        </h1>
-      </div>
+  <a-modal v-model:open="loginDialogOpen" :footer="null">
+    <div class="u-text-center u-my8">
+      <h1 class="u-text-2xl u-text-blue u-font-normal">
+        請登入系統
+      </h1>
+    </div>
 
-      <a-form
-        :model="formState"
-        name="normal_login"
-        class="login-form"
-        @finish="onFinish"
-        @finishFailed="onFinishFailed"
+    <a-form
+      :model="formState"
+      name="normal_login"
+      class="login-form"
+      @finish="onFinish"
+      @finishFailed="onFinishFailed"
+    >
+      <a-form-item label="角色" name="userRole">
+        <a-select v-model:value="formState.userRole" placeholder="請選擇">
+          <a-select-option v-if="showCreatorOption" :value="UserRole.Creator"
+            >Creator</a-select-option
+          >
+          <a-select-option :value="UserRole.Admin">Admin</a-select-option>
+          <a-select-option :value="UserRole.Manager">管理員</a-select-option>
+          <a-select-option :value="UserRole.Student">學生</a-select-option>
+          <a-select-option :value="UserRole.Teacher">教師</a-select-option>
+        </a-select>
+      </a-form-item>
+
+      <a-form-item
+        label="信箱"
+        name="userEmail"
+        :rules="[{ required: true, message: '請輸入信箱!' }]"
       >
-        <a-form-item label="角色" name="userRole">
-          <a-select v-model:value="formState.userRole" placeholder="請選擇">
-            <a-select-option v-if="showCreatorOption" :value="UserRole.Creator"
-              >Creator</a-select-option
-            >
-            <a-select-option :value="UserRole.Admin">Admin</a-select-option>
-            <a-select-option :value="UserRole.Manager">管理員</a-select-option>
-            <a-select-option :value="UserRole.Student">學生</a-select-option>
-            <a-select-option :value="UserRole.Teacher">教師</a-select-option>
-          </a-select>
-        </a-form-item>
+        <a-input v-model:value="formState.userEmail">
+          <template #prefix>
+            <MailOutlined class="site-form-item-icon" />
+          </template>
+        </a-input>
+      </a-form-item>
 
-        <a-form-item
-          label="信箱"
-          name="userEmail"
-          :rules="[{ required: true, message: '請輸入信箱!' }]"
-        >
-          <a-input v-model:value="formState.userEmail">
-            <template #prefix>
-              <MailOutlined class="site-form-item-icon" />
-            </template>
-          </a-input>
-        </a-form-item>
+      <a-form-item
+        label="密碼"
+        name="password"
+        :rules="[{ required: true, message: '請輸入密碼!' }]"
+      >
+        <a-input-password v-model:value="formState.password">
+          <template #prefix>
+            <LockOutlined class="site-form-item-icon" />
+          </template>
+        </a-input-password>
+      </a-form-item>
 
-        <a-form-item
-          label="密碼"
-          name="password"
-          :rules="[{ required: true, message: '請輸入密碼!' }]"
-        >
-          <a-input-password v-model:value="formState.password">
-            <template #prefix>
-              <LockOutlined class="site-form-item-icon" />
-            </template>
-          </a-input-password>
-        </a-form-item>
-
-        <!-- <a-form-item>
+      <!-- <a-form-item>
           <a-form-item name="remember" no-style>
             <a-checkbox v-model:checked="formState.remember">
               Remember me
@@ -160,22 +159,22 @@ onUnmounted(() => {
           <a class="login-form-forgot" href="">Forgot password</a>
         </a-form-item> -->
 
-        <a-form-item>
-          <a-button
-            :disabled="disabled"
-            type="primary"
-            html-type="submit"
-            class="login-form-button"
-            :loading="loading"
-          >
-            Log in
-          </a-button>
-          <!-- Or
+      <a-form-item>
+        <a-button
+          :disabled="disabled"
+          type="primary"
+          html-type="submit"
+          class="login-form-button"
+          :loading="loading"
+        >
+          Log in
+        </a-button>
+        <!-- Or
           <a href="">register now!</a> -->
-        </a-form-item>
-      </a-form>
+      </a-form-item>
+    </a-form>
 
-      <!-- <div class="u-text-center u-text-gray-600 u-text-sm u-mb-4">
+    <!-- <div class="u-text-center u-text-gray-600 u-text-sm u-mb-4">
           <a class="u-c-blue u-hover:u-text-primary-dark u-transition-colors">
             公平待客原則
           </a>
@@ -188,8 +187,7 @@ onUnmounted(() => {
             相關連結
           </a>
         </div> -->
-    </a-modal>
-  </div>
+  </a-modal>
 </template>
 
 <style scoped>
