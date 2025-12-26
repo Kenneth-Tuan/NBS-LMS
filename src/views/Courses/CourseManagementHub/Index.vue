@@ -93,72 +93,75 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-16px u-p-6 u-shadow-lg">
-      <a-spin :spinning="loading">
-        <div v-if="currentCourse">
-          <h1 class="u-text-2xl u-font-bold u-mb-1 u-c-gray-700">
-            課程管理中心
-          </h1>
-          <h2 class="u-text-xl u-font-semibold u-mb-4 u-c-blue-600">
-            {{ currentCourse.title }}
-          </h2>
-          <p class="u-text-gray-600 u-mb-6">
-            {{ currentCourse.description || "-" }}
-          </p>
+  <div class="u-w-full u-bg-white u-rounded-16px u-p-6 u-shadow-lg">
+    <a-spin :spinning="loading">
+      <div v-if="currentCourse">
+        <h1 class="u-text-2xl u-font-bold u-mb-1 u-c-blue">課程管理中心</h1>
 
-          <a-tabs default-active-key="announcements" type="card">
-            <!-- Announcements Tab -->
-            <a-tab-pane key="announcements" tab="公告/消息">
-              <Announcements
-                :course-id="currentCourseId"
-                :announcements="announcements"
-                :is-teacher-or-creator="isTeacherOrCreator"
-                @update:announcements="handleAnnouncementsUpdate"
-              />
-            </a-tab-pane>
+        <ADivider class="u-my16px" />
 
-            <!-- Assignments Tab -->
-            <a-tab-pane key="assignments" tab="作業管理">
-              <Assignments
-                :current-course-id="currentCourseId"
-                :is-teacher-or-creator="isTeacherOrCreator"
-                :is-student="isStudent"
-                :current-user-student-id="currentUserStudentId"
-                :assignments="assignments"
-                :students="students"
-                :grades="grades"
-                :current-user-submissions="currentUserSubmissions"
-                @update="handleAssignmentsUpdate"
-              />
-            </a-tab-pane>
+        <h2 class="u-text-xl u-font-semibold u-mb-4 u-c-secondary-500">
+          課程名稱： {{ currentCourse.title }}
+          <template v-if="currentCourse.code">
+            &nbsp;[{{ currentCourse.code }}]
+          </template>
+        </h2>
 
-            <!-- Gradebook Tab -->
-            <a-tab-pane key="gradebook" tab="成績簿">
-              <Gradebook />
-            </a-tab-pane>
+        <p class="u-text-gray-600 u-mb-6">
+          課程描述： {{ currentCourse.description || "-" }}
+        </p>
 
-            <!-- Course Materials Tab -->
-            <a-tab-pane key="materials" tab="課程教材/內容">
-              <Materials
-                :course-id="currentCourseId"
-                :materials="currentCourse.outlineFile"
-                :current-course="currentCourse"
-                :is-teacher-or-creator="isTeacherOrCreator"
-                @update="handleMaterialsUpdate"
-              />
-            </a-tab-pane>
+        <a-tabs default-active-key="announcements" type="card">
+          <!-- Announcements Tab -->
+          <a-tab-pane key="announcements" tab="公告/消息">
+            <Announcements
+              :course-id="currentCourseId"
+              :announcements="announcements"
+              :is-teacher-or-creator="isTeacherOrCreator"
+              @update:announcements="handleAnnouncementsUpdate"
+            />
+          </a-tab-pane>
 
-            <!-- Student Roster Tab -->
-            <a-tab-pane key="roster" tab="學生名單">
-              <StudentRoster :course-info="currentCourse" />
-            </a-tab-pane>
-          </a-tabs>
-        </div>
-        <div v-else-if="!loading && !currentCourse">
-          <a-empty description="找不到指定的課程資料，或課程ID無效。" />
-        </div>
-      </a-spin>
-    </div>
+          <!-- Assignments Tab -->
+          <a-tab-pane key="assignments" tab="作業管理">
+            <Assignments
+              :current-course-id="currentCourseId"
+              :is-teacher-or-creator="isTeacherOrCreator"
+              :is-student="isStudent"
+              :current-user-student-id="currentUserStudentId"
+              :assignments="assignments"
+              :students="students"
+              :grades="grades"
+              :current-user-submissions="currentUserSubmissions"
+              @update="handleAssignmentsUpdate"
+            />
+          </a-tab-pane>
+
+          <!-- Gradebook Tab -->
+          <a-tab-pane key="gradebook" tab="成績簿">
+            <Gradebook />
+          </a-tab-pane>
+
+          <!-- Course Materials Tab -->
+          <a-tab-pane key="materials" tab="課程教材/內容">
+            <Materials
+              :course-id="currentCourseId"
+              :materials="currentCourse.outlineFile"
+              :current-course="currentCourse"
+              :is-teacher-or-creator="isTeacherOrCreator"
+              @update="handleMaterialsUpdate"
+            />
+          </a-tab-pane>
+
+          <!-- Student Roster Tab -->
+          <a-tab-pane key="roster" tab="學生名單">
+            <StudentRoster :course-info="currentCourse" />
+          </a-tab-pane>
+        </a-tabs>
+      </div>
+      <div v-else-if="!loading && !currentCourse">
+        <a-empty description="找不到指定的課程資料，或課程ID無效。" />
+      </div>
+    </a-spin>
   </div>
 </template>

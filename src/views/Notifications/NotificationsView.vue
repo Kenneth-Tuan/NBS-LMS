@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="notifications-container u-flex u-h100% u-bg-white u-w-full u-m-16px"
-  >
+  <div class="notifications-container u-flex u-h100% u-bg-white u-w-full">
     <!-- 左側：通知列表 -->
     <div
       class="notifications-list u-w-1/3 u-border-r u-bg-[#f5f5f5] u-p-4 u-flex u-flex-col"

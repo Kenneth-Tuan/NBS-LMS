@@ -100,138 +100,134 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="u-p-1rem u-w-full">
-    <div class="u-bg-white u-rounded-0.5rem u-p-1.5rem u-shadow-md">
-      <h1 class="u-text-1.5rem u-fw600 u-mb-1.5rem u-c-blue">請假申請</h1>
+  <div class="u-w-full u-bg-white u-rounded-0.5rem u-p-1.5rem u-shadow-md">
+    <h1 class="u-text-1.5rem u-fw600 u-mb-1.5rem u-c-blue">請假申請</h1>
 
-      <a-form
-        ref="leaveFormRef"
-        layout="vertical"
-        :model="leaveApplicationForm"
-        @finish="handleSubmit"
-        @finishFailed="handleFinishFailed"
-      >
-        <ApplicantInfo />
+    <a-form
+      ref="leaveFormRef"
+      layout="vertical"
+      :model="leaveApplicationForm"
+      @finish="handleSubmit"
+      @finishFailed="handleFinishFailed"
+    >
+      <ApplicantInfo />
 
-        <a-divider orientation="left">請假資訊</a-divider>
+      <a-divider orientation="left">請假資訊</a-divider>
 
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item
-              v-bind="leaveApplicationSchema.course_id"
-              name="course_id"
+      <a-row :gutter="16">
+        <a-col :span="12">
+          <a-form-item
+            v-bind="leaveApplicationSchema.course_id"
+            name="course_id"
+          >
+            <a-select
+              v-model:value="leaveApplicationForm.course_id"
+              :options="courseOptions"
+              :placeholder="leaveApplicationSchema.course_id.placeholder"
+              allow-clear
+              class="u-w-full"
+              :filter-option="filterOption"
+              show-search
+            />
+          </a-form-item>
+        </a-col>
+
+        <a-col :span="12">
+          <a-form-item
+            v-bind="leaveApplicationSchema.leave_type"
+            name="leave_type"
+          >
+            <a-select
+              v-model:value="leaveApplicationForm.leave_type"
+              :options="leaveApplicationSchema.leave_type.options"
+              :placeholder="leaveApplicationSchema.leave_type.placeholder"
+              allow-clear
+              class="u-w-full"
+            />
+          </a-form-item>
+        </a-col>
+
+        <a-col :span="12">
+          <a-form-item
+            v-bind="leaveApplicationSchema.leave_date_range"
+            name="leave_date_range"
+          >
+            <a-range-picker
+              v-model:value="leaveApplicationForm.leave_date_range"
+              :format="leaveApplicationSchema.leave_date_range.format"
+              :value-format="
+                leaveApplicationSchema.leave_date_range.valueFormat
+              "
+              :placeholder="leaveApplicationSchema.leave_date_range.placeholder"
+              class="u-w-full"
+            />
+          </a-form-item>
+        </a-col>
+
+        <a-col :span="24">
+          <a-form-item
+            v-bind="leaveApplicationSchema.leave_reason"
+            name="leave_reason"
+          >
+            <a-textarea
+              v-model:value="leaveApplicationForm.leave_reason"
+              :rows="4"
+              :placeholder="leaveApplicationSchema.leave_reason.placeholder"
+            />
+          </a-form-item>
+        </a-col>
+
+        <a-col :span="24">
+          <a-form-item
+            v-bind="leaveApplicationSchema.attachments"
+            name="attachments"
+          >
+            <a-upload
+              list-type="picture"
+              v-model:file-list="leaveApplicationForm.attachments"
+              :customRequest="customRequest"
             >
-              <a-select
-                v-model:value="leaveApplicationForm.course_id"
-                :options="courseOptions"
-                :placeholder="leaveApplicationSchema.course_id.placeholder"
-                allow-clear
-                class="u-w-full"
-                :filter-option="filterOption"
-                show-search
-              />
-            </a-form-item>
-          </a-col>
+              <a-button>
+                <upload-outlined />
+                上傳檔案
+              </a-button>
+              <template #itemRender="{ file, actions }">
+                <span>
+                  <a-button type="link" @click="() => handlePreview(file)">
+                    {{ file.name }}
+                  </a-button>
+                </span>
+                <span>
+                  <a-button type="link" @click="() => actions.remove()">
+                    删除
+                  </a-button>
+                </span>
+              </template>
+            </a-upload>
+          </a-form-item>
+        </a-col>
+      </a-row>
 
-          <a-col :span="12">
-            <a-form-item
-              v-bind="leaveApplicationSchema.leave_type"
-              name="leave_type"
-            >
-              <a-select
-                v-model:value="leaveApplicationForm.leave_type"
-                :options="leaveApplicationSchema.leave_type.options"
-                :placeholder="leaveApplicationSchema.leave_type.placeholder"
-                allow-clear
-                class="u-w-full"
-              />
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="12">
-            <a-form-item
-              v-bind="leaveApplicationSchema.leave_date_range"
-              name="leave_date_range"
-            >
-              <a-range-picker
-                v-model:value="leaveApplicationForm.leave_date_range"
-                :format="leaveApplicationSchema.leave_date_range.format"
-                :value-format="
-                  leaveApplicationSchema.leave_date_range.valueFormat
-                "
-                :placeholder="
-                  leaveApplicationSchema.leave_date_range.placeholder
-                "
-                class="u-w-full"
-              />
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="24">
-            <a-form-item
-              v-bind="leaveApplicationSchema.leave_reason"
-              name="leave_reason"
-            >
-              <a-textarea
-                v-model:value="leaveApplicationForm.leave_reason"
-                :rows="4"
-                :placeholder="leaveApplicationSchema.leave_reason.placeholder"
-              />
-            </a-form-item>
-          </a-col>
-
-          <a-col :span="24">
-            <a-form-item
-              v-bind="leaveApplicationSchema.attachments"
-              name="attachments"
-            >
-              <a-upload
-                list-type="picture"
-                v-model:file-list="leaveApplicationForm.attachments"
-                :customRequest="customRequest"
-              >
-                <a-button>
-                  <upload-outlined />
-                  上傳檔案
-                </a-button>
-                <template #itemRender="{ file, actions }">
-                  <span>
-                    <a-button type="link" @click="() => handlePreview(file)">
-                      {{ file.name }}
-                    </a-button>
-                  </span>
-                  <span>
-                    <a-button type="link" @click="() => actions.remove()">
-                      删除
-                    </a-button>
-                  </span>
-                </template>
-              </a-upload>
-            </a-form-item>
-          </a-col>
-        </a-row>
-
-        <a-form-item>
-          <a-space>
-            <a-button type="primary" html-type="submit" :loading="submitting"
-              >提交申請</a-button
-            >
-            <a-button @click="handleReset">重置表單</a-button>
-          </a-space>
-        </a-form-item>
-      </a-form>
-
-      <!-- 成功提示 -->
-      <a-modal
-        v-model:open="successVisible"
-        title="申請提交成功"
-        @ok="handleSuccessOk"
-      >
-        <p>您的請假申請已成功提交</p>
-        <p>目前狀態：待審核</p>
-      </a-modal>
-    </div>
+      <a-form-item>
+        <a-space>
+          <a-button type="primary" html-type="submit" :loading="submitting"
+            >提交申請</a-button
+          >
+          <a-button @click="handleReset">重置表單</a-button>
+        </a-space>
+      </a-form-item>
+    </a-form>
   </div>
+
+  <!-- 成功提示 -->
+  <a-modal
+    v-model:open="successVisible"
+    title="申請提交成功"
+    @ok="handleSuccessOk"
+  >
+    <p>您的請假申請已成功提交</p>
+    <p>目前狀態：待審核</p>
+  </a-modal>
 </template>
 
 <style scoped>

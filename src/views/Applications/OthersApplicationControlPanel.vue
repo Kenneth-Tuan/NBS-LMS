@@ -166,99 +166,91 @@ const columns = [
 </script>
 
 <template>
-  <div class="u-p-1rem u-w-full">
-    <div class="u-bg-white u-rounded-0.5rem u-p-1.5rem u-shadow-md">
-      <h1 class="u-text-1.5rem u-fw600 u-mb-1.5rem u-c-blue">
-        其他申請 - 控制面板
-      </h1>
+  <div class="u-w-full u-bg-white u-rounded-0.5rem u-p-1.5rem u-shadow-md">
+    <h1 class="u-text-1.5rem u-fw600 u-mb-1.5rem u-c-blue">
+      其他申請 - 控制面板
+    </h1>
 
-      <a-row :gutter="16">
-        <a-col :span="12">
-          <a-form
-            ref="formRef"
-            layout="vertical"
-            :model="form"
-            @finish="handleSubmit"
+    <a-row :gutter="16">
+      <a-col :span="12">
+        <a-form
+          ref="formRef"
+          layout="vertical"
+          :model="form"
+          @finish="handleSubmit"
+        >
+          <a-form-item
+            label="項目名稱"
+            name="name"
+            :rules="[{ required: true, message: '請輸入項目名稱' }]"
           >
-            <a-form-item
-              label="項目名稱"
-              name="name"
-              :rules="[{ required: true, message: '請輸入項目名稱' }]"
+            <a-input v-model:value="form.name" placeholder="請輸入項目名稱" />
+          </a-form-item>
+
+          <a-form-item label="附件" name="attachments">
+            <a-upload
+              list-type="picture"
+              v-model:file-list="form.attachments"
+              :custom-request="
+                async () => {
+                  await processFileList(form.attachments);
+                }
+              "
             >
-              <a-input v-model:value="form.name" placeholder="請輸入項目名稱" />
-            </a-form-item>
+              <a-button> <upload-outlined /> 上傳附件 </a-button>
+            </a-upload>
+          </a-form-item>
 
-            <a-form-item label="附件" name="attachments">
-              <a-upload
-                list-type="picture"
-                v-model:file-list="form.attachments"
-                :custom-request="
-                  async () => {
-                    await processFileList(form.attachments);
-                  }
-                "
-              >
-                <a-button> <upload-outlined /> 上傳附件 </a-button>
-              </a-upload>
-            </a-form-item>
+          <a-form-item>
+            <a-space>
+              <a-button type="primary" html-type="submit" :loading="submitting">
+                {{ isEditing ? "儲存變更" : "新增項目" }}
+              </a-button>
+              <a-button @click="resetForm">清除</a-button>
+            </a-space>
+          </a-form-item>
+        </a-form>
+      </a-col>
 
-            <a-form-item>
-              <a-space>
+      <a-col :span="12">
+        <a-table
+          :data-source="items"
+          :loading="loading"
+          :columns="columns"
+          row-key="id"
+          :pagination="false"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'attachments'">
+              <a-space direction="vertical" style="width: 100%">
+                <a-empty
+                  v-if="!(record.attachments && record.attachments.length)"
+                  description="無附件"
+                />
                 <a-button
-                  type="primary"
-                  html-type="submit"
-                  :loading="submitting"
+                  v-for="(att, idx) in record.attachments || []"
+                  :key="idx"
+                  type="default"
+                  @click="downloadAttachment(att)"
+                  size="small"
                 >
-                  {{ isEditing ? "儲存變更" : "新增項目" }}
+                  <download-outlined /> 下載附件 {{ idx + 1 }}
                 </a-button>
-                <a-button @click="resetForm">清除</a-button>
               </a-space>
-            </a-form-item>
-          </a-form>
-        </a-col>
-
-        <a-col :span="12">
-          <a-table
-            :data-source="items"
-            :loading="loading"
-            :columns="columns"
-            row-key="id"
-            :pagination="false"
-          >
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'attachments'">
-                <a-space direction="vertical" style="width: 100%">
-                  <a-empty
-                    v-if="!(record.attachments && record.attachments.length)"
-                    description="無附件"
-                  />
-                  <a-button
-                    v-for="(att, idx) in record.attachments || []"
-                    :key="idx"
-                    type="default"
-                    @click="downloadAttachment(att)"
-                    size="small"
-                  >
-                    <download-outlined /> 下載附件 {{ idx + 1 }}
-                  </a-button>
-                </a-space>
-              </template>
-
-              <template v-else-if="column.key === 'action'">
-                <a-space>
-                  <a-button type="link" @click="startEdit(record)"
-                    >編輯</a-button
-                  >
-                  <a-button type="link" danger @click="handleDelete(record)"
-                    >刪除</a-button
-                  >
-                </a-space>
-              </template>
             </template>
-          </a-table>
-        </a-col>
-      </a-row>
-    </div>
+
+            <template v-else-if="column.key === 'action'">
+              <a-space>
+                <a-button type="link" @click="startEdit(record)">編輯</a-button>
+                <a-button type="link" danger @click="handleDelete(record)"
+                  >刪除</a-button
+                >
+              </a-space>
+            </template>
+          </template>
+        </a-table>
+      </a-col>
+    </a-row>
   </div>
 </template>
 

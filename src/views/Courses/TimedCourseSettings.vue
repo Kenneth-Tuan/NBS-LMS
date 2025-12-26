@@ -194,7 +194,7 @@ function validation() {
     return false;
   }
 
-  if (dayjs(startTime).isBefore(dayjs())) {
+  if (dayjs(startTime).isBefore(dayjs()) && modalOperation.value === "add") {
     message.error("選課開始時間不能小於今天");
     return false;
   }
@@ -232,77 +232,76 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-16px u-p24px u-shadow">
-      <div class="u-flex u-justify-between u-items-center">
-        <h1 class="u-text-24px u-font-bold u-m0 u-c-blue">限時選課設定</h1>
-        <a-button type="primary" size="large" @click="handleAddEnrollment">
-          <span class="u-text-lg u-font-semibold"> 新增選課設定 </span>
-        </a-button>
-      </div>
-
-      <Divider class="u-my16px" />
-
-      <template v-if="isEnrollmentStatusSectionDisplayed">
-        <!-- 現有選課狀態表格 -->
-
-        <Table
-          :columns="columns"
-          :data-source="enrollmentStatusData"
-          :pagination="false"
-          :row-key="(record) => record.enrollment_id"
-          size="large"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'timeRange'">
-              <div class="u-mb8px u-text-nowrap">
-                <span class="u-mr8px">從</span
-                ><a-tag color="blue" class="u-text-18px">{{
-                  dayjs(record.start_time).format("YYYY-MM-DD HH:mm")
-                }}</a-tag>
-              </div>
-
-              <div class="u-text-nowrap">
-                <span class="u-mr8px">到</span
-                ><a-tag color="blue" class="u-text-18px">{{
-                  dayjs(record.end_time).format("YYYY-MM-DD HH:mm")
-                }}</a-tag>
-              </div>
-            </template>
-
-            <template v-if="column.key === 'action'">
-              <a-popconfirm
-                title="所有相關的選課資料將會被刪除，確定要刪除此選課設定嗎？"
-                ok-text="確定"
-                cancel-text="取消"
-                @confirm="handleDelete(record.enrollment_id)"
-                placement="topLeft"
-              >
-                <a-button type="link" danger size="large">刪除</a-button>
-              </a-popconfirm>
-
-              <a-button type="link" size="large" @click="handleEdit(record)">
-                編輯
-              </a-button>
-            </template>
-          </template>
-        </Table>
-      </template>
-
-      <a-empty v-else>
-        <template #description>
-          <span class="u-c-secondary u-text-lg">暫無選課設定, 請先</span>
-          <a-button
-            size="small"
-            type="link"
-            class="u-p0! u-text-lg"
-            @click="handleAddEnrollment"
-          >
-            <span class="u-text-lg"> 新增選課設定 </span>
-          </a-button>
-        </template>
-      </a-empty>
+  <div class="u-w-full u-bg-white u-rounded-16px u-p24px u-shadow">
+    <div class="u-flex u-justify-between u-items-center">
+      <h1 class="u-text-24px u-font-bold u-m0 u-c-blue">限時選課設定</h1>
+      <a-button type="primary" size="large" @click="handleAddEnrollment">
+        <span class="u-text-lg u-font-semibold"> 新增選課設定 </span>
+      </a-button>
     </div>
+
+    <Divider class="u-my16px" />
+
+    <template v-if="isEnrollmentStatusSectionDisplayed">
+      <!-- 現有選課狀態表格 -->
+
+      <Table
+        :columns="columns"
+        :data-source="enrollmentStatusData"
+        :pagination="false"
+        :row-key="(record) => record.enrollment_id"
+        size="large"
+        class="u-w-full u-overflow-x-auto"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'timeRange'">
+            <div class="u-mb8px u-text-nowrap">
+              <span class="u-mr8px">從</span
+              ><a-tag color="blue" class="u-text-18px">{{
+                dayjs(record.start_time).format("YYYY-MM-DD HH:mm")
+              }}</a-tag>
+            </div>
+
+            <div class="u-text-nowrap">
+              <span class="u-mr8px">到</span
+              ><a-tag color="blue" class="u-text-18px">{{
+                dayjs(record.end_time).format("YYYY-MM-DD HH:mm")
+              }}</a-tag>
+            </div>
+          </template>
+
+          <template v-if="column.key === 'action'">
+            <a-popconfirm
+              title="所有相關的選課資料將會被刪除，確定要刪除此選課設定嗎？"
+              ok-text="確定"
+              cancel-text="取消"
+              @confirm="handleDelete(record.enrollment_id)"
+              placement="topLeft"
+            >
+              <a-button type="link" danger size="large">刪除</a-button>
+            </a-popconfirm>
+
+            <a-button type="link" size="large" @click="handleEdit(record)">
+              編輯
+            </a-button>
+          </template>
+        </template>
+      </Table>
+    </template>
+
+    <a-empty v-else>
+      <template #description>
+        <span class="u-c-secondary u-text-lg">暫無選課設定, 請先</span>
+        <a-button
+          size="small"
+          type="link"
+          class="u-p0! u-text-lg"
+          @click="handleAddEnrollment"
+        >
+          <span class="u-text-lg"> 新增選課設定 </span>
+        </a-button>
+      </template>
+    </a-empty>
   </div>
 
   <a-modal

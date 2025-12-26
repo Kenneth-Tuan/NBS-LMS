@@ -231,139 +231,133 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-16px u-p-6 u-shadow-lg">
-      <h1 class="u-text-2xl u-font-bold u-mb-4 u-c-gray-700">
-        {{ pageTitle }}
-      </h1>
+  <div class="u-w-full u-bg-white u-rounded-16px u-p-6 u-shadow-lg">
+    <h1 class="u-text-2xl u-font-bold u-mb-4 u-c-gray-700">
+      {{ pageTitle }}
+    </h1>
 
-      <ADivider class="u-my-4" />
+    <ADivider class="u-my-4" />
 
-      <CourseFilterBar
-        v-model:modelValueKeyword="filters.keyword"
-        v-model:modelValueTeacher="filters.teacher"
-        :teacher-options="teacherOptions"
-      />
+    <CourseFilterBar
+      v-model:modelValueKeyword="filters.keyword"
+      v-model:modelValueTeacher="filters.teacher"
+      :teacher-options="teacherOptions"
+    />
 
-      <!-- 桌機版 Table -->
-      <div class="u-hidden lg:u-block">
-        <ATable
-          :columns="columns"
-          :data-source="filteredCourseData"
-          row-key="id"
-          :loading="loading"
-          :pagination="{ pageSize: 10, hideOnSinglePage: true }"
-          bordered
-          size="small"
-          @resizeColumn="handleResizeColumn"
-        >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'status'">
-              <ATag
-                :color="
-                  getCourseStatus(record.start_date, record.end_date).color
-                "
-              >
-                {{ getCourseStatus(record.start_date, record.end_date).text }}
-              </ATag>
-            </template>
-            <template v-else-if="column.key === 'actions'">
-              <ASpace>
-                <AButton
-                  v-if="record.view_permission || true"
-                  type="primary"
-                  size="small"
-                  @click="goToCourseManagementHub(record.course_id)"
-                >
-                  詳細内容
-                </AButton>
-                <AButton
-                  v-if="record.edit_permission"
-                  type="default"
-                  size="small"
-                  @click="goToEditCourse(record.course_id)"
-                >
-                  編輯
-                </AButton>
-                <AButton
-                  v-if="canDeleteCourse"
-                  danger
-                  size="small"
-                  @click="deleteCourseHandler(record.course_id)"
-                >
-                  刪除
-                </AButton>
-              </ASpace>
-            </template>
-          </template>
-        </ATable>
-      </div>
-
-      <!-- 手機版 卡片列表 -->
-      <div class="lg:u-hidden">
-        <div
-          v-for="(course, index) in filteredCourseData"
-          :key="course.id"
-          class="u-mb-3 u-rounded u-border u-p-4 u-bg-white u-shadow-gls-base"
-        >
-          <div class="u-flex u-justify-between u-items-start u-mb-3">
-            <div class="u-font-medium u-text-lg u-text-gray-600">{{ course.name }}</div>
+    <!-- 桌機版 Table -->
+    <div class="u-hidden lg:u-block">
+      <ATable
+        :columns="columns"
+        :data-source="filteredCourseData"
+        row-key="id"
+        :loading="loading"
+        :pagination="{ pageSize: 10, hideOnSinglePage: true }"
+        bordered
+        size="small"
+        @resizeColumn="handleResizeColumn"
+      >
+        <template #bodyCell="{ column, record }">
+          <template v-if="column.key === 'status'">
             <ATag
-              :color="getCourseStatus(course.start_date, course.end_date).color"
+              :color="getCourseStatus(record.start_date, record.end_date).color"
             >
-              {{ getCourseStatus(course.start_date, course.end_date).text }}
+              {{ getCourseStatus(record.start_date, record.end_date).text }}
             </ATag>
-          </div>
+          </template>
+          <template v-else-if="column.key === 'actions'">
+            <ASpace>
+              <AButton
+                v-if="record.view_permission || true"
+                type="primary"
+                size="small"
+                @click="goToCourseManagementHub(record.course_id)"
+              >
+                詳細内容
+              </AButton>
+              <AButton
+                v-if="record.edit_permission"
+                type="default"
+                size="small"
+                @click="goToEditCourse(record.course_id)"
+              >
+                編輯
+              </AButton>
+              <AButton
+                v-if="canDeleteCourse"
+                danger
+                size="small"
+                @click="deleteCourseHandler(record.course_id)"
+              >
+                刪除
+              </AButton>
+            </ASpace>
+          </template>
+        </template>
+      </ATable>
+    </div>
 
-          <div class="u-text-sm u-text-gray-600 u-space-y-1">
-            <div>
-              授課老師：{{
-                course.instructor_name || course.teacher || "未指定"
-              }}
-            </div>
-            <div>學分：{{ course.credit }}</div>
-            <div>
-              開課時間：{{ dayjs(course.start_date).format("YYYY-MM-DD") }}
-            </div>
-            <div>
-              結課時間：{{ dayjs(course.end_date).format("YYYY-MM-DD") }}
-            </div>
-            <div>
-              人數：{{ course.enrolled_count }} / {{ course.enrollment_limit }}
-            </div>
-            <div
-              v-if="course.weekly_schedule && course.weekly_schedule.length > 0"
-            >
-              上課時間：{{ formatWeeklySchedule(course.weekly_schedule) }}
-            </div>
+    <!-- 手機版 卡片列表 -->
+    <div class="lg:u-hidden">
+      <div
+        v-for="(course, index) in filteredCourseData"
+        :key="course.id"
+        class="u-mb-3 u-rounded u-border u-p-4 u-bg-white u-shadow-gls-base"
+      >
+        <div class="u-flex u-justify-between u-items-start u-mb-3">
+          <div class="u-font-medium u-text-lg u-text-gray-600">
+            {{ course.name }}
           </div>
+          <ATag
+            :color="getCourseStatus(course.start_date, course.end_date).color"
+          >
+            {{ getCourseStatus(course.start_date, course.end_date).text }}
+          </ATag>
+        </div>
 
-          <div class="u-flex u-justify-end u-gap-2 u-mt-4">
-            <AButton
-              v-if="course.view_permission || true"
-              type="primary"
-              size="small"
-              @click="goToCourseManagementHub(course.course_id)"
-            >
-              詳細内容
-            </AButton>
-            <AButton
-              v-if="course.edit_permission"
-              type="default"
-              size="small"
-              @click="goToEditCourse(course.course_id)"
-            >
-              編輯
-            </AButton>
-            <AButton
-              v-if="canDeleteCourse"
-              danger
-              size="small"
-              @click="deleteCourseHandler(course.course_id)"
-            >
-              刪除
-            </AButton>
+        <div class="u-text-sm u-text-gray-600 u-space-y-1">
+          <div>
+            授課老師：{{ course.instructor_name || course.teacher || "未指定" }}
           </div>
+          <div>學分：{{ course.credit }}</div>
+          <div>
+            開課時間：{{ dayjs(course.start_date).format("YYYY-MM-DD") }}
+          </div>
+          <div>結課時間：{{ dayjs(course.end_date).format("YYYY-MM-DD") }}</div>
+          <div>
+            人數：{{ course.enrolled_count }} / {{ course.enrollment_limit }}
+          </div>
+          <div
+            v-if="course.weekly_schedule && course.weekly_schedule.length > 0"
+          >
+            上課時間：{{ formatWeeklySchedule(course.weekly_schedule) }}
+          </div>
+        </div>
+
+        <div class="u-flex u-justify-end u-gap-2 u-mt-4">
+          <AButton
+            v-if="course.view_permission || true"
+            type="primary"
+            size="small"
+            @click="goToCourseManagementHub(course.course_id)"
+          >
+            詳細内容
+          </AButton>
+          <AButton
+            v-if="course.edit_permission"
+            type="default"
+            size="small"
+            @click="goToEditCourse(course.course_id)"
+          >
+            編輯
+          </AButton>
+          <AButton
+            v-if="canDeleteCourse"
+            danger
+            size="small"
+            @click="deleteCourseHandler(course.course_id)"
+          >
+            刪除
+          </AButton>
         </div>
       </div>
     </div>

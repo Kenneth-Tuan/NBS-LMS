@@ -48,21 +48,6 @@ const teacherOptions = computed(() => {
   return Array.from(teachers).sort();
 });
 
-const timeSlots = [
-  { slot: 1, label: "第1節 08:00-08:50" },
-  { slot: 2, label: "第2節 09:00-09:50" },
-  { slot: 3, label: "第3節 10:00-10:50" },
-  { slot: 4, label: "第4節 11:00-11:50" },
-  { slot: 5, label: "第5節 13:00-13:50" },
-  { slot: 6, label: "第6節 14:00-14:50" },
-  { slot: 7, label: "第7節 15:00-15:50" },
-  { slot: 8, label: "第8節 16:00-16:50" },
-  { slot: 9, label: "第9節 18:00-18:50" },
-  { slot: 10, label: "第10節 19:00-19:50" },
-  { slot: 11, label: "第11節 20:00-20:50" },
-  { slot: 12, label: "第12節 21:00-21:50" },
-];
-
 const filteredAvailableCourses = computed(() => {
   return coursesData.filter((course) => {
     const matchKeyword =
@@ -73,91 +58,6 @@ const filteredAvailableCourses = computed(() => {
     return matchKeyword && matchTeacher;
   });
 });
-
-const availableCoursesColumns = [
-  {
-    title: "課程名稱",
-    dataIndex: "course_name",
-    key: "course_name",
-    width: "25%",
-    customRender: ({ text, record }) => {
-      return h(
-        "a",
-        {
-          onClick: (e) => {
-            // e.stopPropagation();
-            // router.push({
-            //   name: RouterName.CourseDetail,
-            //   params: { id: record.course_id },
-            // });
-          },
-          style: "cursor: pointer; color: #1890ff;",
-        },
-        text
-      );
-    },
-  },
-  {
-    title: "教師",
-    dataIndex: "teacher_name",
-    key: "teacher_name",
-    width: "15%",
-  },
-  {
-    title: "上課時間",
-    dataIndex: "timeDisplay",
-    key: "timeDisplay",
-    width: "15%",
-    customRender: ({ record }) => {
-      // 格式化週課表時間
-      if (record.weekly_schedule && record.weekly_schedule.length > 0) {
-        return record.weekly_schedule
-          .map(
-            (schedule) =>
-              `${schedule.week_day} ${schedule.start_time}-${schedule.end_time}`
-          )
-          .join(", ");
-      }
-      return "-";
-    },
-  },
-  {
-    title: "學分",
-    dataIndex: "credit",
-    key: "credit",
-    width: "5%",
-    align: "center",
-  },
-  {
-    title: "報名情況",
-    dataIndex: "enrollment_count",
-    key: "enrollment_count",
-    width: "15%",
-    align: "center",
-    customRender: ({ record }) => {
-      const remaining = record.enrollment_limit - record.enrollment_count;
-      return `${remaining}/${record.enrollment_limit}`;
-    },
-  },
-  {
-    title: "操作",
-    dataIndex: "action",
-    key: "action",
-    width: "5%",
-    align: "center",
-  },
-];
-
-const courseColors = [
-  "#e6f7ff", // 淺藍
-  "#f6ffed", // 淺綠
-  "#fff7e6", // 淺橙
-  "#fcf4ff", // 淺紫
-  "#fff1f0", // 淺紅
-  "#e6fffb", // 青綠
-  "#f9f0ff", // 薰衣草
-  "#fffbe6", // 淺黃
-];
 
 const handleSearch = () => {
   loading.value = true;
@@ -324,20 +224,6 @@ const getCoursesInTimeSlot = (day, slot) => {
   if (!weekDay) return [];
 
   // 將時段轉換為時間範圍
-  const timeSlotMap = {
-    1: { start: "08:00", end: "08:50" },
-    2: { start: "09:00", end: "09:50" },
-    3: { start: "10:00", end: "10:50" },
-    4: { start: "11:00", end: "11:50" },
-    5: { start: "13:00", end: "13:50" },
-    6: { start: "14:00", end: "14:50" },
-    7: { start: "15:00", end: "15:50" },
-    8: { start: "16:00", end: "16:50" },
-    9: { start: "18:00", end: "18:50" },
-    10: { start: "19:00", end: "19:50" },
-    11: { start: "20:00", end: "20:50" },
-    12: { start: "21:00", end: "21:50" },
-  };
 
   const slotTime = timeSlotMap[slot];
   if (!slotTime) return [];
@@ -360,64 +246,6 @@ const getCourseColor = (courseId) => {
   );
   return courseColors[index % courseColors.length];
 };
-
-const selectedCoursesColumns = [
-  {
-    title: "課程名稱",
-    dataIndex: "course_name",
-    key: "course_name",
-    width: "25%",
-    customRender: ({ text, record }) => {
-      return h(
-        "a",
-        {
-          onClick: (e) => {
-            // e.stopPropagation();
-            // router.push({
-            //   name: RouterName.CourseDetail,
-            //   params: { id: record.course_id },
-            // });
-          },
-          style: "cursor: pointer; color: #1890ff;",
-        },
-        text
-      );
-    },
-  },
-  {
-    title: "教師",
-    dataIndex: "teacher_name",
-    key: "teacher_name",
-    width: "15%",
-  },
-  {
-    title: "上課時間",
-    dataIndex: "timeDisplay",
-    key: "timeDisplay",
-    width: "15%",
-    customRender: ({ record }) => {
-      // 格式化週課表時間
-      if (record.week_day && record.start_time && record.end_time) {
-        return `${record.week_day} ${record.start_time}-${record.end_time}`;
-      }
-      return "-";
-    },
-  },
-  {
-    title: "學分",
-    dataIndex: "credit",
-    key: "credit",
-    width: "10%",
-    align: "center",
-  },
-  {
-    title: "操作",
-    dataIndex: "action",
-    key: "action",
-    width: "10%",
-    align: "center",
-  },
-];
 
 const tooltipTitle = (record) => {
   if (
@@ -482,28 +310,27 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="u-p-4 u-w-full">
-    <div class="u-bg-white u-rounded-16px u-p24px u-shadow">
-      <!-- 頁面標題 -->
-      <div class="u-flex u-justify-between u-items-center u-mb16px">
-        <h1 class="u-text-24px u-font-bold u-c-blue">限時選課</h1>
+  <div class="u-w-full u-bg-white u-rounded-16px u-p24px u-shadow">
+    <!-- 頁面標題 -->
+    <div class="u-flex u-justify-between u-items-center u-mb16px">
+      <h1 class="u-text-24px u-font-bold u-c-blue">限時選課</h1>
 
-        <div class="u-flex u-items-center">
-          <!-- <span class="u-mr-2 u-font-bold u-text-red-500">選課開放時間：</span>
+      <div class="u-flex u-items-center">
+        <!-- <span class="u-mr-2 u-font-bold u-text-red-500">選課開放時間：</span>
           <a-tag color="red">
             <span class="u-font-bold">{{ selectionPeriod }}</span>
           </a-tag> -->
-          <a-tag color="green" v-if="true" class="u-ml-2">
-            <span class="u-font-bold">選課進行中</span>
-          </a-tag>
-          <!-- <a-tag color="default" v-else class="u-ml-2">
+        <a-tag color="green" v-if="true" class="u-ml-2">
+          <span class="u-font-bold">選課進行中</span>
+        </a-tag>
+        <!-- <a-tag color="default" v-else class="u-ml-2">
             <span class="u-font-bold">選課未開放</span>
           </a-tag> -->
-        </div>
       </div>
+    </div>
 
-      <!-- 選課說明 -->
-      <!-- <a-alert
+    <!-- 選課說明 -->
+    <!-- <a-alert
         type="info"
         showIcon
         class="u-mb-6"
@@ -511,182 +338,372 @@ onMounted(async () => {
         description="1. 限時選課僅開放指定時間內進行，請注意選課時間。 2. 選課有21學分的上限。 3. 部分課程有人數上限，先選先得。 4. 確認課程無時間衝突。"
       /> -->
 
-      <!-- 分頁標籤 -->
-      <a-tabs v-model:activeKey="activeTabKey" class="u-mb-6">
-        <a-tab-pane key="available" tab="可選課程">
-          <!-- 搜尋區塊 -->
-          <div class="u-mb-6 u-bg-gray-50 u-p-4 u-rounded-lg">
-            <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
-              <a-form-item label="課程名稱">
-                <a-input
-                  v-model:value="filters.keyword"
-                  placeholder="輸入課程名稱關鍵字"
-                  style="width: 200px"
-                  allow-clear
-                />
-              </a-form-item>
+    <!-- 分頁標籤 -->
+    <a-tabs v-model:activeKey="activeTabKey" class="u-mb-6">
+      <a-tab-pane key="available" tab="可選課程">
+        <!-- 搜尋區塊 -->
+        <div class="u-mb-6 u-bg-gray-50 u-p-4 u-rounded-lg">
+          <a-form layout="inline" class="u-flex u-flex-wrap u-gap-4">
+            <a-form-item label="課程名稱">
+              <a-input
+                v-model:value="filters.keyword"
+                placeholder="輸入課程名稱關鍵字"
+                style="width: 200px"
+                allow-clear
+              />
+            </a-form-item>
 
-              <a-form-item label="教師">
-                <a-select
-                  v-model:value="filters.teacher"
-                  style="width: 180px"
-                  placeholder="選擇教師"
-                  allow-clear
+            <a-form-item label="教師">
+              <a-select
+                v-model:value="filters.teacher"
+                style="width: 180px"
+                placeholder="選擇教師"
+                allow-clear
+              >
+                <a-select-option
+                  v-for="teacher in teacherOptions"
+                  :key="teacher"
+                  :value="teacher"
                 >
-                  <a-select-option
-                    v-for="teacher in teacherOptions"
-                    :key="teacher"
-                    :value="teacher"
-                  >
-                    {{ teacher }}
-                  </a-select-option>
-                </a-select>
-              </a-form-item>
+                  {{ teacher }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
 
-              <a-form-item>
-                <!-- <a-button type="primary" @click="handleSearch">查詢</a-button> -->
-                <a-button class="u-ml-2" @click="handleReset">重置</a-button>
-              </a-form-item>
-            </a-form>
-          </div>
+            <a-form-item>
+              <!-- <a-button type="primary" @click="handleSearch">查詢</a-button> -->
+              <a-button class="u-ml-2" @click="handleReset">重置</a-button>
+            </a-form-item>
+          </a-form>
+        </div>
 
-          <!-- 可選課程表格 -->
-          <a-spin :spinning="loading">
-            <a-table
-              :dataSource="filteredAvailableCourses"
-              :columns="availableCoursesColumns"
-              rowKey="course_id"
-              :pagination="{ pageSize: 10 }"
-              size="middle"
-            >
-              <!-- 剩餘名額顯示 -->
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.dataIndex === 'enrollment_count'">
-                  <span
-                    :class="{
-                      'u-text-red-500':
-                        record.enrollment_limit - record.enrollment_count < 5,
-                      'u-font-bold':
-                        record.enrollment_limit - record.enrollment_count < 5,
-                    }"
-                  >
-                    {{ record.enrollment_count }}/{{ record.enrollment_limit }}
-                  </span>
-                </template>
-                <template v-if="column.dataIndex === 'action'">
-                  <a-tooltip :title="tooltipTitle(record)">
-                    <a-button
-                      type="primary"
-                      size="small"
-                      @click="handleSelectCourse(record)"
-                      :disabled="isCourseDisabledToSelect(record)"
-                    >
-                      選課
-                    </a-button>
-                  </a-tooltip>
-                </template>
+        <!-- 可選課程表格 -->
+        <a-spin :spinning="loading">
+          <a-table
+            :dataSource="filteredAvailableCourses"
+            :columns="availableCoursesColumns"
+            rowKey="course_id"
+            :pagination="{ pageSize: 10 }"
+            size="large"
+            class="u-w-full u-overflow-x-auto"
+          >
+            <!-- 剩餘名額顯示 -->
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'enrollment_count'">
+                <span
+                  :class="{
+                    'u-text-red-500':
+                      record.enrollment_limit - record.enrollment_count < 5,
+                    'u-font-bold':
+                      record.enrollment_limit - record.enrollment_count < 5,
+                  }"
+                >
+                  {{ record.enrollment_count }}/{{ record.enrollment_limit }}
+                </span>
               </template>
-            </a-table>
-          </a-spin>
-        </a-tab-pane>
-
-        <a-tab-pane key="selected" tab="已選課程">
-          <!-- 已選課程清單 -->
-          <div v-if="selectedCourses.length === 0" class="u-text-center u-p-10">
-            <a-empty description="尚未選擇任何課程" />
-          </div>
-
-          <div v-else>
-            <div class="u-bg-gray-50 u-p-4 u-rounded-lg u-mb-4">
-              <div class="u-flex u-justify-between u-items-center">
-                <div>
-                  <span class="u-font-bold">已選課程：</span>
-                  <span class="u-text-blue-500 u-font-bold">{{
-                    selectedCourses.length
-                  }}</span>
-                  <span class="u-ml-2 u-font-bold">總學分：</span>
-                  <span
-                    class="u-text-blue-500 u-font-bold"
-                    :class="{ 'u-text-red-500': hasReachedCreditLimit }"
-                    >{{ totalSelectedCredits }}</span
+              <template v-if="column.dataIndex === 'action'">
+                <a-tooltip :title="tooltipTitle(record)">
+                  <a-button
+                    type="primary"
+                    size="small"
+                    @click="handleSelectCourse(record)"
+                    :disabled="isCourseDisabledToSelect(record)"
                   >
-                  <span class="u-ml-1">/ 21</span>
-                </div>
-                <!-- <a-button
+                    選課
+                  </a-button>
+                </a-tooltip>
+              </template>
+            </template>
+          </a-table>
+        </a-spin>
+      </a-tab-pane>
+
+      <a-tab-pane key="selected" tab="已選課程">
+        <!-- 已選課程清單 -->
+        <div v-if="selectedCourses.length === 0" class="u-text-center u-p-10">
+          <a-empty description="尚未選擇任何課程" />
+        </div>
+
+        <div v-else>
+          <div class="u-bg-gray-50 u-p-4 u-rounded-lg u-mb-4">
+            <div class="u-flex u-justify-between u-items-center">
+              <div>
+                <span class="u-font-bold">已選課程：</span>
+                <span class="u-text-blue-500 u-font-bold">{{
+                  selectedCourses.length
+                }}</span>
+                <span class="u-ml-2 u-font-bold">總學分：</span>
+                <span
+                  class="u-text-blue-500 u-font-bold"
+                  :class="{ 'u-text-red-500': hasReachedCreditLimit }"
+                  >{{ totalSelectedCredits }}</span
+                >
+                <span class="u-ml-1">/ 21</span>
+              </div>
+              <!-- <a-button
                   type="primary"
                   @click="handleSubmitSelection"
                   :disabled="selectedCourses.length === 0"
                 >
                   確認送出選課
                 </a-button> -->
-              </div>
             </div>
-
-            <a-table
-              :dataSource="selectedCourses"
-              :columns="selectedCoursesColumns"
-              rowKey="course_id"
-              :pagination="false"
-              size="middle"
-              class="u-mb-4"
-            >
-              <template #bodyCell="{ column, record }">
-                <template v-if="column.dataIndex === 'action'">
-                  <a-button
-                    danger
-                    size="small"
-                    @click="handleRemoveCourse(record)"
-                  >
-                    退選
-                  </a-button>
-                </template>
-              </template>
-            </a-table>
-
-            <table class="timetable">
-              <thead>
-                <tr>
-                  <th class="time-column"></th>
-                  <th>星期一</th>
-                  <th>星期二</th>
-                  <th>星期三</th>
-                  <th>星期四</th>
-                  <th>星期五</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="time in timeSlots" :key="time.slot">
-                  <td class="time-column u-text-nowrap">{{ time.label }}</td>
-                  <td
-                    v-for="day in [
-                      'monday',
-                      'tuesday',
-                      'wednesday',
-                      'thursday',
-                      'friday',
-                    ]"
-                    :key="day"
-                  >
-                    <div
-                      v-for="course in getCoursesInTimeSlot(day, time.slot)"
-                      :key="course.course_id"
-                      class="course-cell"
-                      :style="{
-                        backgroundColor: getCourseColor(course.course_id),
-                      }"
-                    >
-                      {{ course.course_name }}
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
           </div>
-        </a-tab-pane>
-      </a-tabs>
-    </div>
+
+          <a-table
+            :dataSource="selectedCourses"
+            :columns="selectedCoursesColumns"
+            rowKey="course_id"
+            :pagination="false"
+            size="middle"
+            class="u-mb-4 u-w-full u-overflow-x-auto"
+          >
+            <template #bodyCell="{ column, record }">
+              <template v-if="column.dataIndex === 'action'">
+                <a-button
+                  danger
+                  size="small"
+                  @click="handleRemoveCourse(record)"
+                >
+                  退選
+                </a-button>
+              </template>
+            </template>
+          </a-table>
+
+          <table class="timetable">
+            <thead>
+              <tr>
+                <th class="time-column"></th>
+                <th>星期一</th>
+                <th>星期二</th>
+                <th>星期三</th>
+                <th>星期四</th>
+                <th>星期五</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="time in timeSlots" :key="time.slot">
+                <td class="time-column u-text-nowrap">{{ time.label }}</td>
+                <td
+                  v-for="day in [
+                    'monday',
+                    'tuesday',
+                    'wednesday',
+                    'thursday',
+                    'friday',
+                  ]"
+                  :key="day"
+                >
+                  <div
+                    v-for="course in getCoursesInTimeSlot(day, time.slot)"
+                    :key="course.course_id"
+                    class="course-cell"
+                    :style="{
+                      backgroundColor: getCourseColor(course.course_id),
+                    }"
+                  >
+                    {{ course.course_name }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </a-tab-pane>
+    </a-tabs>
   </div>
 </template>
+
+<script>
+const timeSlots = [
+  { slot: 1, label: "第1節 08:00-08:50" },
+  { slot: 2, label: "第2節 09:00-09:50" },
+  { slot: 3, label: "第3節 10:00-10:50" },
+  { slot: 4, label: "第4節 11:00-11:50" },
+  { slot: 5, label: "第5節 13:00-13:50" },
+  { slot: 6, label: "第6節 14:00-14:50" },
+  { slot: 7, label: "第7節 15:00-15:50" },
+  { slot: 8, label: "第8節 16:00-16:50" },
+  { slot: 9, label: "第9節 18:00-18:50" },
+  { slot: 10, label: "第10節 19:00-19:50" },
+  { slot: 11, label: "第11節 20:00-20:50" },
+  { slot: 12, label: "第12節 21:00-21:50" },
+];
+
+const timeSlotMap = {
+  1: { start: "08:00", end: "08:50" },
+  2: { start: "09:00", end: "09:50" },
+  3: { start: "10:00", end: "10:50" },
+  4: { start: "11:00", end: "11:50" },
+  5: { start: "13:00", end: "13:50" },
+  6: { start: "14:00", end: "14:50" },
+  7: { start: "15:00", end: "15:50" },
+  8: { start: "16:00", end: "16:50" },
+  9: { start: "18:00", end: "18:50" },
+  10: { start: "19:00", end: "19:50" },
+  11: { start: "20:00", end: "20:50" },
+  12: { start: "21:00", end: "21:50" },
+};
+
+const selectedCoursesColumns = [
+  {
+    title: "課程名稱",
+    dataIndex: "course_name",
+    key: "course_name",
+    width: "25%",
+    customRender: ({ text, record }) => {
+      return h(
+        "a",
+        {
+          onClick: (e) => {
+            // e.stopPropagation();
+            // router.push({
+            //   name: RouterName.CourseDetail,
+            //   params: { id: record.course_id },
+            // });
+          },
+          style: "cursor: pointer; color: #1890ff;",
+        },
+        text
+      );
+    },
+  },
+  {
+    title: "課程編號",
+    dataIndex: "code",
+    key: "code",
+    width: "15%",
+  },
+  {
+    title: "教師",
+    dataIndex: "teacher_name",
+    key: "teacher_name",
+    width: "15%",
+  },
+  {
+    title: "上課時間",
+    dataIndex: "timeDisplay",
+    key: "timeDisplay",
+    width: "15%",
+    customRender: ({ record }) => {
+      // 格式化週課表時間
+      if (record.week_day && record.start_time && record.end_time) {
+        return `${record.week_day} ${record.start_time}-${record.end_time}`;
+      }
+      return "-";
+    },
+  },
+  {
+    title: "學分",
+    dataIndex: "credit",
+    key: "credit",
+    width: "10%",
+    align: "center",
+  },
+  {
+    title: "操作",
+    dataIndex: "action",
+    key: "action",
+    width: "10%",
+    align: "center",
+  },
+];
+
+const availableCoursesColumns = [
+  {
+    title: "課程名稱",
+    dataIndex: "course_name",
+    key: "course_name",
+    width: "25%",
+    customRender: ({ text, record }) => {
+      return h(
+        "a",
+        {
+          onClick: (e) => {
+            // e.stopPropagation();
+            // router.push({
+            //   name: RouterName.CourseDetail,
+            //   params: { id: record.course_id },
+            // });
+          },
+          style: "cursor: pointer; color: #1890ff;",
+        },
+        text
+      );
+    },
+  },
+  {
+    title: "課程編號",
+    dataIndex: "code",
+    key: "code",
+    width: "15%",
+    customRender: ({ text, record }) => {
+      return record.code || "-";
+    },
+  },
+  {
+    title: "教師",
+    dataIndex: "teacher_name",
+    key: "teacher_name",
+    width: "15%",
+  },
+  {
+    title: "上課時間",
+    dataIndex: "timeDisplay",
+    key: "timeDisplay",
+    width: "15%",
+    customRender: ({ record }) => {
+      // 格式化週課表時間
+      if (record.weekly_schedule && record.weekly_schedule.length > 0) {
+        return record.weekly_schedule
+          .map(
+            (schedule) =>
+              `${schedule.week_day} ${schedule.start_time}-${schedule.end_time}`
+          )
+          .join(", ");
+      }
+      return "-";
+    },
+  },
+  {
+    title: "學分",
+    dataIndex: "credit",
+    key: "credit",
+    width: "5%",
+    align: "center",
+  },
+  {
+    title: "報名情況",
+    dataIndex: "enrollment_count",
+    key: "enrollment_count",
+    width: "15%",
+    align: "center",
+    customRender: ({ record }) => {
+      const remaining = record.enrollment_limit - record.enrollment_count;
+      return `${remaining}/${record.enrollment_limit}`;
+    },
+  },
+  {
+    title: "操作",
+    dataIndex: "action",
+    key: "action",
+    width: "5%",
+    align: "center",
+  },
+];
+
+const courseColors = [
+  "#e6f7ff", // 淺藍
+  "#f6ffed", // 淺綠
+  "#fff7e6", // 淺橙
+  "#fcf4ff", // 淺紫
+  "#fff1f0", // 淺紅
+  "#e6fffb", // 青綠
+  "#f9f0ff", // 薰衣草
+  "#fffbe6", // 淺黃
+];
+</script>
 
 <style scoped>
 /* 課表樣式 */

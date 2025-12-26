@@ -468,7 +468,7 @@ onMounted(async () => {
 
 <template>
   <div
-    class="u-grid u-grid-cols-1 md:u-grid-cols-2 u-h100% u-w100% u-gap-2 md:u-gap-4 u-p2 md:u-p4 u-items-start"
+    class="u-grid u-grid-cols-1 md:u-grid-cols-2 u-h100% u-w100% u-gap-2 md:u-gap-4 u-items-start"
   >
     <div
       class="u-p16px md:u-p24px u-col-span-1 md:u-col-span-2 u-bg-white u-w100% u-h100% u-shadow u-rounded-16px"
