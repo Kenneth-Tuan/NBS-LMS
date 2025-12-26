@@ -234,7 +234,8 @@ onMounted(async () => {
       :loading="loading"
       :pagination="{ pageSize: 10, hideOnSinglePage: true }"
       bordered
-      size="small"
+      size="large"
+      class="u-w-full u-overflow-x-auto"
     >
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'actions'">
