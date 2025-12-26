@@ -2,13 +2,14 @@
 import { reactive, onMounted, ref, computed } from "vue";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
-dayjs.extend(isBetween);
 
 import { Divider, message, Table } from "ant-design-vue";
 
 import { timeCourseSettingsSchema } from "@/schemas/timeCourseSettings.schema";
 import { courseService } from "@/services/course.service";
 import courseApi from "@/apis/course";
+
+dayjs.extend(isBetween);
 
 const initialFormState = {
   ["selectable-courses"]: [],
