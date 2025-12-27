@@ -1,0 +1,53 @@
+services:
+  # Main Vue.js LMS Application
+  nbs-lms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nbs-lms-dev
+    ports:
+      - "7001:7001"
+    volumes:
+      # Mount source code for hot reloading
+      - .:/app
+      # Exclude node_modules from mounting to avoid conflicts
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_APP_IS_MOCK=false
+    # Enable hot reloading
+    command: yarn dev --host 0.0.0.0
+    networks:
+      - nbs-lms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:7001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Local Appwrite instance for development
+  # Uncomment and configure if you want to run Appwrite locally instead of cloud
+  # appwrite:
+  #   image: appwrite/appwrite:latest
+  #   container_name: nbs-lms-appwrite
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - appwrite_data:/storage
+  #   environment:
+  #     - APPWRITE_CONSOLE_HOSTNAME=localhost
+  #     - APPWRITE_CONSOLE_PORT=80
+  #     - APPWRITE_PROJECT_ID=67e783740019aeeb3093
+  #   networks:
+  #     - nbs-lms-network
+  #   restart: unless-stopped
+
+networks:
+  nbs-lms-network:
+    driver: bridge
+
+# volumes:
+#   appwrite_data:

@@ -1,0 +1,60 @@
+# Node modules (will be installed in container)
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+output
+dist
+build
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Docker files (avoid recursive copying)
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation and logs
+*.log
+docs/
+README.md
+*.md
+
+# Test files (if any)
+coverage
+.nyc_output
+test-results
+
+# Environment files (handle separately if needed)
+.env*
+!.env.example
+
+# Cache directories
+.cache
+.parcel-cache
+.next
+.nuxt
+
+# Temporary files
+tmp/
+temp/
