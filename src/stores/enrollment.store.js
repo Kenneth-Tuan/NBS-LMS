@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "dayjs";
 
 import courseApi from "@/apis/course";
+import { useUserStore } from "@/stores/user";
 
 export const useEnrollmentStore = defineStore(
   "enrollment",
@@ -17,7 +18,10 @@ export const useEnrollmentStore = defineStore(
 
     const selectedCourses = ref([]);
     const totalSelectedCredits = computed(() =>
-      selectedCourses.value.reduce((acc, course) => acc + Number(course.credit), 0)
+      selectedCourses.value.reduce(
+        (acc, course) => acc + Number(course.credit),
+        0
+      )
     );
 
     const activeTabKey = ref("available");
@@ -126,17 +130,56 @@ export const useEnrollmentStore = defineStore(
       }
     };
 
+    const autoPickCoursesByDepartment = async () => {
+      const userStore = useUserStore();
+      const { userProfile } = userStore;
+
+      if (
+        !userProfile.departments ||
+        (Array.isArray(userProfile.departments) &&
+          userProfile.departments.length === 0)
+      )
+        return;
+
+      try {
+        coursesForEnrollment.value.forEach(async (course) => {
+          try {
+            const { required_for_departments, course_id } = course;
+            if (
+              required_for_departments.some((department) =>
+                userProfile.departments.includes(department)
+              ) &&
+              !selectedCourses.value.some(
+                (selectedCourse) => selectedCourse.course_id === course_id
+              )
+            ) {
+              await selectCourse(course.course_id);
+            }
+          } catch (error) {
+            throw error;
+          }
+        });
+      } catch (error) {
+        console.error(error);
+        message.error("自動選課時發生錯誤，請稍後再試");
+      } finally {
+        loading.value = false;
+      }
+    };
+
     return {
       coursesForEnrollment,
       hasEnrollment,
       selectedCourses,
       activeTabKey,
-      loading,totalSelectedCredits,
+      loading,
+      totalSelectedCredits,
 
       fetchCoursesForEnrollment,
       fetchMyCourseData,
       selectCourse,
       dropCourse,
+      autoPickCoursesByDepartment,
     };
   },
   {

@@ -6,6 +6,11 @@ import { storeToRefs } from "pinia";
 import { useEnrollmentStore } from "@/stores/enrollment.store";
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
+import { useMiscStore } from "@/stores/misc.store";
+
+const miscStore = useMiscStore();
+const { creditFee } = storeToRefs(miscStore);
+const { getCreditFeeHandler } = miscStore;
 
 const enrollmentStore = useEnrollmentStore();
 const {
@@ -15,7 +20,7 @@ const {
   loading,
   totalSelectedCredits,
 } = storeToRefs(enrollmentStore);
-const { fetchMyCourseData, selectCourse, dropCourse } = enrollmentStore;
+const { fetchMyCourseData, selectCourse, dropCourse, autoPickCoursesByDepartment } = enrollmentStore;
 
 const { userProfile } = useUserStore();
 
@@ -94,7 +99,9 @@ const isCourseDisabledToSelect = (course) => {
 onMounted(async () => {
   if (userProfile.userRole === UserRole.Student) {
     try {
+      await getCreditFeeHandler();
       await fetchMyCourseData();
+      await autoPickCoursesByDepartment();
     } catch (error) {}
   }
 });
@@ -228,20 +235,30 @@ onMounted(async () => {
 
         <div v-else>
           <div class="u-bg-gray-50 u-p-4 u-rounded-lg u-mb-4">
-            <div class="u-flex u-justify-between u-items-center">
-              <div>
-                <span class="u-font-bold">已選課程：</span>
+            <div
+              class="u-flex u-justify-start u-items-center u-flex-wrap u-gap-2"
+            >
+              <div class="u-flex u-items-center">
+                <span class="u-font-bold u-text-nowrap">已選課程：</span>
                 <span class="u-text-blue-500 u-font-bold">{{
                   selectedCourses.length
                 }}</span>
-                <span class="u-ml-2 u-font-bold">總學分：</span>
-                <span
-                  class="u-text-blue-500 u-font-bold"
-                  :class="{ 'u-text-red-500': hasReachedCreditLimit }"
-                  >{{ totalSelectedCredits }}</span
-                >
-                <!-- <span class="u-ml-1">/ 21</span> -->
               </div>
+
+              <div class="u-flex u-items-center">
+                <span class="u-font-bold u-text-nowrap">總學分：</span>
+                <span class="u-text-blue-500 u-font-bold">
+                  {{ totalSelectedCredits }}</span
+                >
+              </div>
+
+              <div class="u-flex u-items-center">
+                <span class="u-font-bold u-text-nowrap">總學費：</span>
+                <span class="u-text-blue-500 u-font-bold u-text-nowrap">
+                  {{ totalSelectedCredits * creditFee }} NTD</span
+                >
+              </div>
+              <!-- <span class="u-ml-1">/ 21</span> -->
             </div>
           </div>
 
@@ -272,12 +289,12 @@ onMounted(async () => {
                 <span v-else>-</span>
               </template>
 
-              <template v-if="column.dataIndex === 'code'">
+              <!-- <template v-if="column.dataIndex === 'code'">
                 <span v-if="record.code" class="u-text-nowrap">{{
                   record.code
                 }}</span>
                 <span v-else>-</span>
-              </template>
+              </template> -->
 
               <template v-if="column.dataIndex === 'teacher_name'">
                 <span v-if="record.teacher_name" class="u-text-nowrap">{{
@@ -382,12 +399,12 @@ const selectedCoursesColumns = [
     key: "course_name",
     width: "25%",
   },
-  {
-    title: "課程編號",
-    dataIndex: "code",
-    key: "code",
-    width: "15%",
-  },
+  // {
+  //   title: "課程編號",
+  //   dataIndex: "code",
+  //   key: "code",
+  //   width: "15%",
+  // },
   {
     title: "教師",
     dataIndex: "teacher_name",
