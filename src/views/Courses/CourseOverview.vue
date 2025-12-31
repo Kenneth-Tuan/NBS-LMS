@@ -306,6 +306,9 @@ onMounted(async () => {
         <div class="u-flex u-justify-between u-items-start u-mb-3">
           <div class="u-font-medium u-text-lg u-text-gray-600">
             {{ course.name }}
+            <span v-if="course.code" class="u-text-gray-500">
+              [{{ course.code }}]
+            </span>
           </div>
           <ATag
             :color="getCourseStatus(course.start_date, course.end_date).color"
