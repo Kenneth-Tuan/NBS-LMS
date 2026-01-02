@@ -12,7 +12,7 @@ const DEPARTMENT_OPTIONS = Object.freeze([
     value: "bachelor_of_theology",
   },
   {
-    label: "信徒領袖科",
+    label: "拿會按牧必修",
     value: "lay_leadership_program",
   },
 ]);
