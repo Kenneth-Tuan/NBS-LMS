@@ -82,14 +82,17 @@ const gradebookColumns = computed(() => {
       align: "center",
       sorter: true,
       render: (value) => value || "-",
-      children: [
-        {
-          title: "編輯",
-          dataIndex: item.item_id,
-          key: "operation",
-          width: 100,
-        },
-      ],
+      children:
+        item.item_name === "總分"
+          ? []
+          : [
+              {
+                title: "編輯",
+                dataIndex: item.item_id,
+                key: "operation",
+                width: 100,
+              },
+            ],
     };
   });
 
