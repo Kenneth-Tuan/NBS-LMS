@@ -2,12 +2,16 @@
 import { reactive, computed, onMounted, h, unref } from "vue";
 import { message } from "ant-design-vue";
 import { storeToRefs } from "pinia";
+import dayjs from "dayjs";
+import isBetween from "dayjs/plugin/isBetween";
 
 import { useEnrollmentStore } from "@/stores/enrollment.store";
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
 import { useMiscStore } from "@/stores/misc.store";
 import { DEPARTMENTS_LABEL_MAP } from "@/constant/common.constant";
+
+dayjs.extend(isBetween);
 
 const miscStore = useMiscStore();
 const { creditFee } = storeToRefs(miscStore);
@@ -81,10 +85,23 @@ const getCoursesInTimeSlot = (day, slot) => {
     if (!course.week_day || !course.start_time || !course.end_time)
       return false;
 
+    const courseStartTime = dayjs(course.start_time, "HH:mm");
+    const courseEndTime = dayjs(course.end_time, "HH:mm");
+    const slotStartTime = dayjs(slotTime.start, "HH:mm");
+    const slotEndTime = dayjs(slotTime.end, "HH:mm");
+
+    const isSlotStartTimeBetweenCourse = slotStartTime.isBetween(
+      courseStartTime,
+      courseEndTime
+    );
+    const isSlotEndTimeBetweenCourse = slotEndTime.isBetween(
+      courseStartTime,
+      courseEndTime
+    );
+
     return (
       course.week_day === weekDay &&
-      course.start_time <= slotTime.start &&
-      course.end_time >= slotTime.end
+      (isSlotStartTimeBetweenCourse || isSlotEndTimeBetweenCourse)
     );
   });
 };
@@ -386,10 +403,9 @@ const timeSlots = [
   { slot: 6, label: "第6節 14:00-14:50" },
   { slot: 7, label: "第7節 15:00-15:50" },
   { slot: 8, label: "第8節 16:00-16:50" },
-  { slot: 9, label: "第9節 18:00-18:50" },
-  { slot: 10, label: "第10節 19:00-19:50" },
-  { slot: 11, label: "第11節 20:00-20:50" },
-  { slot: 12, label: "第12節 21:00-21:50" },
+  { slot: 9, label: "第9節 18:30-19:20" },
+  { slot: 10, label: "第10節 19:30-20:20" },
+  { slot: 11, label: "第11節 20:30-21:20" },
 ];
 
 const timeSlotMap = {
@@ -401,10 +417,9 @@ const timeSlotMap = {
   6: { start: "14:00", end: "14:50" },
   7: { start: "15:00", end: "15:50" },
   8: { start: "16:00", end: "16:50" },
-  9: { start: "18:00", end: "18:50" },
-  10: { start: "19:00", end: "19:50" },
-  11: { start: "20:00", end: "20:50" },
-  12: { start: "21:00", end: "21:50" },
+  9: { start: "18:30", end: "19:20" },
+  10: { start: "19:30", end: "20:20" },
+  11: { start: "20:30", end: "21:20" },
 };
 
 const selectedCoursesColumns = [
