@@ -93,8 +93,6 @@ const gradebookColumns = computed(() => {
     };
   });
 
-
-
   return isTeacherOrCreator.value
     ? [...baseColumns, ...teacherGradeItemColumns]
     : [...commonGradeItemColumns];
@@ -149,7 +147,7 @@ const gradebookDataSource = computed(() => {
       acc[score.score_item_id] = score.score;
       return acc;
     }, {});
-    return [myScoresObject]
+    return [myScoresObject];
   }
 });
 
@@ -230,6 +228,10 @@ async function getScoreItems() {
         data: { items },
       },
     } = await scoreApi.getScoreItem(course_id.value);
+
+    if (!isStudent.value && !items.some((item) => item.item_name === "總分")) {
+      addScoreItem("總分");
+    }
 
     scoreItems.value = items;
   } catch (error) {
@@ -420,7 +422,9 @@ onMounted(async () => {
             placeholder="-"
             size="small"
             style="width: 80px"
-            @blur="(el) => handleGradeChange(record.student_id, column.dataIndex, el)"
+            @blur="
+              (el) => handleGradeChange(record.student_id, column.dataIndex, el)
+            "
           />
         </div>
       </template>

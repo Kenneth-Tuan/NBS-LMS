@@ -155,7 +155,10 @@ onMounted(async () => {
 
           <!-- Student Roster Tab -->
           <a-tab-pane key="roster" tab="學生名單">
-            <StudentRoster :course-info="currentCourse" />
+            <StudentRoster
+              :is-student="isStudent"
+              :course-info="currentCourse"
+            />
           </a-tab-pane>
         </a-tabs>
       </div>

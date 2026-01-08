@@ -37,8 +37,7 @@ const loginService = {
 
       return true;
     } catch (error) {
-      console.error(error);
-      return false;
+      throw error;
     }
   },
 };

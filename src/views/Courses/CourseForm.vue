@@ -333,7 +333,6 @@ onMounted(async () => {
                 allow-clear
                 class="u-w-full"
                 :filter-option="filterOption"
-                :disabled="isTeacherRole || true"
               >
                 <!-- Optional: Customize tag rendering -->
                 <template #tagRender="{ label, closable, onClose }">

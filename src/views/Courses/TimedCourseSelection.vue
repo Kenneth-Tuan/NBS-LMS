@@ -7,6 +7,7 @@ import { useEnrollmentStore } from "@/stores/enrollment.store";
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
 import { useMiscStore } from "@/stores/misc.store";
+import { DEPARTMENTS_LABEL_MAP } from "@/constant/common.constant";
 
 const miscStore = useMiscStore();
 const { creditFee } = storeToRefs(miscStore);
@@ -20,7 +21,12 @@ const {
   loading,
   totalSelectedCredits,
 } = storeToRefs(enrollmentStore);
-const { fetchMyCourseData, selectCourse, dropCourse, autoPickCoursesByDepartment } = enrollmentStore;
+const {
+  fetchMyCourseData,
+  selectCourse,
+  dropCourse,
+  autoPickCoursesByDepartment,
+} = enrollmentStore;
 
 const { userProfile } = useUserStore();
 
@@ -184,6 +190,22 @@ onMounted(async () => {
                 <span v-else>-</span>
               </template>
 
+              <template v-if="column.dataIndex === 'required_for_departments'">
+                <div
+                  v-if="
+                    record.required_for_departments &&
+                    record.required_for_departments.length > 0
+                  "
+                >
+                  <a-tag
+                    v-for="requiredDepartment in record.required_for_departments"
+                    class=""
+                    >{{ DEPARTMENTS_LABEL_MAP[requiredDepartment] }}
+                  </a-tag>
+                </div>
+                <span v-else>-</span>
+              </template>
+
               <template v-if="column.dataIndex === 'teacher_name'">
                 <span class="u-text-nowrap">{{ record.teacher_name }}</span>
               </template>
@@ -289,13 +311,6 @@ onMounted(async () => {
                 <span v-else>-</span>
               </template>
 
-              <!-- <template v-if="column.dataIndex === 'code'">
-                <span v-if="record.code" class="u-text-nowrap">{{
-                  record.code
-                }}</span>
-                <span v-else>-</span>
-              </template> -->
-
               <template v-if="column.dataIndex === 'teacher_name'">
                 <span v-if="record.teacher_name" class="u-text-nowrap">{{
                   record.teacher_name
@@ -399,12 +414,6 @@ const selectedCoursesColumns = [
     key: "course_name",
     width: "25%",
   },
-  // {
-  //   title: "課程編號",
-  //   dataIndex: "code",
-  //   key: "code",
-  //   width: "15%",
-  // },
   {
     title: "教師",
     dataIndex: "teacher_name",
@@ -444,6 +453,12 @@ const availableCoursesColumns = [
     title: "課程編號",
     dataIndex: "code",
     key: "code",
+    width: "15%",
+  },
+  {
+    title: "必修科別",
+    dataIndex: "required_for_departments",
+    key: "required_for_departments",
     width: "15%",
   },
   {
