@@ -9,6 +9,7 @@ const apiToFrontendMap = {
   duration: "duration",
   credit: "credit",
   teacher_id: "instructor",
+  teacher_name: "teacher_name",
   start_date: "startDate",
   end_date: "endDate",
   enrollment_limit: "enrollmentLimit",

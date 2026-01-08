@@ -1,10 +1,11 @@
 import { defineStore } from "pinia";
-import { reactive, ref } from "vue";
+import { reactive, ref, computed } from "vue";
 import { message } from "ant-design-vue";
 import { v4 as uuidv4 } from "uuid";
 import dayjs from "dayjs";
 
 import { courseService } from "../services/course.service";
+import courseApi from "../apis/course";
 
 // Assignment status
 export const AssignmentStatus = {
@@ -45,6 +46,20 @@ export const useCourseStore = defineStore(
     });
 
     const loading = ref(false);
+
+    const filters = reactive({
+      keyword: "",
+      teacher: "",
+    });
+
+    const pagination = reactive({
+      current: 1,
+      pageSize: 10,
+      total: 1,
+      hideOnSinglePage: false,
+      showSizeChanger: true,
+      pageSizeOptions: ["10", "20", "30", "40", "50"],
+    });
 
     const courseInfos = reactive({
       courseList: [],
@@ -154,10 +169,67 @@ export const useCourseStore = defineStore(
       }
     };
 
+    const getCoursesHandler = async (_pagination = pagination, ordering) => {
+      const DIRECTION_MAP = {
+        ascend: "asc",
+        descend: "desc",
+      };
+
+      const params = {
+        paged_info: {
+          page: _pagination.current,
+          page_size: _pagination.pageSize,
+        },
+        ordering: {
+          direction: DIRECTION_MAP[ordering?.order] ?? "asc",
+          field: ordering?.field ?? "start_date",
+        },
+      };
+
+      loading.value = true;
+      try {
+        const response = await courseApi.getCourses(params);
+        courseInfos.courseList = response.data.data.courses;
+        pagination.current = response.data.page;
+        pagination.total = response.data.total_page * response.data.page_size;
+        pagination.pageSize = response.data.page_size;
+      } catch (error) {
+        console.error(error);
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    const teacherOptions = computed(() => {
+      const teachers = new Set();
+      courseInfos.courseList.forEach((course) => {
+        if (course.instructor_name) {
+          teachers.add(course.instructor_name);
+        }
+      });
+      return Array.from(teachers).sort();
+    });
+
+    const filteredCourseData = computed(() => {
+      return courseInfos.courseList.filter((course) => {
+        const nameMatch = course.name
+          ? course.name.toLowerCase().includes(filters.keyword.toLowerCase())
+          : true;
+        const teacherMatch = filters.teacher
+          ? course.instructor_name === filters.teacher
+          : true;
+        return course.view_permission && nameMatch && teacherMatch;
+      });
+    });
+
     return {
       courseForm,
       loading,
       courseInfos,
+      pagination,
+      teacherOptions,
+      filters,
+      filteredCourseData,
 
       resetForm,
       createCourse,
@@ -166,6 +238,7 @@ export const useCourseStore = defineStore(
       addWeeklySchedule,
       removeWeeklySchedule,
       getCourseHandler,
+      getCoursesHandler,
     };
   },
   {
