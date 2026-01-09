@@ -21,9 +21,7 @@ const { subsidyApplicationForm, resetSubsidyForm, submitSubsidyForm } =
 const subsidyFormRef = ref(null);
 
 // 上傳/下載 composables
-const { uploading, beforeUpload, processFileList } = useFileUpload({
-  maxSizeMB: 50,
-});
+const { processFileList } = useFileUpload();
 const { downloadAndOpen } = useFileDownload();
 
 const handlePreview = async (file) => {

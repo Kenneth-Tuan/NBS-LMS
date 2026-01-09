@@ -1,6 +1,5 @@
-import { ref } from "vue";
 import { message, Upload } from "ant-design-vue";
-import { courseService } from "@/services/course.service";
+
 import courseApi from "@/apis/course";
 
 /**
@@ -21,9 +20,6 @@ export function useFileUpload(options = {}) {
 
   const allowedTypes = options.allowedTypes || defaultAllowedTypes;
   const maxSizeMB = options.maxSizeMB ?? 50;
-  const uploadFn = options.uploadFn || courseService.uploadFile;
-
-  const uploading = ref(false);
 
   const beforeUpload = (file) => {
     if (!allowedTypes.includes(file.type)) {
@@ -49,8 +45,6 @@ export function useFileUpload(options = {}) {
       throw new Error("一次最多只能上傳 10 個檔案");
     }
 
-    uploading.value = true;
-
     try {
       const fileUrls = await Promise.all(
         fileList
@@ -69,13 +63,12 @@ export function useFileUpload(options = {}) {
       );
 
       return fileUrls;
-    } finally {
-      uploading.value = false;
+    } catch (error) {
+      console.error(error);
     }
   };
 
   const uploadSingle = async (file) => {
-    uploading.value = true;
     try {
       if (!file?.isUploaded) {
         const fileUrl = await uploadMultiple([file]);
@@ -85,8 +78,8 @@ export function useFileUpload(options = {}) {
       }
       file.status = "done";
       return file;
-    } finally {
-      uploading.value = false;
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -101,13 +94,17 @@ export function useFileUpload(options = {}) {
   };
 
   const processFileList = async (fileList) => {
-    const files = Array.isArray(fileList) ? fileList : [];
-    return Promise.all(files.map((f) => (f?.isUploaded ? f : uploadSingle(f))));
+    try {
+      const files = Array.isArray(fileList) ? fileList : [];
+      return Promise.all(
+        files.map((f) => (f?.isUploaded ? f : uploadSingle(f)))
+      );
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return {
-    uploading,
-
     beforeUpload,
     customRequest,
     processFileList,

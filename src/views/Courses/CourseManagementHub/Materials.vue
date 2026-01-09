@@ -320,6 +320,7 @@ const deleteMaterial = async (materialUrl) => {
             :customRequest="uploadAction"
             :disabled="materialModal.uploading"
             :multiple="true"
+            @preview="downloadMaterial"
           >
             <p class="ant-upload-drag-icon">
               <InboxOutlined />

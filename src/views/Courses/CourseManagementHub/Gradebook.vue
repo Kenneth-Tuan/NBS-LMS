@@ -82,18 +82,19 @@ const gradebookColumns = computed(() => {
       align: "center",
       sorter: true,
       render: (value) => value || "-",
-      children: [
-        {
-          title: "編輯",
-          dataIndex: item.item_id,
-          key: "operation",
-          width: 100,
-        },
-      ],
+      children:
+        item.item_name === "總分"
+          ? []
+          : [
+              {
+                title: "編輯",
+                dataIndex: item.item_id,
+                key: "operation",
+                width: 100,
+              },
+            ],
     };
   });
-
-
 
   return isTeacherOrCreator.value
     ? [...baseColumns, ...teacherGradeItemColumns]
@@ -149,7 +150,7 @@ const gradebookDataSource = computed(() => {
       acc[score.score_item_id] = score.score;
       return acc;
     }, {});
-    return [myScoresObject]
+    return [myScoresObject];
   }
 });
 
@@ -157,7 +158,7 @@ const gradebookDataSource = computed(() => {
 const handleGradeChange = (studentId, scoreItemId, el) => {
   const score = el.target.value ?? null;
   const formatedScore = score ? parseInt(score, 10) : null;
-  console.log("handleGradeChange", studentId, scoreItemId, score);
+  // console.log("handleGradeChange", studentId, scoreItemId, score);
 
   if (score !== null && (isNaN(score) || score < 0 || score > 100)) {
     message.error("請輸入 0-100 之間的有效分數");
@@ -174,14 +175,14 @@ async function addScoreItem(item_name) {
     // 檢查 API 回應狀態
     if (response && response.status === 200) {
       message.success("評分項目添加成功");
-      console.log("addScoreItem success:", response);
+      // console.log("addScoreItem success:", response);
       // 重新獲取評分項目列表
       await getScoreItems();
       // 重置表單並隱藏添加表單
       resetAddItemForm();
     } else {
       message.error("評分項目添加失敗");
-      console.error("addScoreItem failed:", response);
+      // console.error("addScoreItem failed:", response);
     }
   } catch (error) {
     console.error("addScoreItem error", error);
@@ -231,6 +232,10 @@ async function getScoreItems() {
       },
     } = await scoreApi.getScoreItem(course_id.value);
 
+    if (!isStudent.value && !items.some((item) => item.item_name === "總分")) {
+      addScoreItem("總分");
+    }
+
     scoreItems.value = items;
   } catch (error) {
     console.error("getScoreItem error", error);
@@ -253,12 +258,12 @@ async function reorderScoreItem(item_id, ordering) {
     // 檢查 API 回應狀態
     if (response && response.status === 200) {
       message.success("成績項目順序更新成功");
-      console.log("reorderScoreItem success:", response);
+      // console.log("reorderScoreItem success:", response);
       // 重新獲取評分項目列表
       await getScoreItems();
     } else {
       message.error("成績項目順序更新失敗");
-      console.error("reorderScoreItem failed:", response);
+      // console.error("reorderScoreItem failed:", response);
     }
   } catch (error) {
     console.error("reorderScoreItem error", error);
@@ -301,10 +306,10 @@ async function submitScore(student_id, score_item_id, score) {
     if (response && response.status === 200) {
       await getScoreSheet();
       message.success("成績更新成功");
-      console.log("submitScore success:", response);
+      // console.log("submitScore success:", response);
     } else {
       message.error("成績更新失敗");
-      console.error("submitScore failed:", response);
+      // console.error("submitScore failed:", response);
     }
   } catch (error) {
     console.error("submitScore error", error);
@@ -420,7 +425,9 @@ onMounted(async () => {
             placeholder="-"
             size="small"
             style="width: 80px"
-            @blur="(el) => handleGradeChange(record.student_id, column.key, el)"
+            @blur="
+              (el) => handleGradeChange(record.student_id, column.dataIndex, el)
+            "
           />
         </div>
       </template>

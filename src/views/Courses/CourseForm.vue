@@ -88,7 +88,7 @@ const filterOption = (input, option) => {
   );
 };
 
-const { uploading, uploadMultiple } = useFileUpload();
+const { uploadMultiple } = useFileUpload();
 const { downloading, downloadAndOpen } = useFileDownload();
 
 const handleFileChange = async () => {
@@ -154,6 +154,7 @@ onBeforeMount(async () => {
 
 // Fetch and populate data on mount if editing
 onMounted(async () => {
+  courseStore.resetForm();
   if (isEdit.value && courseId.value) {
     await courseStore.getCourseHandler(courseId.value);
     // 保存原始的選課人數上限，用於編輯時的限制
@@ -171,7 +172,7 @@ onMounted(async () => {
 
       <a-button
         size="small"
-        @click="courseStore.resetForm"
+        @click="courseStore.resetForm()"
         :disabled="isTeacherRole"
       >
         重置
@@ -333,7 +334,6 @@ onMounted(async () => {
                 allow-clear
                 class="u-w-full"
                 :filter-option="filterOption"
-                :disabled="isTeacherRole"
               >
                 <!-- Optional: Customize tag rendering -->
                 <template #tagRender="{ label, closable, onClose }">

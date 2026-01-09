@@ -70,9 +70,9 @@ const onFinish = async () => {
     loading.value = false;
   } catch (error) {
     message.error({
-      content: "Login Failed!",
+      content: error.response.data.msg,
       key: "login",
-      duration: 2,
+      duration: 3,
     });
     loading.value = false;
     throw error;
@@ -102,9 +102,7 @@ onUnmounted(() => {
 <template>
   <a-modal v-model:open="loginDialogOpen" :footer="null">
     <div class="u-text-center u-my8">
-      <h1 class="u-text-2xl u-text-blue u-font-normal">
-        請登入系統
-      </h1>
+      <h1 class="u-text-2xl u-text-blue u-font-normal">請登入系統</h1>
     </div>
 
     <a-form

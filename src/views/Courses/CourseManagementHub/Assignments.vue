@@ -171,7 +171,7 @@ const fetchAssignments = async () => {
         courseId: props.currentCourseId,
         title: assignment.title,
         description: assignment.description,
-        dueDate: dayjs(assignment.expDate).format("YYYY-MM-DD"),
+        dueDate: dayjs(assignment.expDate).format("YYYY-MM-DD HH:mm:ss"),
         status: dayjs(assignment.expDate).isAfter(dayjs())
           ? AssignmentStatus.OPEN
           : AssignmentStatus.CLOSED, // 預設狀態
@@ -189,7 +189,7 @@ const fetchAssignments = async () => {
         courseId: props.currentCourseId,
         title: assignment.title,
         description: assignment.description,
-        dueDate: dayjs(assignment.exp_date).format("YYYY-MM-DD"),
+        dueDate: dayjs(assignment.exp_date).format("YYYY-MM-DD HH:mm:ss"),
         status: dayjs(assignment.exp_date).isAfter(dayjs())
           ? AssignmentStatus.OPEN
           : AssignmentStatus.CLOSED,
@@ -198,9 +198,10 @@ const fetchAssignments = async () => {
       // 更新學生的繳交狀態
       localCurrentUserSubmissions.value = assignments.map((assignment) => ({
         assignmentId: assignment.assignment_id,
-        status: assignment.is_submitted && assignment.submitted_files.length > 0
-          ? AssignmentStatus.SUBMITTED
-          : AssignmentStatus.NOT_SUBMITTED,
+        status:
+          assignment.is_submitted && assignment.submitted_files.length > 0
+            ? AssignmentStatus.SUBMITTED
+            : AssignmentStatus.NOT_SUBMITTED,
         files: assignment.submitted_files || [],
         grade: null,
       }));
@@ -325,7 +326,7 @@ const getStudentSubmissionForAssignment = (assignmentId) => {
   );
 };
 
-const { uploading, uploadMultiple } = useFileUpload();
+const { uploadMultiple } = useFileUpload();
 
 const handleStudentMockUpload = async (assignment, file) => {
   loading.value = true;
@@ -480,8 +481,9 @@ onMounted(() => {
                       class="u-flex u-items-center u-gap-1"
                     >
                       <a-tag
-                        class="u-text-sm u-c-blue-600 u-cursor-pointer"
+                        class="u-text-sm u-c-blue-600 u-cursor-pointer!"
                         @click="downloadAndOpen(file.url)"
+                        clickable
                       >
                         {{ file.file_name }}
                       </a-tag>
@@ -627,8 +629,9 @@ onMounted(() => {
         >
           <a-date-picker
             v-model:value="assignmentModal.dueDate"
-            format="YYYY-MM-DD"
+            format="YYYY-MM-DD HH:mm:ss"
             style="width: 100%"
+            show-time
           />
         </a-form-item>
       </a-form>
@@ -656,6 +659,7 @@ onMounted(() => {
                 :key="file.url || file.file_name"
                 color="geekblue"
                 @click="downloadAndOpen(file)"
+                class="u-cursor-pointer!"
               >
                 <FileOutlined /> {{ file.file_name }}</a-tag
               >

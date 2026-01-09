@@ -7,6 +7,7 @@ import { MenuItems, RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 import { useNotificationStore } from "@/stores/notificationStore";
 import { useEnrollmentStore } from "@/stores/enrollment.store";
+import { useCourseStore } from "../stores/course";
 
 const router = useRouter();
 const route = useRoute();
@@ -19,6 +20,8 @@ const { notifiedRouterNames, isReadApplication } =
 const enrollmentStore = useEnrollmentStore();
 const { hasEnrollment } = storeToRefs(enrollmentStore);
 const { fetchCoursesForEnrollment } = enrollmentStore;
+
+const { resetForm } = useCourseStore();
 
 const state = reactive({
   collapsed: false,
@@ -128,6 +131,10 @@ const onClickMenuChild = async (menuKey) => {
     userProfile.userRole === UserRole.Student
   ) {
     await notificationStore.markAsRead();
+  }
+
+  if (menuKey === RouterName.CourseCreate) {
+    resetForm();
   }
 };
 

@@ -8,6 +8,10 @@ import dayjs from "dayjs";
 import courseApi from "@/apis/course";
 
 const props = defineProps({
+  isStudent: {
+    type: Boolean,
+    required: true,
+  },
   courseInfo: {
     type: Object,
     required: true,
@@ -132,6 +136,7 @@ async function exportStudentRoster() {
   <div>
     <div class="u-mb-4 u-flex u-justify-end">
       <a-button
+        v-if="!isStudent"
         type="primary"
         :loading="exportLoading"
         @click="exportStudentRoster"

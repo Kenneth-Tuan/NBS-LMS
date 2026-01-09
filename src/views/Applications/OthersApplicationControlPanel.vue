@@ -21,9 +21,7 @@ const form = reactive({
   attachments: [], // Ant Upload file list
 });
 
-const { uploading, beforeUpload, processFileList } = useFileUpload({
-  maxSizeMB: 50,
-});
+const { processFileList } = useFileUpload();
 const { downloadAndOpen } = useFileDownload();
 
 const resetForm = () => {
@@ -193,13 +191,11 @@ const columns = [
             <a-upload
               list-type="picture"
               v-model:file-list="form.attachments"
-              :before-upload="beforeUpload"
               :custom-request="
                 async () => {
                   await processFileList(form.attachments);
                 }
               "
-              :disabled="uploading"
             >
               <a-button> <upload-outlined /> 上傳附件 </a-button>
             </a-upload>

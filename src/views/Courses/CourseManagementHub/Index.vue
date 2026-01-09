@@ -1,6 +1,7 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
+import dayjs from "dayjs";
 
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
@@ -111,6 +112,24 @@ onMounted(async () => {
           課程描述： {{ currentCourse.description || "-" }}
         </p>
 
+        <p class="u-text-gray-600 u-mb-6">
+          課程時間：
+          {{ dayjs(currentCourse.startDate).format("YYYY-MM-DD") }} ~
+          {{ dayjs(currentCourse.endDate).format("YYYY-MM-DD") }}
+        </p>
+
+        <p class="u-text-gray-600 u-mb-6">
+          授課老師：
+          {{ currentCourse.teacher_name }}
+        </p>
+
+        <p class="u-text-gray-600 u-mb-6">
+          授課模式：
+          {{ currentCourse.classMode }}
+        </p>
+
+        <p class="u-text-gray-600 u-mb-6"></p>
+
         <a-tabs default-active-key="announcements" type="card">
           <!-- Announcements Tab -->
           <a-tab-pane key="announcements" tab="公告/消息">
@@ -155,7 +174,10 @@ onMounted(async () => {
 
           <!-- Student Roster Tab -->
           <a-tab-pane key="roster" tab="學生名單">
-            <StudentRoster :course-info="currentCourse" />
+            <StudentRoster
+              :is-student="isStudent"
+              :course-info="currentCourse"
+            />
           </a-tab-pane>
         </a-tabs>
       </div>

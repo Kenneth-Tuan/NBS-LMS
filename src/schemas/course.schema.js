@@ -8,8 +8,11 @@ const courseSchema = {
     label: "課程代碼",
     rules: [
       { required: true, message: "請輸入課程代碼" },
-      { len: 4, message: "課程代碼必須4個字符" },
-      { pattern: /^[A-Z][0-9]{3}$/, message: "課程代碼格式必須為大寫字母+三位數字（如A000）" },
+      { max: 15, min: 4, message: "課程代碼必須4-15個字符" },
+      {
+        pattern: /^[A-Z0-9]+$/,
+        message: "課程代碼格式必須為大寫字母或數字",
+      },
     ],
     placeholder: "請輸入課程代碼",
   },

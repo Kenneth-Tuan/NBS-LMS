@@ -18,11 +18,7 @@ const applicationStore = useApplicationStore();
 const { leaveApplicationForm, resetLeaveForm, submitLeaveForm } =
   applicationStore;
 
-const {
-  uploading,
-  beforeUpload: beforeAttachmentUpload,
-  processFileList,
-} = useFileUpload();
+const { processFileList } = useFileUpload();
 const { downloading, downloadAndOpen } = useFileDownload();
 
 // 表單 Ref
@@ -190,8 +186,6 @@ onMounted(async () => {
               list-type="picture"
               v-model:file-list="leaveApplicationForm.attachments"
               :customRequest="customRequest"
-              :before-upload="beforeAttachmentUpload"
-              :disabled="uploading"
             >
               <a-button>
                 <upload-outlined />

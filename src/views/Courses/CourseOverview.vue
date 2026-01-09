@@ -11,19 +11,23 @@ import {
   message,
 } from "ant-design-vue";
 import dayjs from "dayjs";
+import { storeToRefs } from "pinia";
 
 import { RouterName, UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
 import CourseFilterBar from "@/components/CourseFilterBar.vue";
 import { courseService } from "@/services/course.service";
+import { useCourseStore } from "@/stores/course";
 
 // 響應式判斷
-const isMobile = computed(() => window.innerWidth < 768);
+
+const courseStore = useCourseStore();
+const { getCoursesHandler, filters, pagination } = courseStore;
+const { teacherOptions, filteredCourseData } = storeToRefs(courseStore);
 
 const router = useRouter();
 const loading = ref(false);
 const userStore = useUserStore();
-const courseData = ref([]);
 
 const columns = ref([
   {
@@ -157,33 +161,6 @@ const pageTitle = computed(() => {
   }
 });
 
-const filters = reactive({
-  keyword: "",
-  teacher: "",
-});
-
-const teacherOptions = computed(() => {
-  const teachers = new Set();
-  courseData.value.forEach((course) => {
-    if (course.instructor_name) {
-      teachers.add(course.instructor_name);
-    }
-  });
-  return Array.from(teachers).sort();
-});
-
-const filteredCourseData = computed(() => {
-  return courseData.value.filter((course) => {
-    const nameMatch = course.name
-      ? course.name.toLowerCase().includes(filters.keyword.toLowerCase())
-      : true;
-    const teacherMatch = filters.teacher
-      ? course.instructor_name === filters.teacher
-      : true;
-    return nameMatch && teacherMatch;
-  });
-});
-
 const canDeleteCourse = computed(() => {
   return (
     userStore.userProfile?.userRole === UserRole.Creator ||
@@ -205,7 +182,7 @@ const deleteCourseHandler = async (course_id) => {
         if (success) {
           message.success("課程刪除成功");
           // 重新載入課程資料
-          courseData.value = await courseService.getCourses();
+          await getCoursesHandler();
         } else {
           message.error("課程刪除失敗");
         }
@@ -223,15 +200,31 @@ function handleResizeColumn(w, col) {
   col.width = w;
 }
 
+function handleTableChange(
+  pagination,
+  filters,
+  sorter,
+  { action, currentDataSource }
+) {
+  // console.log("test value: ", pagination, filters, sorter, {
+  //   action,
+  //   currentDataSource,
+  // });
+
+  getCoursesHandler(pagination, sorter);
+}
+
 onMounted(async () => {
-  courseData.value = await courseService.getCourses();
+  await getCoursesHandler();
   // Initial sort by start_date if needed
   // courseData.value.sort((a, b) => dayjs(a.start_date).valueOf() - dayjs(b.start_date).valueOf());
 });
 </script>
 
 <template>
-  <div class="u-w-full u-bg-white u-rounded-16px u-p-6 u-shadow-lg">
+  <div
+    class="u-w-full u-bg-white u-rounded-16px u-p-6 u-shadow-lg u-overflow-x-hidden"
+  >
     <h1 class="u-text-2xl u-font-bold u-mb-4 u-c-gray-700">
       {{ pageTitle }}
     </h1>
@@ -251,10 +244,12 @@ onMounted(async () => {
         :data-source="filteredCourseData"
         row-key="id"
         :loading="loading"
-        :pagination="{ pageSize: 10, hideOnSinglePage: true }"
+        :pagination="pagination"
         bordered
         size="small"
         @resizeColumn="handleResizeColumn"
+        class="u-overflow-x-hidden"
+        @change="handleTableChange"
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'status'">
