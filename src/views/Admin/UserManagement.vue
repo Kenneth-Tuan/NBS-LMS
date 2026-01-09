@@ -17,7 +17,10 @@ import {
 } from "@ant-design/icons-vue";
 import { UserStatus, UserRole } from "@/enums/appEnums";
 import userApi from "@/apis/user";
-import { DEPARTMENT_OPTIONS } from "@/constant/common.constant";
+import {
+  DEPARTMENT_OPTIONS,
+  DEPARTMENTS_LABEL_MAP,
+} from "@/constant/common.constant";
 import { roleOptions, statusOptions } from "@/utils/mappers"; // Import options
 
 // Initialize Store
@@ -255,7 +258,26 @@ onMounted(() => {
             <a-avatar :src="record.avatar" :alt="record.name" />
           </template>
           <template v-else-if="column.key === 'role'">
-            {{ getRoleText(record.role) }}
+            <div
+              v-if="
+                record.hasOwnProperty('departments') &&
+                Array.isArray(record.departments) &&
+                record.departments.length > 0
+              "
+              class="u-flex u-flex-col u-gap-2"
+            >
+              <a-tag
+                v-for="department in record.departments"
+                :key="department"
+                class="u-w-min"
+              >
+                {{ DEPARTMENTS_LABEL_MAP[department] }}
+              </a-tag>
+            </div>
+
+            <p v-else>
+              {{ getRoleText(record.role) }}
+            </p>
           </template>
           <template v-else-if="column.key === 'status'">
             <a-tag
@@ -343,18 +365,30 @@ onMounted(() => {
         class="u-mb-3 u-rounded u-border u-p-4 u-bg-white u-shadow-gls-base"
       >
         <div class="u-flex u-justify-between u-items-start u-mb-3">
-          <div class="u-font-medium u-text-lg">{{ user.name }}</div>
+          <div class="u-font-medium u-text-lg u-text-black">
+            {{ user.name }}
+          </div>
           <a-tag :color="user.status === UserStatus.Active ? 'green' : 'red'">
             {{ getStatusText(user.status) }}
           </a-tag>
         </div>
 
         <div class="u-text-sm u-text-gray-600 u-space-y-1">
-          <div>帳號：{{ user.username || "-" }}</div>
           <div>Email：{{ user.email || "-" }}</div>
           <div>角色：{{ getRoleText(user.role) }}</div>
-          <div v-if="user.lastLogin">
-            最後登入：{{ formatLocaleDateTime(user.lastLogin) }}
+
+          <div
+            v-if="
+              user.hasOwnProperty('departments') &&
+              Array.isArray(user.departments) &&
+              user.departments.length > 0
+            "
+          >
+            科別：{{
+              user.departments
+                .map((dep) => DEPARTMENTS_LABEL_MAP[dep])
+                .join(", ") || "-"
+            }}
           </div>
         </div>
 

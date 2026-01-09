@@ -15,10 +15,10 @@ const DEPARTMENT_OPTIONS = Object.freeze([
     label: "信徒領袖科",
     value: "lay_leadership_program",
   },
-  // {
-  //   label: "拿會按牧必修",
-  //   value: "pastoral_program",
-  // },
+  {
+    label: "拿會按牧必修",
+    value: "pastoral_program",
+  },
 ]);
 
 const DEPARTMENTS_LABEL_MAP = Object.freeze({
