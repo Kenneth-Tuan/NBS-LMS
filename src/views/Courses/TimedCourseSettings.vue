@@ -53,7 +53,11 @@ const loadEnrollmentStatus = async () => {
         true
     );
 
-    enrollmentStatusData.value = [...filteredEnrollments];
+    const sortedEnrollments = data.enrollments.sort((a, b) => {
+      return dayjs(a.start_time).isAfter(dayjs(b.start_time)) ? -1 : 1;
+    });
+
+    enrollmentStatusData.value = [...sortedEnrollments];
   } catch (error) {
     console.error("載入選課狀態失敗:", error);
     message.error("載入選課狀態失敗");
