@@ -168,6 +168,10 @@ const canDeleteCourse = computed(() => {
   );
 });
 
+const isStudent = computed(() => {
+  return userStore.userProfile?.userRole === UserRole.Student;
+});
+
 const deleteCourseHandler = async (course_id) => {
   Modal.confirm({
     title: "確認刪除",
@@ -262,10 +266,10 @@ onMounted(async () => {
           <template v-else-if="column.key === 'actions'">
             <ASpace>
               <AButton
-                v-if="record.view_permission || true"
                 type="primary"
                 size="small"
                 @click="goToCourseManagementHub(record.course_id)"
+                :disabled="!record.view_permission && isStudent"
               >
                 詳細内容
               </AButton>
@@ -333,10 +337,10 @@ onMounted(async () => {
 
         <div class="u-flex u-justify-end u-gap-2 u-mt-4">
           <AButton
-            v-if="course.view_permission || true"
             type="primary"
             size="small"
             @click="goToCourseManagementHub(course.course_id)"
+            :disabled="!course.view_permission && isStudent"
           >
             詳細内容
           </AButton>

@@ -218,7 +218,7 @@ export const useCourseStore = defineStore(
         const teacherMatch = filters.teacher
           ? course.instructor_name === filters.teacher
           : true;
-        return course.view_permission && nameMatch && teacherMatch;
+        return nameMatch && teacherMatch;
       });
     });
 
