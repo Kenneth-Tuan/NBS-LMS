@@ -37,6 +37,7 @@ export enum RouterName {
   UserManagement = "user-management",
   Notifications = "notifications",
   SystemSettings = "system-settings",
+  Transcript = "transcript",
 }
 
 // user role enums
@@ -135,6 +136,12 @@ export const MenuItems = [
         key: RouterName.TimedCourseSettings,
         label: "限時選課設定",
         route: { name: RouterName.TimedCourseSettings },
+        roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
+      },
+      {
+        key: RouterName.Transcript,
+        label: "成績單",
+        route: { name: RouterName.Transcript },
         roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
       },
     ],

@@ -121,7 +121,8 @@ const routes = [
   {
     path: "/other-application-control-panel",
     name: RouterName.OtherApplicationControlPanel,
-    component: () => import("@/views/Applications/OthersApplicationControlPanel.vue"),
+    component: () =>
+      import("@/views/Applications/OthersApplicationControlPanel.vue"),
     meta: {
       title: "其他申請 - 控制面板 - 拿撒勒人會神學院 選課系統",
       layout: DefaultLayout,
@@ -171,6 +172,16 @@ const routes = [
         UserRole.Teacher,
         UserRole.Student,
       ],
+    },
+  },
+  {
+    path: "/transcript",
+    name: RouterName.Transcript,
+    component: () => import("@/views/Courses/Transcript.vue"),
+    meta: {
+      title: "成績單 - 拿撒勒人會神學院 選課系統",
+      layout: DefaultLayout,
+      roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
     },
   },
   {
@@ -269,7 +280,7 @@ router.beforeEach(async (to, from, next) => {
       try {
         const email = await decryptString(
           { cipherTextBase64: payload.c, ivHex: payload.i, saltHex: payload.s },
-          token
+          token,
         );
         const looksLikeEmail = /.+@.+\..+/.test(String(email));
         return !looksLikeEmail;
@@ -307,10 +318,10 @@ router.beforeEach(async (to, from, next) => {
     if (!to.meta.roles.includes(userRole)) {
       console.warn(
         `Access denied: Route ${String(
-          to.name
+          to.name,
         )} requires roles ${to.meta.roles.join(
-          ","
-        )}, but user has role ${userRole}.`
+          ",",
+        )}, but user has role ${userRole}.`,
       );
       // Redirect to landing page or a suitable default page
       next({ name: RouterName.LandingPage });
@@ -322,7 +333,7 @@ router.beforeEach(async (to, from, next) => {
 
   if (
     [UserRole.Creator, UserRole.Admin, UserRole.Manager].includes(
-      userStore.userProfile.userRole
+      userStore.userProfile.userRole,
     )
   ) {
     await notificationStore.fetchPendingNotification();

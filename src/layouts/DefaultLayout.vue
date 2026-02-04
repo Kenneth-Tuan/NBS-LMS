@@ -88,7 +88,7 @@ const userRoleOptions = computed(() => {
       value: UserRole.Student,
     },
   ].filter(
-    (item) => showCreatorOption.value || item.value !== UserRole.Creator
+    (item) => showCreatorOption.value || item.value !== UserRole.Creator,
   );
 });
 
@@ -99,7 +99,7 @@ watch(
   () => router.currentRoute.value.fullPath,
   () => {
     onClose();
-  }
+  },
 );
 
 onMounted(() => {
@@ -240,7 +240,9 @@ onUnmounted(() => {
         <div class="u-w100% u-h-max u-z-9 u-flex-1 u-flex u-flex-nowrap">
           <!-- Desktop sidebar -->
           <SideMenu class="u-hidden lg:u-block u-w-[260px] u-flex-shrink-0" />
-          <div class="u-w-full u-h-max lg:u-p-1rem u-p-0.5rem">
+          <div
+            class="u-w-full u-h-max lg:u-p-1rem u-p-0.5rem u-overflow-x-hidden"
+          >
             <router-view />
           </div>
         </div>
