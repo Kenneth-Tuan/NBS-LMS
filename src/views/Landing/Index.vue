@@ -30,7 +30,7 @@ const isAdmin = computed(
   () =>
     userProfile.userRole === UserRole.Admin ||
     userProfile.userRole === UserRole.Manager ||
-    userProfile.userRole === UserRole.Creator
+    userProfile.userRole === UserRole.Creator,
 );
 
 // --- Loading States ---
@@ -54,7 +54,7 @@ const currentEditingNews = reactive({
 });
 
 const newsModalTitle = computed(() =>
-  newsModalMode.value === "add" ? "新增最新消息" : "編輯最新消息"
+  newsModalMode.value === "add" ? "新增最新消息" : "編輯最新消息",
 );
 
 // --- Latest News Table Data and Logic ---
@@ -101,34 +101,46 @@ const loadAllAnnouncements = async () => {
 
     // Filter and map news
     const newsItems = allAnnouncements.filter((item) => item.type === "news");
-    newsDataSource.value = newsItems.map((item) => ({
-      key: item.$id,
-      $id: item.$id,
-      date: item.announcementDateTime
-        ? dayjs(item.announcementDateTime).format("YYYY-MM-DD")
-        : "",
-      content: item.description || "",
-      publisher: item.department || "",
-      announcementDateTime: item.announcementDateTime,
-      type: "news",
-    }));
+    newsDataSource.value = newsItems
+      .map((item) => ({
+        key: item.$id,
+        $id: item.$id,
+        date: item.announcementDateTime
+          ? dayjs(item.announcementDateTime).format("YYYY-MM-DD")
+          : "",
+        content: item.description || "",
+        publisher: item.department || "",
+        announcementDateTime: item.announcementDateTime,
+        type: "news",
+      }))
+      .sort((a, b) => {
+        return dayjs(b.announcementDateTime).diff(
+          dayjs(a.announcementDateTime),
+        );
+      });
 
     // Filter and map announcements
     const announcements = allAnnouncements.filter(
-      (item) => item.type === "announcement"
+      (item) => item.type === "announcement",
     );
-    announcementDataSource.value = announcements.map((item) => ({
-      key: item.$id,
-      $id: item.$id,
-      title: item.department || "未分類", // Use department as title for now
-      contents: item.description
-        ? item.description.split("\n").filter((line) => line.trim())
-        : [],
-      announcementDateTime: item.announcementDateTime,
-      department: item.department,
-      description: item.description,
-      type: "announcement",
-    }));
+    announcementDataSource.value = announcements
+      .map((item) => ({
+        key: item.$id,
+        $id: item.$id,
+        title: item.department || "未分類", // Use department as title for now
+        contents: item.description
+          ? item.description.split("\n").filter((line) => line.trim())
+          : [],
+        announcementDateTime: item.announcementDateTime,
+        department: item.department,
+        description: item.description,
+        type: "announcement",
+      }))
+      .sort((a, b) => {
+        return dayjs(b.announcementDateTime).diff(
+          dayjs(a.announcementDateTime),
+        );
+      });
 
     // Filter and map notices
     const notices = allAnnouncements.filter((item) => item.type === "notice");
@@ -254,7 +266,7 @@ const currentEditingAnnouncement = reactive({
 });
 
 const modalTitle = computed(() =>
-  modalMode.value === "add" ? "新增課程公告" : "編輯課程公告"
+  modalMode.value === "add" ? "新增課程公告" : "編輯課程公告",
 );
 
 const showAddAnnouncementModal = () => {
@@ -329,7 +341,7 @@ const deleteAnnouncement = async (key) => {
   try {
     announcementActionLoading[key] = { deleting: true };
     const announcement = announcementDataSource.value.find(
-      (item) => item.key === key
+      (item) => item.key === key,
     );
     if (announcement) {
       await announcementService.deleteAnnouncement({ $id: announcement.$id });
@@ -357,7 +369,7 @@ const currentEditingNotice = reactive({
 });
 
 const noticeModalTitle = computed(() =>
-  noticeModalMode.value === "add" ? "新增注意事項" : "編輯注意事項"
+  noticeModalMode.value === "add" ? "新增注意事項" : "編輯注意事項",
 );
 
 const showAddNoticeModal = () => {
