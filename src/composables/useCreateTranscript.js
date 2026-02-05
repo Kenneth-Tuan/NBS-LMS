@@ -82,12 +82,6 @@ const useCreateTranscript = () => {
 
       const promises = selectedCourses.value.map(async (courseId) => {
         try {
-          const {
-            data: {
-              data: { data_rows },
-            },
-          } = await scoreApi.getScoreSheet(courseId);
-
           // Get "Total" score item ID ? No, the data_rows already has scores.
           // Wait, the API returns score_items (headers) and data_rows (students).
           // We need to find the "Total" (總分) item ID from the response or just filter by name "總分" ??
@@ -99,7 +93,7 @@ const useCreateTranscript = () => {
 
           const {
             data: {
-              data: { score_items },
+              data: { score_items, data_rows },
             },
           } = await scoreApi.getScoreSheet(courseId); // Re-fetching or getting from same response?
           // Usually Axios response has data. Let's optimize.
@@ -108,8 +102,8 @@ const useCreateTranscript = () => {
           // "這個 api 回傳的資料格式如下： { data: { score_items: [...], data_rows: [...] } }"
           // So we get both.
 
+          // Process all students in the course to track enrollment
           const totalItem = score_items.find((item) => item.name === "總分");
-          if (!totalItem) return; // No total column found for this course
 
           data_rows.forEach((row) => {
             const studentId = row.student_id;
@@ -117,16 +111,22 @@ const useCreateTranscript = () => {
               studentMap.set(studentId, {
                 student_name: row.student_name,
                 scores: {}, // courseId -> score
+                enrolled_courses: new Set(), // Track which courses this student is in
               });
             }
 
             const studentData = studentMap.get(studentId);
-            const totalScoreObj = row.scores.find(
-              (s) => s.score_item_id === totalItem.id,
-            );
+            studentData.enrolled_courses.add(courseId);
 
-            if (totalScoreObj) {
-              studentData.scores[courseId] = totalScoreObj.score;
+            // Only try to get score if we found the "Total" item
+            if (totalItem) {
+              const totalScoreObj = row.scores.find(
+                (s) => s.score_item_id === totalItem.id,
+              );
+
+              if (totalScoreObj) {
+                studentData.scores[courseId] = totalScoreObj.score;
+              }
             }
           });
         } catch (err) {
@@ -139,9 +139,16 @@ const useCreateTranscript = () => {
       // Convert map to array
       selectedCoursesTranscript.value = Array.from(studentMap.entries()).map(
         ([studentId, data]) => {
+          // Generate course_status map: { [courseId]: boolean }
+          const course_status = {};
+          selectedCourses.value.forEach((cid) => {
+            course_status[cid] = data.enrolled_courses.has(cid);
+          });
+
           return {
             student_id: studentId,
             student_name: data.student_name,
+            course_status,
             ...data.scores,
           };
         },
