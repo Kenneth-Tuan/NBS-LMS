@@ -235,12 +235,12 @@ const handleGeneratePdf = async () => {
       if (courseDef) {
         // Sum credits if passed
         if (score > 0) {
-          calculatedTotalCredits += Number(courseDef.credits) || 0;
+          calculatedTotalCredits += Number(courseDef.credit) || 0;
         }
 
         courses.push({
           name: courseDef.name,
-          credits: String(courseDef.credits || 0),
+          credits: String(courseDef.credit || 0),
           score: score && score > 0 ? String(score) : "---",
           note: "",
         });
@@ -386,7 +386,7 @@ const extendedTranscriptColumns = computed(() => {
     <AModal
       v-model:open="isPdfModalVisible"
       title="建立個人成績單"
-      ok-text="生成並下載"
+      ok-text="預覽"
       cancel-text="取消"
       @ok="handleGeneratePdf"
       :confirm-loading="pdfLoading"

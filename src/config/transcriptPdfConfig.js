@@ -85,7 +85,7 @@ export const TranscriptConfig = {
   },
   styles: {
     fontSize: 14,
-    fontUrl: "/fonts/Kaiu.ttf",
+    fontUrl: "/fonts/DFKai-SB.ttf",
   },
 };
 
