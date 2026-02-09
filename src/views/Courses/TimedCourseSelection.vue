@@ -92,11 +92,11 @@ const getCoursesInTimeSlot = (day, slot) => {
 
     const isSlotStartTimeBetweenCourse = slotStartTime.isBetween(
       courseStartTime,
-      courseEndTime
+      courseEndTime,
     );
     const isSlotEndTimeBetweenCourse = slotEndTime.isBetween(
       courseStartTime,
-      courseEndTime
+      courseEndTime,
     );
 
     return (
@@ -108,14 +108,14 @@ const getCoursesInTimeSlot = (day, slot) => {
 
 const getCourseColor = (courseId) => {
   const index = selectedCourses.value.findIndex(
-    (c) => c.course_id === courseId
+    (c) => c.course_id === courseId,
   );
   return courseColors[index % courseColors.length];
 };
 
 const isCourseDisabledToSelect = (course) => {
   return selectedCourses.value.some(
-    (selectedCourse) => selectedCourse.course_id === course.course_id
+    (selectedCourse) => selectedCourse.course_id === course.course_id,
   );
 };
 
@@ -124,7 +124,7 @@ onMounted(async () => {
     try {
       await getCreditFeeHandler();
       await fetchMyCourseData();
-      await autoPickCoursesByDepartment();
+      // await autoPickCoursesByDepartment();
     } catch (error) {}
   }
 });
