@@ -48,7 +48,7 @@ const courseService = {
           (course) =>
             course.code !== null &&
             course.code !== "" &&
-            course.code !== undefined
+            course.code !== undefined,
         )
         .map((course) => ({
           label: course.code,
@@ -293,7 +293,7 @@ const courseService = {
           .subtract(6, "month")
           .format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
         end_time: dayjs()
-          .add(6, "month")
+          .add(1, "year")
           .format("YYYY-MM-DDTHH:mm:ss.SSS+08:00"),
       },
     };
@@ -336,7 +336,7 @@ const courseService = {
     course_ids,
     start_time,
     end_time,
-    credit_limit
+    credit_limit,
   ) => {
     try {
       const response = await courseApi.updateEnrollment(enrollment_id, {
@@ -532,7 +532,7 @@ const announcementService = {
   edit: async (announcement_id, params) => {
     const response = await courseApi.announcements.edit(
       announcement_id,
-      params
+      params,
     );
     return response.data.data;
   },
