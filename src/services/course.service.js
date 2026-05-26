@@ -43,17 +43,25 @@ const courseService = {
         label: course.name,
         value: course.id,
       }));
-      courseInfos.prerequisite_course_codes = courses
-        .filter(
-          (course) =>
-            course.code !== null &&
-            course.code !== "" &&
-            course.code !== undefined,
-        )
-        .map((course) => ({
-          label: course.code,
-          value: course.code,
-        }));
+
+      const unique = [
+        ...new Map(
+          courses
+            .filter(
+              (course) =>
+                course.code !== null &&
+                course.code !== "" &&
+                course.code !== undefined,
+            )
+            .map((course) => ({
+              label: course.code,
+              value: course.code,
+            }))
+            .map((item) => [item.value, item]),
+        ).values(),
+      ];
+
+      courseInfos.prerequisite_course_codes = unique;
     } catch (error) {
       console.error(error);
       return [];
