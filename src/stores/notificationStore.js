@@ -63,12 +63,17 @@ export const useNotificationStore = defineStore("notifications", () => {
     }
   };
 
+  const resetNotifiedRouterNames = () => {
+    notifiedRouterNames.value = []
+    isReadApplication.value = true
+  }
+
   return {
     notifiedRouterNames,
     isReadApplication,
 
     fetchPendingNotification,
     fetchMyNotification,
-    markAsRead,
+    markAsRead,resetNotifiedRouterNames
   };
 });

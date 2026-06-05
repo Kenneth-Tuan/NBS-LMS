@@ -2,19 +2,26 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import dayjs from "dayjs";
+import { storeToRefs } from "pinia";
 
 import { useUserStore } from "@/stores/user";
 import { UserRole } from "@/enums/appEnums";
 import { courseService } from "@/services/course.service";
+import { useApplicationStore } from "@/stores/application";
 
 import Announcements from "./Announcements.vue";
 import Assignments from "./Assignments.vue";
 import Gradebook from "./Gradebook.vue";
 import Materials from "./Materials.vue";
 import StudentRoster from "./StudentRoster.vue";
+import ApplicationList from "../../Applications/components/ApplicationList.vue";
 
 const route = useRoute();
 const { userProfile } = useUserStore();
+
+const applicationStore = useApplicationStore();
+const { applicationList } = storeToRefs(applicationStore);
+const { getApplicationList, getApplicationDetail } = applicationStore;
 
 const currentCourseId = ref(route.params.id);
 const currentCourse = ref(null);
@@ -25,7 +32,7 @@ const currentUserStudentId = ref(userProfile.value?.id || "s001");
 const isTeacherOrCreator = computed(
   () =>
     userProfile.userRole === UserRole.Teacher ||
-    userProfile.userRole === UserRole.Creator
+    userProfile.userRole === UserRole.Creator,
 );
 const isStudent = computed(() => userProfile.userRole === UserRole.Student);
 
@@ -62,7 +69,7 @@ const handleGradesUpdate = (newGrades) => {
     if (studentGrades) {
       Object.entries(studentGrades).forEach(([assignmentId, grade]) => {
         const submission = currentUserSubmissions.value.find(
-          (s) => s.assignmentId === assignmentId
+          (s) => s.assignmentId === assignmentId,
         );
         if (submission) {
           submission.grade = grade;
@@ -82,14 +89,55 @@ async function fetchCourseData() {
     // Keep silent failure – fall back to dummy data
     console.error(
       "[CourseManagementHub] Failed to fetch course data from API:",
-      err
+      err,
     );
   }
 }
 
+const specifiedPendingApplications = ref([]);
+
+const getApplicationListWithDetail = async () => {
+  try {
+    await getApplicationList();
+    const getPendingLeaveApplications = applicationList.value.filter(
+      (app) => app.status === "Pending" && app.type === "leave",
+    );
+
+    specifiedPendingApplications.value = await Promise.all(
+      getPendingLeaveApplications.map(async (app) => {
+        const appDetail = await getApplicationDetail(
+          app.application_id,
+          app.type,
+        );
+        return { ...app, ...appDetail };
+      }),
+    );
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const filteredApplications = computed(() => {
+  return specifiedPendingApplications.value.filter(
+    (app) => app.info.course_id === currentCourseId.value,
+  );
+});
+
+const hasPendingApplications = computed(() => {
+  return filteredApplications.value.length > 0;
+});
+
 // --- Lifecycle Hooks ---
 onMounted(async () => {
-  await fetchCourseData();
+  try {
+    loading.value = true;
+    await getApplicationListWithDetail();
+    await fetchCourseData();
+  } catch (error) {
+    console.log(error);
+  } finally {
+    loading.value = false;
+  }
 });
 </script>
 
@@ -130,7 +178,15 @@ onMounted(async () => {
 
         <p class="u-text-gray-600 u-mb-6"></p>
 
-        <a-tabs default-active-key="announcements" type="card">
+        <a-tabs type="card">
+          <!-- Application Tab -->
+          <a-tab-pane key="application" tab="請假申請">
+            <application-list
+              :data="filteredApplications"
+              @afterReview="getApplicationListWithDetail"
+            />
+          </a-tab-pane>
+
           <!-- Announcements Tab -->
           <a-tab-pane key="announcements" tab="公告/消息">
             <Announcements

@@ -23,9 +23,18 @@ export const useApplicationStore = defineStore(
     });
 
     const leaveApplicationForm = reactive({
+      // 基本欄位
+      student_id: "",
+      department: "",
       course_id: "",
       leave_type: "",
-      leave_date_range: [],
+      // 日期與節數
+      leave_date: null,
+      leave_periods: 1,
+      // 計算後的 ISO 8601 時間（由 LeaveApplication.vue watch 設定）
+      leave_start_date: "",
+      leave_end_date: "",
+      // 其他
       leave_reason: "",
       attachments: [],
     });
@@ -60,9 +69,14 @@ export const useApplicationStore = defineStore(
     };
 
     const resetLeaveForm = () => {
+      leaveApplicationForm.student_id = "";
+      leaveApplicationForm.department = "";
       leaveApplicationForm.course_id = "";
       leaveApplicationForm.leave_type = "";
-      leaveApplicationForm.leave_date_range = [];
+      leaveApplicationForm.leave_date = null;
+      leaveApplicationForm.leave_periods = 1;
+      leaveApplicationForm.leave_start_date = "";
+      leaveApplicationForm.leave_end_date = "";
       leaveApplicationForm.leave_reason = "";
       leaveApplicationForm.attachments = [];
     };
@@ -107,24 +121,22 @@ export const useApplicationStore = defineStore(
     };
 
     const submitLeaveForm = async () => {
-      const leave_start_date = dayjs(
-        leaveApplicationForm.leave_date_range[0]
-      ).format("YYYY-MM-DDTHH:mm:ssZ");
-      const leave_end_date = dayjs(
-        leaveApplicationForm.leave_date_range[1]
-      ).format("YYYY-MM-DDTHH:mm:ssZ");
       const attachments = leaveApplicationForm.attachments
         .filter((file) => file.isUploaded)
         .map((file) => file.url);
 
       const formData = {
-        ...leaveApplicationForm,
-        leave_start_date: leave_start_date,
-        leave_end_date: leave_end_date,
+        course_id: leaveApplicationForm.course_id,
+        leave_type: leaveApplicationForm.leave_type,
+        leave_start_date: leaveApplicationForm.leave_start_date,
+        leave_end_date: leaveApplicationForm.leave_end_date,
+        leave_reason: leaveApplicationForm.leave_reason,
         attachments,
+        // Extra fields for PDF generation
+        student_id: leaveApplicationForm.student_id,
+        department: leaveApplicationForm.department,
+        leave_periods: leaveApplicationForm.leave_periods,
       };
-
-      delete formData.leave_date_range;
 
       try {
         const submitResult = await applicationApi.applyLeave(formData);

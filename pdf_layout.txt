@@ -1,0 +1,397 @@
+PDF2JSON Page Size: Width=37.25, Height=52.625
+Found: "台" at x=12.902, y=1.6789999999999998
+Found: "灣" at x=14.151, y=1.6789999999999998
+Found: "拿" at x=15.401, y=1.6789999999999998
+Found: "撒" at x=16.65, y=1.6789999999999998
+Found: "勒" at x=17.9, y=1.6789999999999998
+Found: "人" at x=19.149, y=1.6789999999999998
+Found: "會" at x=20.399, y=1.6789999999999998
+Found: "神" at x=21.648, y=1.6789999999999998
+Found: "學" at x=22.898, y=1.6789999999999998
+Found: "院" at x=24.147, y=1.6789999999999998
+Found: " " at x=25.397, y=1.6789999999999998
+Found: "學" at x=13.204, y=3.066
+Found: "生" at x=14.189, y=3.066
+Found: "課" at x=15.173, y=3.066
+Found: "程" at x=16.157, y=3.066
+Found: "請" at x=17.142, y=3.066
+Found: "假" at x=18.126, y=3.066
+Found: "單" at x=19.11, y=3.066
+Found: "(" at x=20.095, y=3.066
+Found: "教" at x=20.345, y=3.066
+Found: "務" at x=21.095, y=3.066
+Found: "處" at x=21.845, y=3.066
+Found: "收" at x=22.595, y=3.066
+Found: "執" at x=23.345, y=3.066
+Found: "聯" at x=24.095, y=3.066
+Found: ")" at x=24.845, y=3.066
+Found: " " at x=25.094, y=3.066
+Found: "學" at x=3.116, y=4.294
+Found: "號" at x=4.006, y=4.294
+Found: "：" at x=4.897, y=4.294
+Found: " " at x=5.342, y=4.294
+Found: "科" at x=15.818999999999999, y=4.294
+Found: "系" at x=16.709, y=4.294
+Found: "：" at x=17.6, y=4.294
+Found: "□" at x=18.045, y=4.294
+Found: "道" at x=18.574, y=4.294
+Found: "碩" at x=19.464, y=4.294
+Found: " " at x=20.355, y=4.294
+Found: "□" at x=20.598, y=4.294
+Found: "研" at x=21.126, y=4.294
+Found: "碩" at x=22.017, y=4.294
+Found: " " at x=22.907, y=4.294
+Found: "□" at x=23.15, y=4.294
+Found: "學" at x=23.678, y=4.294
+Found: "士" at x=24.569, y=4.294
+Found: " " at x=25.46, y=4.294
+Found: "□" at x=25.703, y=4.294
+Found: "信" at x=26.231, y=4.294
+Found: "徒" at x=27.121, y=4.294
+Found: "領" at x=28.012, y=4.294
+Found: "袖" at x=28.903, y=4.294
+Found: "科" at x=29.793, y=4.294
+Found: " " at x=30.684, y=4.294
+Found: "姓" at x=3.116, y=5.479
+Found: "名" at x=4.006, y=5.479
+Found: "：" at x=4.897, y=5.479
+Found: " " at x=5.342, y=5.479
+Found: "請" at x=15.818999999999999, y=5.479
+Found: "假" at x=16.709, y=5.479
+Found: "原" at x=17.6, y=5.479
+Found: "因" at x=18.491, y=5.479
+Found: "：" at x=19.381, y=5.479
+Found: " " at x=19.827, y=5.479
+Found: "請" at x=3.116, y=6.663
+Found: "假" at x=4.006, y=6.663
+Found: "課" at x=4.897, y=6.663
+Found: "程" at x=5.788, y=6.663
+Found: "(" at x=6.678, y=6.663
+Found: "活" at x=6.969, y=6.663
+Found: "動" at x=7.859999999999999, y=6.663
+Found: ")" at x=8.751, y=6.663
+Found: "請" at x=9.042, y=6.663
+Found: "依" at x=9.792, y=6.663
+Found: "課" at x=10.542, y=6.663
+Found: "程" at x=11.292, y=6.663
+Found: "表" at x=12.042, y=6.663
+Found: "正" at x=12.792, y=6.663
+Found: "確" at x=13.542, y=6.663
+Found: "名" at x=14.292, y=6.663
+Found: "稱" at x=15.042, y=6.663
+Found: "填" at x=15.792000000000002, y=6.663
+Found: "寫" at x=16.542, y=6.663
+Found: "：" at x=17.292, y=6.663
+Found: " " at x=17.737, y=6.663
+Found: "假" at x=3.116, y=7.848000000000001
+Found: "別" at x=4.006, y=7.848000000000001
+Found: "：" at x=4.897, y=7.848000000000001
+Found: "□" at x=5.342, y=7.848000000000001
+Found: "事" at x=5.87, y=7.848000000000001
+Found: "假" at x=6.761, y=7.848000000000001
+Found: " " at x=7.652, y=7.848000000000001
+Found: "□" at x=7.895, y=7.848000000000001
+Found: "病" at x=8.423, y=7.848000000000001
+Found: "假" at x=9.313, y=7.848000000000001
+Found: " " at x=10.204, y=7.848000000000001
+Found: "□" at x=10.447, y=7.848000000000001
+Found: "其" at x=10.975, y=7.848000000000001
+Found: "他" at x=11.866, y=7.848000000000001
+Found: "　" at x=12.756, y=7.848000000000001
+Found: "　" at x=13.348, y=7.848000000000001
+Found: "　" at x=13.939, y=7.848000000000001
+Found: "　" at x=14.531, y=7.848000000000001
+Found: " " at x=15.122, y=7.848000000000001
+Found: " " at x=15.365, y=7.848000000000001
+Found: " " at x=15.608, y=7.848000000000001
+Found: " " at x=15.850999999999999, y=7.848000000000001
+Found: " " at x=16.094, y=7.848000000000001
+Found: " " at x=16.337, y=7.848000000000001
+Found: " " at x=16.58, y=7.848000000000001
+Found: " " at x=16.823, y=7.848000000000001
+Found: " " at x=17.066, y=7.848000000000001
+Found: " " at x=17.309, y=7.848000000000001
+Found: " " at x=17.552, y=7.848000000000001
+Found: "請" at x=3.116, y=9.032
+Found: "假" at x=4.006, y=9.032
+Found: "日" at x=4.897, y=9.032
+Found: "期" at x=5.788, y=9.032
+Found: "：" at x=6.678, y=9.032
+Found: " " at x=7.123, y=9.032
+Found: " " at x=7.366, y=9.032
+Found: " " at x=7.609, y=9.032
+Found: " " at x=7.852, y=9.032
+Found: "年" at x=8.095, y=9.032
+Found: "　" at x=8.986, y=9.032
+Found: " " at x=9.577, y=9.032
+Found: " " at x=9.82, y=9.032
+Found: " " at x=10.063, y=9.032
+Found: "月" at x=10.306, y=9.032
+Found: "　" at x=11.197, y=9.032
+Found: " " at x=11.788, y=9.032
+Found: " " at x=12.031, y=9.032
+Found: "日" at x=12.274, y=9.032
+Found: " " at x=13.165, y=9.032
+Found: "請" at x=3.116, y=10.216
+Found: "假" at x=4.006, y=10.216
+Found: "總" at x=4.897, y=10.216
+Found: "節" at x=5.788, y=10.216
+Found: "數" at x=6.678, y=10.216
+Found: "：" at x=7.569, y=10.216
+Found: "□" at x=8.014, y=10.216
+Found: "1" at x=8.542, y=10.216
+Found: "節" at x=9.029, y=10.216
+Found: " " at x=9.919, y=10.216
+Found: "□" at x=10.162, y=10.216
+Found: "2" at x=10.69, y=10.216
+Found: "節" at x=11.177, y=10.216
+Found: " " at x=12.067, y=10.216
+Found: "□" at x=12.31, y=10.216
+Found: "3" at x=12.839, y=10.216
+Found: "節" at x=13.325, y=10.216
+Found: " " at x=14.216, y=10.216
+Found: "□" at x=14.459, y=10.216
+Found: " " at x=14.987, y=10.216
+Found: " " at x=15.23, y=10.216
+Found: " " at x=15.473, y=10.216
+Found: " " at x=15.716, y=10.216
+Found: "節" at x=15.959, y=10.216
+Found: "　" at x=16.849, y=10.216
+Found: "　" at x=17.441, y=10.216
+Found: "　" at x=18.032, y=10.216
+Found: "　" at x=18.624, y=10.216
+Found: "　" at x=19.215, y=10.216
+Found: "　" at x=19.806, y=10.216
+Found: "　" at x=20.398, y=10.216
+Found: "　" at x=20.989, y=10.216
+Found: "　" at x=21.581, y=10.216
+Found: "　" at x=22.172, y=10.216
+Found: " " at x=22.764, y=10.216
+Found: "任" at x=7.592, y=11.401
+Found: "課" at x=8.483, y=11.401
+Found: "老" at x=9.373, y=11.401
+Found: "師" at x=10.264, y=11.401
+Found: "簽" at x=11.155, y=11.401
+Found: "名" at x=12.045, y=11.401
+Found: " " at x=12.936, y=11.401
+Found: "2" at x=21.037, y=11.401
+Found: "週" at x=21.523, y=11.401
+Found: "內" at x=22.413, y=11.401
+Found: "送" at x=23.304, y=11.401
+Found: "至" at x=24.195, y=11.401
+Found: "教" at x=25.085, y=11.401
+Found: "務" at x=25.976, y=11.401
+Found: "處" at x=26.867, y=11.401
+Found: "完" at x=27.757, y=11.401
+Found: "成" at x=28.648, y=11.401
+Found: "登" at x=29.538, y=11.401
+Found: "錄" at x=30.429, y=11.401
+Found: " " at x=31.32, y=11.401
+Found: " " at x=3.116, y=12.585
+Found: " " at x=3.116, y=13.723
+Found: " " at x=18.069, y=12.585
+Found: "………………………………………………………………………………………………………………" at x=3.116, y=14.788
+Found: " " at x=34.616, y=14.788
+Found: "台" at x=12.902, y=16.238
+Found: "灣" at x=14.151, y=16.238
+Found: "拿" at x=15.401, y=16.238
+Found: "撒" at x=16.65, y=16.238
+Found: "勒" at x=17.9, y=16.238
+Found: "人" at x=19.149, y=16.238
+Found: "會" at x=20.399, y=16.238
+Found: "神" at x=21.648, y=16.238
+Found: "學" at x=22.898, y=16.238
+Found: "院" at x=24.147, y=16.238
+Found: " " at x=25.397, y=16.238
+Found: "學" at x=13.579, y=17.626
+Found: "生" at x=14.564, y=17.626
+Found: "課" at x=15.548, y=17.626
+Found: "程" at x=16.532, y=17.626
+Found: "請" at x=17.517, y=17.626
+Found: "假" at x=18.501, y=17.626
+Found: "單" at x=19.485, y=17.626
+Found: "(" at x=20.47, y=17.626
+Found: "學" at x=20.72, y=17.626
+Found: "生" at x=21.47, y=17.626
+Found: "收" at x=22.22, y=17.626
+Found: "執" at x=22.97, y=17.626
+Found: "聯" at x=23.72, y=17.626
+Found: ")" at x=24.47, y=17.626
+Found: " " at x=24.719, y=17.626
+Found: "學" at x=3.116, y=18.854
+Found: "號" at x=4.006, y=18.854
+Found: "：" at x=4.897, y=18.854
+Found: " " at x=5.342, y=18.854
+Found: "科" at x=15.818999999999999, y=18.854
+Found: "系" at x=16.709, y=18.854
+Found: "：" at x=17.6, y=18.854
+Found: "□" at x=18.045, y=18.854
+Found: "道" at x=18.574, y=18.854
+Found: "碩" at x=19.464, y=18.854
+Found: " " at x=20.355, y=18.854
+Found: "□" at x=20.598, y=18.854
+Found: "研" at x=21.126, y=18.854
+Found: "碩" at x=22.017, y=18.854
+Found: " " at x=22.907, y=18.854
+Found: "□" at x=23.15, y=18.854
+Found: "學" at x=23.678, y=18.854
+Found: "士" at x=24.569, y=18.854
+Found: " " at x=25.46, y=18.854
+Found: "□" at x=25.703, y=18.854
+Found: "信" at x=26.231, y=18.854
+Found: "徒" at x=27.121, y=18.854
+Found: "領" at x=28.012, y=18.854
+Found: "袖" at x=28.903, y=18.854
+Found: "科" at x=29.793, y=18.854
+Found: " " at x=30.684, y=18.854
+Found: "姓" at x=3.116, y=20.038
+Found: "名" at x=4.006, y=20.038
+Found: "：" at x=4.897, y=20.038
+Found: " " at x=5.342, y=20.038
+Found: "請" at x=15.818999999999999, y=20.038
+Found: "假" at x=16.709, y=20.038
+Found: "原" at x=17.6, y=20.038
+Found: "因" at x=18.491, y=20.038
+Found: "：" at x=19.381, y=20.038
+Found: " " at x=19.827, y=20.038
+Found: "請" at x=3.116, y=21.223
+Found: "假" at x=4.006, y=21.223
+Found: "課" at x=4.897, y=21.223
+Found: "程" at x=5.788, y=21.223
+Found: "(" at x=6.678, y=21.223
+Found: "活" at x=6.969, y=21.223
+Found: "動" at x=7.859999999999999, y=21.223
+Found: ")" at x=8.751, y=21.223
+Found: "名" at x=9.042, y=21.223
+Found: "稱" at x=9.932, y=21.223
+Found: "：" at x=10.823, y=21.223
+Found: " " at x=11.268, y=21.223
+Found: "假" at x=3.116, y=22.407
+Found: "別" at x=4.006, y=22.407
+Found: "：" at x=4.897, y=22.407
+Found: "□" at x=5.342, y=22.407
+Found: "事" at x=5.87, y=22.407
+Found: "假" at x=6.761, y=22.407
+Found: " " at x=7.652, y=22.407
+Found: "□" at x=7.895, y=22.407
+Found: "病" at x=8.423, y=22.407
+Found: "假" at x=9.313, y=22.407
+Found: " " at x=10.204, y=22.407
+Found: "□" at x=10.447, y=22.407
+Found: "其" at x=10.975, y=22.407
+Found: "他" at x=11.866, y=22.407
+Found: "　" at x=12.756, y=22.407
+Found: "　" at x=13.348, y=22.407
+Found: "　" at x=13.939, y=22.407
+Found: "　" at x=14.531, y=22.407
+Found: " " at x=15.122, y=22.407
+Found: " " at x=15.365, y=22.407
+Found: " " at x=15.608, y=22.407
+Found: " " at x=15.850999999999999, y=22.407
+Found: " " at x=16.094, y=22.407
+Found: " " at x=16.337, y=22.407
+Found: " " at x=16.58, y=22.407
+Found: " " at x=16.823, y=22.407
+Found: " " at x=17.066, y=22.407
+Found: " " at x=17.309, y=22.407
+Found: " " at x=17.552, y=22.407
+Found: "請" at x=3.116, y=23.591
+Found: "假" at x=4.006, y=23.591
+Found: "日" at x=4.897, y=23.591
+Found: "期" at x=5.788, y=23.591
+Found: "：" at x=6.678, y=23.591
+Found: " " at x=7.123, y=23.591
+Found: " " at x=7.366, y=23.591
+Found: " " at x=7.609, y=23.591
+Found: " " at x=7.852, y=23.591
+Found: "年" at x=8.095, y=23.591
+Found: "　" at x=8.986, y=23.591
+Found: " " at x=9.577, y=23.591
+Found: " " at x=9.82, y=23.591
+Found: " " at x=10.063, y=23.591
+Found: "月" at x=10.306, y=23.591
+Found: "　" at x=11.197, y=23.591
+Found: " " at x=11.788, y=23.591
+Found: " " at x=12.031, y=23.591
+Found: "日" at x=12.274, y=23.591
+Found: " " at x=13.165, y=23.591
+Found: "請" at x=3.116, y=24.776
+Found: "假" at x=4.006, y=24.776
+Found: "總" at x=4.897, y=24.776
+Found: "節" at x=5.788, y=24.776
+Found: "數" at x=6.678, y=24.776
+Found: "：" at x=7.569, y=24.776
+Found: "□" at x=8.014, y=24.776
+Found: "1" at x=8.542, y=24.776
+Found: "節" at x=9.029, y=24.776
+Found: "□" at x=9.919, y=24.776
+Found: "2" at x=10.447, y=24.776
+Found: "節" at x=10.934, y=24.776
+Found: " " at x=11.824, y=24.776
+Found: "□" at x=12.067, y=24.776
+Found: "3" at x=12.596, y=24.776
+Found: "節" at x=13.082, y=24.776
+Found: " " at x=13.973, y=24.776
+Found: "□" at x=14.216, y=24.776
+Found: " " at x=14.744, y=24.776
+Found: " " at x=14.987, y=24.776
+Found: " " at x=15.23, y=24.776
+Found: " " at x=15.473, y=24.776
+Found: "節" at x=15.716, y=24.776
+Found: "　" at x=16.606, y=24.776
+Found: "　" at x=17.198, y=24.776
+Found: "　" at x=17.789, y=24.776
+Found: "　" at x=18.381, y=24.776
+Found: "　" at x=18.972, y=24.776
+Found: "　" at x=19.563, y=24.776
+Found: "　" at x=20.155, y=24.776
+Found: "　" at x=20.746, y=24.776
+Found: "　" at x=21.338, y=24.776
+Found: "　" at x=21.929, y=24.776
+Found: " " at x=22.521, y=24.776
+Found: "教" at x=3.116, y=25.96
+Found: "務" at x=4.006, y=25.96
+Found: "處" at x=4.897, y=25.96
+Found: "蓋" at x=5.788, y=25.96
+Found: "章" at x=6.678, y=25.96
+Found: " " at x=7.569, y=25.96
+Found: " " at x=3.116, y=26.86
+Found: " " at x=3.116, y=27.672
+Found: "(" at x=3.116, y=28.604
+Found: "請" at x=3.365, y=28.604
+Found: "假" at x=4.115, y=28.604
+Found: "總" at x=4.865, y=28.604
+Found: "時" at x=5.615, y=28.604
+Found: "數" at x=6.365, y=28.604
+Found: "上" at x=7.115, y=28.604
+Found: "限" at x=7.865, y=28.604
+Found: "為" at x=8.615, y=28.604
+Found: "該" at x=9.365, y=28.604
+Found: "課" at x=10.115, y=28.604
+Found: "程" at x=10.865, y=28.604
+Found: "總" at x=11.615, y=28.604
+Found: "時" at x=12.365, y=28.604
+Found: "數" at x=13.115, y=28.604
+Found: "1/5" at x=13.865, y=28.604
+Found: "，" at x=14.908, y=28.604
+Found: "每" at x=15.406, y=28.604
+Found: "學" at x=16.156, y=28.604
+Found: "期" at x=16.906, y=28.604
+Found: "15" at x=17.656, y=28.604
+Found: "週" at x=18.49, y=28.604
+Found: "，" at x=19.24, y=28.604
+Found: "請" at x=19.738, y=28.604
+Found: "假" at x=20.488, y=28.604
+Found: "上" at x=21.238, y=28.604
+Found: "限" at x=21.988, y=28.604
+Found: "為" at x=22.738, y=28.604
+Found: "3" at x=23.488, y=28.604
+Found: "小" at x=23.905, y=28.604
+Found: "時" at x=24.655, y=28.604
+Found: "*" at x=25.405, y=28.604
+Found: "學" at x=25.697, y=28.604
+Found: "分" at x=26.447, y=28.604
+Found: "數" at x=27.197, y=28.604
+Found: ")" at x=27.947, y=28.604
+Found: " " at x=28.197, y=28.604
+Found: " " at x=3.116, y=32.216

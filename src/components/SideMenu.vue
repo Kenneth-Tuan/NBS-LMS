@@ -94,7 +94,7 @@ const menuItems = computed(() => {
   };
 
   const filteredAppMenuItems = MenuItems.map(transformAndFilter).filter(
-    (item) => item !== null && !item.disabled
+    (item) => item !== null && !item.disabled,
   );
 
   return filteredAppMenuItems;
@@ -111,7 +111,7 @@ watch(
   () => state.openKeys,
   (_val, oldVal) => {
     state.preOpenKeys = oldVal;
-  }
+  },
 );
 
 // 根據路由更新選中的菜單項
@@ -122,7 +122,7 @@ watch(
   },
   {
     immediate: true,
-  }
+  },
 );
 
 const onClickMenuChild = async (menuKey) => {

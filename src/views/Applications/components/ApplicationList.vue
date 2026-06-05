@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
+import { useLeaveApplicationPdf } from "@/composables/useLeaveApplicationPdf";
 
 // 響應式判斷
 const isMobile = computed(() => window.innerWidth < 768);
@@ -98,7 +99,7 @@ const showDetail = async (record) => {
   try {
     const applicationDetail = await getApplicationDetail(
       record.application_id,
-      record.type
+      record.type,
     );
     currentRecord.value = applicationDetail;
     currentRecord.value.type = record.type;
@@ -131,13 +132,13 @@ const submitReview = async () => {
     await reviewApplication(
       currentRecord.value.base.application_id,
       currentRecord.value.type,
-      reviewData
+      reviewData,
     );
 
     message.success(
       `申請 ${currentRecord.value.base.application_id} 已${
         reviewResult.value === ApplicationStatus.Approved ? "通過" : "退回"
-      }`
+      }`,
     );
     emits("afterReview");
 
@@ -164,6 +165,56 @@ const cancelReview = () => {
 const dateFormatter = (date) => {
   if (!date) return "尚未審核";
   return dayjs(date).format("YYYY-MM-DD");
+};
+// PDF 預覽/下載
+const { previewPdf, downloadPdf } = useLeaveApplicationPdf();
+const pdfLoading = ref(false);
+
+/**
+ * 將 currentRecord 轉換為 PDF 生成所需的資料結構
+ */
+const buildPdfData = (record) => ({
+  studentId: record.info?.student_id || "",
+  studentName: record.base?.applicant_name || "",
+  department: record.info?.department || "",
+  leaveReason: record.info?.leave_reason || record.info?.reason_for_leave || "",
+  courseName: record.info?.course_name || "",
+  leaveType: record.info?.leave_type || "其他",
+  leaveDate: record.info?.leave_start_date
+    ? record.info.leave_start_date.split("T")[0]
+    : "",
+  leavePeriods: record.info?.leave_periods || 1,
+  // 審核通過後才將老師姓名印入
+  teacherName:
+    record.base?.status === "Approved"
+      ? record.base?.reviewer_name || ""
+      : undefined,
+});
+
+const handlePdfAction = async () => {
+  if (!currentRecord.value) return;
+  pdfLoading.value = true;
+  try {
+    const data = buildPdfData(currentRecord.value);
+    const isApproved = currentRecord.value.base?.status === "Approved";
+    const name = currentRecord.value.base?.applicant_name || "student";
+    const course = currentRecord.value.info?.course_name || "";
+    const date = currentRecord.value.info?.leave_start_date
+      ? dayjs(currentRecord.value.info.leave_start_date).format("YYYYMMDD")
+      : "";
+    const filename = `請假單-${name}${course ? `-${course}` : ""}${date ? `-${date}` : ""}.pdf`;
+
+    if (isApproved) {
+      await downloadPdf(data, filename);
+    } else {
+      await previewPdf(data);
+    }
+  } catch (err) {
+    console.error("PDF 生成失敗:", err);
+    message.error("無法生成 PDF，請稍後再試");
+  } finally {
+    pdfLoading.value = false;
+  }
 };
 </script>
 
@@ -379,16 +430,40 @@ const dateFormatter = (date) => {
             </template>
           </a-descriptions>
 
-          <!-- 審核動作按鈕 - 僅對待審核申請且非學生用戶顯示 -->
           <div
-            v-if="
-              currentRecord?.base?.status === ApplicationStatus.Pending &&
-              userProfile.userRole !== UserRole.Student
-            "
-            class="u-flex u-justify-center u-gap-4 u-mt-4 u-mb-4"
+            class="u-flex u-justify-center u-items-center u-flex-row u-flex-nowrap u-gap-2 u-mt-4"
           >
-            <a-button @click="cancelReview">取消</a-button>
-            <a-button type="primary" @click="submitReview">確認</a-button>
+            <!-- PDF 預覽/下載按鈕（請假申請） -->
+            <div
+              v-if="currentRecord?.type === 'leave'"
+              class="u-flex u-justify-center u-gap-4"
+            >
+              <a-button
+                :loading="pdfLoading"
+                size="large"
+                @click="handlePdfAction"
+              >
+                {{
+                  currentRecord?.base?.status === "Approved"
+                    ? "下載假單"
+                    : "預覽假單"
+                }}
+              </a-button>
+            </div>
+
+            <!-- 審核動作按鈕 - 僅對待審核申請且非學生用戶顯示 -->
+            <div
+              v-if="
+                currentRecord?.base?.status === ApplicationStatus.Pending &&
+                userProfile.userRole !== UserRole.Student
+              "
+              class="u-flex u-justify-center u-gap-4"
+            >
+              <a-button size="large" @click="cancelReview">取消</a-button>
+              <a-button size="large" type="primary" @click="submitReview"
+                >確認</a-button
+              >
+            </div>
           </div>
         </div>
       </div>

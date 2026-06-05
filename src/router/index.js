@@ -331,8 +331,10 @@ router.beforeEach(async (to, from, next) => {
 
   const notificationStore = useNotificationStore();
 
+  notificationStore.resetNotifiedRouterNames()
+
   if (
-    [UserRole.Creator, UserRole.Admin, UserRole.Manager].includes(
+    [UserRole.Creator, UserRole.Admin, UserRole.Manager, UserRole.Teacher].includes(
       userStore.userProfile.userRole,
     )
   ) {
