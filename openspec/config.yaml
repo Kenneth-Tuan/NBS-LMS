@@ -1,0 +1,20 @@
+schema: spec-driven
+
+context: |
+  Project: Nazarene Bible School Learning Management System (NBS-LMS)
+  Domain: Learning Management System
+  Tech stack: Vue 3 (<script setup> SFCs), Vite, Ant Design Vue, UnoCSS, Pinia, Vue Router, Appwrite, MSW, PDF-lib
+  Project Structure & Architecture:
+    - src/components/: Reusable Vue components
+    - src/views/: Page components
+    - src/stores/: Pinia state management
+    - src/services/: API communication and data transformation
+    - src/composables/: Reusable composition functions
+    - src/schemas/: Form field schemas and validation rules
+  Conventions:
+    - Form Architecture layered approach: Stores -> Services -> Composables -> Schemas -> Utils
+    - Use UnoCSS for utility styling and Ant Design Vue for UI components
+
+rules:
+  tasks:
+    - Break tasks down according to the layered form architecture when working on form features
