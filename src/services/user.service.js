@@ -40,6 +40,8 @@ const userService = {
         telephone: userInfo.telephone ?? "",
         role: userInfo.role ?? "student",
         departments: userInfo.departments ?? [],
+        student_id: userInfo.student_id ?? null,
+        admission_time: userInfo.admission_time ?? null,
       };
       const result = await userApi.createUser(params);
       return result;
@@ -62,6 +64,8 @@ const userService = {
         phone: userInfo.phone ?? "",
         is_active: userInfo.status === UserStatus.Active ? true : false,
         departments: userInfo.departments ?? [],
+        student_id: userInfo.student_id ?? null,
+        admission_time: userInfo.admission_time ?? null,
       };
       const result = await userApi.updateUser(params);
       return result;

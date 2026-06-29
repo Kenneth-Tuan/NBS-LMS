@@ -11,6 +11,8 @@ export const initialUserFormState = () =>
     phone: "",
     role: null,
     departments: [],
+    student_id: "",
+    admission_time: null,
     status: UserStatus.Active,
     password: "",
     confirmPassword: "",

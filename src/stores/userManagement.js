@@ -131,6 +131,10 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       status: userRecord.status,
       notes: userRecord.notes || "",
       departments: userRecord.departments || [],
+      student_id: userRecord.student_id || "",
+      admission_time: userRecord.admission_time
+        ? userRecord.admission_time.slice(0, 10)
+        : null,
       // Passwords are not pre-filled for edit
     };
     formVisible.value = true;
@@ -149,11 +153,10 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       // Remove confirmPassword before sending
       delete formData.confirmPassword;
 
-      if (
-        formData.role !== UserRole.Student &&
-        formData.departments.length > 0
-      ) {
+      if (formData.role !== UserRole.Student) {
         delete formData.departments;
+        delete formData.student_id;
+        delete formData.admission_time;
       }
 
       if (formMode.value === "create") {
@@ -209,6 +212,18 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       dataIndex: "role",
       key: "role",
       customRender: ({ text }) => getRoleText(text),
+    },
+    {
+      title: "學號",
+      dataIndex: "student_id",
+      key: "student_id",
+      customRender: ({ text }) => text || "-",
+    },
+    {
+      title: "入學時間",
+      dataIndex: "admission_time",
+      key: "admission_time",
+      customRender: ({ text }) => (text ? text.slice(0, 10) : "-"),
     },
     {
       title: "電話",

@@ -238,11 +238,14 @@ onMounted(() => {
       </div>
 
       <!-- Users table -->
-      <a-table
-        :columns="columns"
-        :data-source="users"
-        :loading="loading"
-        :pagination="{
+      <div class="users-table-wrapper">
+        <a-table
+          class="users-table"
+          :columns="columns"
+          :data-source="users"
+          :loading="loading"
+          :scroll="{ x: 'max-content' }"
+          :pagination="{
           current: pagination.currentPage,
           pageSize: pagination.pageSize,
           total: pagination.total * pagination.pageSize,
@@ -315,7 +318,8 @@ onMounted(() => {
             </span>
           </template>
         </template>
-      </a-table>
+        </a-table>
+      </div>
     </div>
 
     <!-- 手機版 卡片列表 -->
@@ -389,6 +393,12 @@ onMounted(() => {
                 .map((dep) => DEPARTMENTS_LABEL_MAP[dep])
                 .join(", ") || "-"
             }}
+          </div>
+          <div v-if="user.role === UserRole.Student && user.student_id">
+            學號：{{ user.student_id }}
+          </div>
+          <div v-if="user.role === UserRole.Student && user.admission_time">
+            入學時間：{{ user.admission_time.slice(0, 10) }}
           </div>
         </div>
 
@@ -482,6 +492,33 @@ onMounted(() => {
         >
         </a-select>
       </a-form-item>
+
+      <a-form-item
+        v-if="userForm.role === UserRole.Student"
+        label="學號"
+        name="student_id"
+      >
+        <a-input
+          v-model:value="userForm.student_id"
+          placeholder="請輸入學號（選填）"
+        />
+      </a-form-item>
+
+      <a-form-item
+        v-if="userForm.role === UserRole.Student"
+        label="入學時間"
+        name="admission_time"
+      >
+        <a-date-picker
+          v-model:value="userForm.admission_time"
+          value-format="YYYY-MM-DD"
+          format="YYYY-MM-DD"
+          class="u-w-full"
+          placeholder="請選擇入學時間（選填）"
+          allow-clear
+        />
+      </a-form-item>
+
       <a-form-item v-if="formMode === 'edit'" label="狀態" name="status">
         <a-select
           v-model:value="userForm.status"
@@ -564,6 +601,19 @@ onMounted(() => {
 
 .mb-4 {
   margin-bottom: 16px;
+}
+
+.users-table-wrapper {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.users-table :deep(.ant-table-cell) {
+  white-space: nowrap;
+}
+
+.users-table :deep(.ant-table-cell .u-flex-col) {
+  white-space: normal;
 }
 
 /* Ensure table takes full width */
