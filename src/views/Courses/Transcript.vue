@@ -261,8 +261,7 @@ const handleGeneratePdf = async () => {
     const pdfData = {
       title: title,
       studentName: currentStudent.value.student_name,
-      studentId:
-        currentStudent.value.student_id || pdfFormState.value.studentId, // Using manual input
+      studentId: pdfFormState.value.studentId, // Using manual input
       major: studentMajor.value,
       enrollmentDate: enrollmentDate
         ? dayjs(enrollmentDate).format("YYYY.MM")
