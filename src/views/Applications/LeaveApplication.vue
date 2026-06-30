@@ -98,11 +98,9 @@ const computeLeaveTimes = () => {
   const endDayjs = startDayjs.add(durationMin, "minute");
 
   leaveApplicationForm.leave_start_date = startDayjs.format(
-    "YYYY-MM-DDTHH:mm:ssZ"
+    "YYYY-MM-DDTHH:mm:ssZ",
   );
-  leaveApplicationForm.leave_end_date = endDayjs.format(
-    "YYYY-MM-DDTHH:mm:ssZ"
-  );
+  leaveApplicationForm.leave_end_date = endDayjs.format("YYYY-MM-DDTHH:mm:ssZ");
 };
 
 // 監聽課程、日期、節數，自動計算起訖時間
@@ -113,7 +111,7 @@ watch(
     () => leaveApplicationForm.leave_periods,
   ],
   computeLeaveTimes,
-  { immediate: false }
+  { immediate: false },
 );
 
 // ── 提交表單（a-form finish 事件觸發） ────────────────────────────────────
@@ -174,10 +172,10 @@ onMounted(async () => {
     >
       <ApplicantInfo />
 
-      <a-divider orientation="left">基本資料</a-divider>
+      <!-- <a-divider orientation="left">基本資料</a-divider>
 
       <a-row :gutter="16">
-        <!-- 學號 -->
+
         <a-col :span="12">
           <a-form-item
             v-bind="leaveApplicationSchema.student_id"
@@ -190,7 +188,7 @@ onMounted(async () => {
           </a-form-item>
         </a-col>
 
-        <!-- 科系 -->
+
         <a-col :span="12">
           <a-form-item
             v-bind="leaveApplicationSchema.department"
@@ -205,7 +203,7 @@ onMounted(async () => {
             />
           </a-form-item>
         </a-col>
-      </a-row>
+      </a-row> -->
 
       <a-divider orientation="left">請假資訊</a-divider>
 
@@ -347,7 +345,8 @@ onMounted(async () => {
 
 <style scoped>
 .u-shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

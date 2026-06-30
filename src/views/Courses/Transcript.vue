@@ -141,13 +141,14 @@ const isPdfModalVisible = ref(false);
 const pdfLoading = ref(false);
 const currentStudent = ref(null);
 
-const currentYear = dayjs().year() - 1911;
+const currentYear = dayjs().year();
 const academicYears = Array.from({ length: 22 }, (_, i) => currentYear + 1 - i);
 
 const pdfFormState = ref({
   year: currentYear,
   semester: 1,
 
+  studentId: "",
   enrollmentDate: null,
   grade: "",
   releaseDate: dayjs(),
@@ -170,8 +171,8 @@ const openPdfModal = async (record) => {
   // Fetch Major
   try {
     const res = await userService.getUserList(
-      { currentPage: 1, pageSize: 10 },
-      { name: record.student_name, role: UserRole.Student },
+      { currentPage: 1, pageSize: 999 },
+      { name: record.student_name, role: UserRole.Student, status: "active" },
     );
 
     const {
@@ -184,10 +185,20 @@ const openPdfModal = async (record) => {
       // Ideally we match by ID but we only have name here?
       // record has student_id (which looks like a code "NMR2501" not UUID "124...")
       // The API returns users with UUID. We will match by name for now as requested.
-      const user = users[0];
+
+      const user = users.find((user) => user.id === record.student_id);
+
       if (user.departments && user.departments.length > 0) {
         studentMajor.value =
           DEPARTMENTS_LABEL_MAP[user.departments[0]] || user.departments[0];
+      }
+
+      if (user.student_id) {
+        pdfFormState.value.studentId = user.student_id;
+      }
+
+      if (user.admission_time) {
+        pdfFormState.value.enrollmentDate = dayjs(user.admission_time);
       }
     }
   } catch (e) {
@@ -250,7 +261,8 @@ const handleGeneratePdf = async () => {
     const pdfData = {
       title: title,
       studentName: currentStudent.value.student_name,
-      studentId: pdfFormState.value.studentId, // Using manual input
+      studentId:
+        currentStudent.value.student_id || pdfFormState.value.studentId, // Using manual input
       major: studentMajor.value,
       enrollmentDate: enrollmentDate
         ? dayjs(enrollmentDate).format("YYYY.MM")

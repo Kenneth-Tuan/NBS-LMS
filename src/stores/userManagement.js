@@ -206,13 +206,7 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     // { title: "頭像", dataIndex: "avatar", key: "avatar", width: 80 },
     // { title: "帳號", dataIndex: "username", key: "username" },
     { title: "姓名", dataIndex: "name", key: "name" },
-    { title: "電子郵件", dataIndex: "email", key: "email" },
-    {
-      title: "角色",
-      dataIndex: "role",
-      key: "role",
-      customRender: ({ text }) => getRoleText(text),
-    },
+    // { title: "電子郵件", dataIndex: "email", key: "email" },
     {
       title: "學號",
       dataIndex: "student_id",
@@ -226,11 +220,17 @@ export const useUserManagementStore = defineStore("userManagement", () => {
       customRender: ({ text }) => (text ? text.slice(0, 10) : "-"),
     },
     {
-      title: "電話",
-      dataIndex: "telephone",
-      key: "telephone",
-      customRender: ({ text }) => (text ? text : "-"),
+      title: "角色/科別",
+      dataIndex: "role",
+      key: "role",
+      customRender: ({ text }) => getRoleText(text),
     },
+    // {
+    //   title: "電話",
+    //   dataIndex: "telephone",
+    //   key: "telephone",
+    //   customRender: ({ text }) => (text ? text : "-"),
+    // },
     {
       title: "狀態",
       dataIndex: "status",

@@ -181,7 +181,7 @@ export const useCourseStore = defineStore(
           page_size: _pagination.pageSize,
         },
         ordering: {
-          direction: DIRECTION_MAP[ordering?.order] ?? "asc",
+          direction: DIRECTION_MAP[ordering?.order] ?? "desc",
           field: ordering?.field ?? "start_date",
         },
       };

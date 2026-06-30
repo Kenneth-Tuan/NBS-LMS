@@ -18,6 +18,7 @@ import {
   APPLICATION_STATUS_TEXT,
 } from "@/constant/application.constant";
 import AttachmentColumn from "./AttachmentColumn.vue";
+import { userService } from "../../../services/user.service.js";
 
 const { userProfile } = useUserStore();
 const applicationStore = useApplicationStore();
@@ -195,6 +196,25 @@ const handlePdfAction = async () => {
   if (!currentRecord.value) return;
   pdfLoading.value = true;
   try {
+    // const { applicant_id, applicant_name } = currentRecord.value;
+
+    // const filteredUsers = await userService.getUserList(
+    //   { currentPage: 1, pageSize: 999 },
+    //   {
+    //     name: applicant_name,
+    //     role: UserRole.Student,
+    //     status: "active",
+    //   },
+    // );
+
+    // const studentData = filteredUsers.data.find(
+    //   (user) => user.user_id === applicant_id,
+    // );
+    // 目前學生無法 call userList api
+    // 需要新增以下功能：
+    // 1. student - userProfile 中增加 學號 & 入學時間 & 科別 欄位
+    // 2. 請假申請表格中增加 學號 & 科別 欄位
+
     const data = buildPdfData(currentRecord.value);
     const isApproved = currentRecord.value.base?.status === "Approved";
     const name = currentRecord.value.base?.applicant_name || "student";

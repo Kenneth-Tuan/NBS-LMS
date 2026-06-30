@@ -93,11 +93,16 @@ export const useLeaveApplicationPdf = () => {
     drawBoth(reason, u.leaveReason);
 
     // ── 科系 checkbox ──────────────────────────────────────
-    if (data.department && DEPT_CHECKBOX_X_MAP[data.department]) {
-      const deptX = DEPT_CHECKBOX_X_MAP[data.department];
-      const deptCoord = toPdfCoords(deptX, u.deptCheckboxY_pdf2json);
-      drawText(checkMark, deptCoord.x, deptCoord.y, { size: checkSize });
-      drawText(checkMark, deptCoord.x, deptCoord.y - SECTION_OFFSET_PX, { size: checkSize });
+    if (data.department) {
+      const departments = Array.isArray(data.department) ? data.department : [data.department];
+      departments.forEach(dept => {
+        if (DEPT_CHECKBOX_X_MAP[dept]) {
+          const deptX = DEPT_CHECKBOX_X_MAP[dept];
+          const deptCoord = toPdfCoords(deptX, u.deptCheckboxY_pdf2json);
+          drawText(checkMark, deptCoord.x, deptCoord.y, { size: checkSize });
+          drawText(checkMark, deptCoord.x, deptCoord.y - SECTION_OFFSET_PX, { size: checkSize });
+        }
+      });
     }
 
     // ── 假別 checkbox ──────────────────────────────────────
