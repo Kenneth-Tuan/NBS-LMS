@@ -53,6 +53,7 @@ const {
   showCreateForm,
   confirmBulkOperation,
   confirmSingleDelete,
+  handleExportUsers,
 } = userManagementStore;
 
 // Reset Password Dialog State
@@ -148,10 +149,16 @@ onMounted(() => {
     <div class="u-flex u-justify-between u-items-center">
       <h1 class="u-text-24px u-font-bold u-m0 u-c-blue">使用者管理</h1>
 
-      <a-button type="primary" @click="showCreateForm">
-        <template #icon><plus-outlined /></template>
-        新增使用者
-      </a-button>
+      <div class="u-flex u-gap-3">
+        <a-button @click="handleExportUsers" :loading="loading">
+          <template #icon><download-outlined /></template>
+          匯出學生資料
+        </a-button>
+        <a-button type="primary" @click="showCreateForm">
+          <template #icon><plus-outlined /></template>
+          新增使用者
+        </a-button>
+      </div>
     </div>
 
     <ADivider class="u-my16px" />

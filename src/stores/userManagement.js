@@ -10,6 +10,9 @@ import { UserRole } from "@/enums/appEnums";
 import { UserStatus } from "../enums/appEnums";
 import { getRoleText, getStatusText } from "@/utils/mappers";
 import { getUserFormRules } from "@/schemas/userManagementForm.schema";
+import * as XLSX from "xlsx";
+import dayjs from "dayjs";
+import { DEPARTMENTS_LABEL_MAP } from "@/constant/common.constant";
 
 export const useUserManagementStore = defineStore("userManagement", () => {
   // === State ===
@@ -264,6 +267,76 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     resetFilters();
   };
 
+  const exportUsers = async () => {
+    try {
+      loading.value = true;
+      // Fetch all active students
+      const filter = {
+        role: UserRole.Student,
+        status: UserStatus.Active,
+      };
+      // Use a fixed page size to fetch the first page and determine total pages
+      const pageSize = 30;
+      const initialResponse = await userService.getUserList(
+        { currentPage: 1, pageSize },
+        filter
+      );
+      
+      let activeStudents = initialResponse.data?.data?.users || [];
+      const totalPage = initialResponse.data?.total_page || 1;
+
+      // Fetch remaining pages if any
+      if (totalPage > 1) {
+        const promises = [];
+        for (let i = 2; i <= totalPage; i++) {
+          promises.push(
+            userService.getUserList({ currentPage: i, pageSize }, filter)
+          );
+        }
+        
+        const responses = await Promise.all(promises);
+        responses.forEach((res) => {
+          const pageUsers = res.data?.data?.users || [];
+          activeStudents.push(...pageUsers);
+        });
+      }
+
+      if (activeStudents.length === 0) {
+        message.warning("沒有找到符合條件的學生資料");
+        return;
+      }
+
+      // Map data to requested columns
+      const data = activeStudents.map((student) => {
+        const departments = student.departments
+          ? student.departments.map((dep) => DEPARTMENTS_LABEL_MAP[dep] || dep).join(", ")
+          : "-";
+
+        return {
+          學生姓名: student.name || "-",
+          學號: student.student_id || "-",
+          入學日期: student.admission_time ? student.admission_time.slice(0, 10) : "-",
+          科別: departments,
+          電子郵件: student.email || "-",
+          電話: student.phone || "-",
+        };
+      });
+
+      // Generate Excel file
+      const ws = XLSX.utils.json_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "學生資料");
+      XLSX.writeFile(wb, `學生資料_${dayjs().format("YYYYMMDD_HHmm")}.xlsx`);
+      
+      message.success("學生資料匯出成功");
+    } catch (error) {
+      console.error("Export users failed:", error);
+      message.error("匯出資料失敗，請稍後再試");
+    } finally {
+      loading.value = false;
+    }
+  };
+
   const handleExportUsers = () => {
     exportUsers();
   };
@@ -348,6 +421,7 @@ export const useUserManagementStore = defineStore("userManagement", () => {
     handleSearch,
     handleResetFilters,
     handleExportUsers,
+    exportUsers,
     confirmBulkOperation,
     confirmSingleDelete,
   };
