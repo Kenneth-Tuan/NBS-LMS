@@ -186,6 +186,23 @@ const useCreateTranscript = () => {
           ? dayjs(form.enrollmentDate).format("YYYY.MM")
           : "",
         系所: form.major && form.major !== "-" ? form.major : "",
+        年級: form.grade && form.grade !== "-" ? form.grade : "",
+        轉入學分:
+          form.transferCredits && form.transferCredits !== "-"
+            ? form.transferCredits
+            : "",
+        實習備註:
+          form.practiceNote && form.practiceNote !== "-"
+            ? form.practiceNote
+            : "",
+        發佈日期: form.releaseDate
+          ? dayjs(form.releaseDate).format("YYYY.MM.DD")
+          : "",
+        備註: form.remarks && form.remarks !== "-" ? form.remarks : "",
+        請假時數:
+          form.leaveHours && form.leaveHours !== "-" ? form.leaveHours : "",
+        曠課時數:
+          form.absentHours && form.absentHours !== "-" ? form.absentHours : "",
       };
       courses.forEach((course) => {
         const score = student[course.id];
