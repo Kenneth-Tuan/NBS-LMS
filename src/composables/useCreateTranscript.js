@@ -161,22 +161,31 @@ const useCreateTranscript = () => {
     }
   };
 
-  const exportToExcel = () => {
+  /**
+   * @param {Record<string, { studentId?: string, enrollmentDate?: any, major?: string }>} [studentPdfForms]
+   *   key = student_id，value 為各生 expanded form 內容
+   */
+  const exportToExcel = (studentPdfForms = {}) => {
     if (selectedCoursesTranscript.value.length === 0) {
       message.warning("沒有可匯出的資料");
       return;
     }
 
-    // Prepare data for Excel
-    // Columns: Student Name, Course 1, Course 2...
+    // Columns: 學生姓名, 學號, 入學日期, 系所, Course 1, Course 2...
     const courses = selectedCourses.value.map((id) => {
       const c = allCourses.value.find((course) => course.course_id === id);
       return { id, name: c ? c.name : id };
     });
 
     const data = selectedCoursesTranscript.value.map((student) => {
+      const form = studentPdfForms[student.student_id] || {};
       const row = {
         學生姓名: student.student_name,
+        學號: form.studentId || "",
+        入學日期: form.enrollmentDate
+          ? dayjs(form.enrollmentDate).format("YYYY.MM")
+          : "",
+        系所: form.major && form.major !== "-" ? form.major : "",
       };
       courses.forEach((course) => {
         const score = student[course.id];

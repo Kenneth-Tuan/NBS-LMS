@@ -6,13 +6,13 @@ import {
   Button as AButton,
   Divider as ADivider,
   Tag as ATag,
+  Spin as ASpin,
 } from "ant-design-vue";
 import dayjs from "dayjs";
 
 import useCreateTranscript from "@/composables/useCreateTranscript";
 
 import {
-  Modal as AModal,
   Form as AForm,
   FormItem as AFormItem,
   Input as AInput,
@@ -127,128 +127,132 @@ const transcriptColumns = computed(() => {
   return [...baseColumns, ...courseCols];
 });
 
-const { downloadPdf, previewPdf } = useTranscriptPdf();
+const { previewPdf } = useTranscriptPdf();
+
+// --- Pre-fetch all active students on mount ---
+const allStudents = ref([]);
+
+const fetchAllStudents = async () => {
+  const filter = { role: UserRole.Student, status: "active" };
+  const pageSize = 30;
+  try {
+    const initialRes = await userService.getUserList(
+      { currentPage: 1, pageSize },
+      filter,
+    );
+    const firstPage = initialRes.data?.data?.users ?? [];
+    const totalPage = initialRes.data?.total_page ?? 1;
+
+    if (totalPage <= 1) {
+      allStudents.value = firstPage;
+      return;
+    }
+
+    const restPages = Array.from({ length: totalPage - 1 }, (_, i) =>
+      userService.getUserList({ currentPage: i + 2, pageSize }, filter),
+    );
+    const responses = await Promise.all(restPages);
+    allStudents.value = [
+      ...firstPage,
+      ...responses.flatMap((res) => res.data?.data?.users ?? []),
+    ];
+  } catch (e) {
+    console.error("Fetch all students failed", e);
+  }
+};
 
 onMounted(() => {
   getAllCourses().then(() => {
-    // Select all by default as per requirement
     selectedCourses.value = filteredCourses.value.map((c) => c.course_id);
   });
+  fetchAllStudents();
 });
 
-// Modal State
-const isPdfModalVisible = ref(false);
-const pdfLoading = ref(false);
-const currentStudent = ref(null);
-
+// --- Page-level shared academic year / semester ---
 const currentYear = dayjs().year();
 const academicYears = Array.from({ length: 22 }, (_, i) => currentYear + 1 - i);
+const sharedYear = ref(currentYear);
+const sharedSemester = ref(1);
 
-const pdfFormState = ref({
-  year: currentYear,
-  semester: 1,
+// --- Per-student PDF form state ---
+const studentPdfForms = ref({}); // { [studentId]: formState & { major } }
+const pdfLoadingMap = ref({});   // { [studentId]: boolean }
 
+const createDefaultPdfForm = () => ({
   studentId: "",
   enrollmentDate: null,
   grade: "",
   releaseDate: dayjs(),
   transferCredits: "0",
-  // totalCredits, semesterLabel, title are generated
-
   practiceNote: "免實習",
   remarks: "",
   leaveHours: "0",
   absentHours: "0",
+  major: "-",
 });
 
-const studentMajor = ref("");
+const initAllStudentPdfForms = (rows) => {
+  studentPdfForms.value = {};
 
-// Open Modal
-const openPdfModal = async (record) => {
-  currentStudent.value = record;
-  studentMajor.value = "-"; // Reset
+  rows.forEach((record) => {
+    const form = createDefaultPdfForm();
+    const user = allStudents.value.find((u) => u.id === record.student_id);
 
-  // Fetch Major
-  try {
-    const res = await userService.getUserList(
-      { currentPage: 1, pageSize: 999 },
-      { name: record.student_name, role: UserRole.Student, status: "active" },
-    );
-
-    const {
-      data: {
-        data: { users },
-      },
-    } = res;
-
-    if (users && users.length > 0) {
-      // Ideally we match by ID but we only have name here?
-      // record has student_id (which looks like a code "NMR2501" not UUID "124...")
-      // The API returns users with UUID. We will match by name for now as requested.
-
-      const user = users.find((user) => user.id === record.student_id);
-
+    if (user) {
+      if (user.student_id) form.studentId = user.student_id;
+      if (user.admission_time) form.enrollmentDate = dayjs(user.admission_time);
       if (user.departments && user.departments.length > 0) {
-        studentMajor.value =
+        form.major =
           DEPARTMENTS_LABEL_MAP[user.departments[0]] || user.departments[0];
       }
-
-      if (user.student_id) {
-        pdfFormState.value.studentId = user.student_id;
-      }
-
-      if (user.admission_time) {
-        pdfFormState.value.enrollmentDate = dayjs(user.admission_time);
-      }
     }
-  } catch (e) {
-    console.error("Fetch major failed", e);
-  }
 
-  isPdfModalVisible.value = true;
+    studentPdfForms.value[record.student_id] = form;
+  });
 };
 
-const handleGeneratePdf = async () => {
-  if (!currentStudent.value) return;
-  pdfLoading.value = true;
+const handleGenerateTranscript = async () => {
+  await generateTranscript();
+  if (selectedCoursesTranscript.value.length > 0) {
+    initAllStudentPdfForms(selectedCoursesTranscript.value);
+  }
+};
+
+const handlePreviewPdf = async (record) => {
+  const form = studentPdfForms.value[record.student_id];
+  if (!form) {
+    message.warning("請先生成成績單");
+    return;
+  }
+
+  pdfLoadingMap.value[record.student_id] = true;
 
   try {
-    const { year, semester, enrollmentDate, releaseDate } = pdfFormState.value;
+    const { enrollmentDate, releaseDate } = form;
+    const year = sharedYear.value;
+    const semester = sharedSemester.value;
     const semesterStr = semester === 1 ? "第一學期" : "第二學期";
     const semesterEng = semester === 1 ? "First Semester" : "Second Semester";
-
-    // Title: [Selector1]學年度[Selector2]成績單
     const title = `${year}學年度${semesterStr}成績單`;
-    // Semester Label: 114學年度第一學期 First Semester
     const semesterLabel = `${year}學年度${semesterStr} ${semesterEng}`;
 
-    // Prepare Courses
-    // Map from filteredCourses to get metadata, use record for score
     const courses = [];
     let calculatedTotalCredits = 0;
 
-    // We iterate selectedCourses to keep order or just iterate all filteredCourses that have scores?
-    // transcriptColumns uses selectedCourses.
     selectedCourses.value.forEach((courseId) => {
       const courseDef = filteredCourses.value.find(
         (c) => c.course_id === courseId,
       );
-      const score = currentStudent.value[courseId];
+      const score = record[courseId];
 
-      // Skip courses where student is not enrolled
-      if (
-        currentStudent.value.course_status &&
-        currentStudent.value.course_status[courseId] === false
-      ) {
+      if (record.course_status && record.course_status[courseId] === false) {
         return;
       }
 
       if (courseDef) {
-        // Sum credits if passed
         if (score > 0) {
           calculatedTotalCredits += Number(courseDef.credit) || 0;
         }
-
         courses.push({
           name: courseDef.name,
           credits: String(courseDef.credit || 0),
@@ -259,35 +263,32 @@ const handleGeneratePdf = async () => {
     });
 
     const pdfData = {
-      title: title,
-      studentName: currentStudent.value.student_name,
-      studentId: pdfFormState.value.studentId, // Using manual input
-      major: studentMajor.value,
+      title,
+      studentName: record.student_name,
+      studentId: form.studentId,
+      major: form.major,
       enrollmentDate: enrollmentDate
         ? dayjs(enrollmentDate).format("YYYY.MM")
-        : "", // Format?
-      grade: pdfFormState.value.grade,
+        : "",
+      grade: form.grade,
       releaseDate: releaseDate ? dayjs(releaseDate).format("YYYY.MM.DD") : "",
-      transferCredits: pdfFormState.value.transferCredits,
-      totalCredits: String(calculatedTotalCredits), // Or manual input?
-      semesterLabel: semesterLabel,
-      practiceNote: pdfFormState.value.practiceNote,
-      remarks: pdfFormState.value.remarks,
-      leaveHours: pdfFormState.value.leaveHours,
-      absentHours: pdfFormState.value.absentHours,
-      courses: courses,
+      transferCredits: form.transferCredits,
+      totalCredits: String(calculatedTotalCredits),
+      semesterLabel,
+      practiceNote: form.practiceNote,
+      remarks: form.remarks,
+      leaveHours: form.leaveHours,
+      absentHours: form.absentHours,
+      courses,
     };
 
-    // Use previewPdf to open in new tab
     await previewPdf(pdfData);
-
-    isPdfModalVisible.value = false;
     message.success("成績單已生成");
   } catch (err) {
     console.error(err);
     message.error("產生失敗");
   } finally {
-    pdfLoading.value = false;
+    pdfLoadingMap.value[record.student_id] = false;
   }
 };
 
@@ -319,6 +320,24 @@ const extendedTranscriptColumns = computed(() => {
       <ARangePicker v-model:value="dateRange" />
       <span class="u-text-sm u-text-gray-500"
         >（選擇完日期後，下方將顯示符合時間範圍內的課程）</span
+      >
+    </div>
+
+    <!-- Shared Academic Year / Semester -->
+    <div class="u-mb-4 u-flex u-items-center u-gap-4">
+      <span class="u-font-medium u-text-gray-700">學年度：</span>
+      <ASelect v-model:value="sharedYear" class="u-w-32">
+        <ASelectOption v-for="y in academicYears" :key="y" :value="y">{{
+          y
+        }}</ASelectOption>
+      </ASelect>
+      <span class="u-font-medium u-text-gray-700">學期：</span>
+      <ASelect v-model:value="sharedSemester" class="u-w-36">
+        <ASelectOption :value="1">第一學期</ASelectOption>
+        <ASelectOption :value="2">第二學期</ASelectOption>
+      </ASelect>
+      <span class="u-text-sm u-text-gray-500"
+        >（套用至本頁所有成績單預覽）</span
       >
     </div>
 
@@ -356,7 +375,7 @@ const extendedTranscriptColumns = computed(() => {
       <AButton
         type="primary"
         size="large"
-        @click="generateTranscript"
+        @click="handleGenerateTranscript"
         :loading="loading"
       >
         生成成績單
@@ -367,7 +386,11 @@ const extendedTranscriptColumns = computed(() => {
     <div v-if="selectedCoursesTranscript.length > 0" class="u-mb-6 u-w-full">
       <div class="u-flex u-justify-between u-items-center u-mb-2">
         <h2 class="u-text-lg u-font-bold u-c-gray-700">成績單預覽</h2>
-        <AButton type="primary" ghost @click="exportToExcel">
+        <AButton
+          type="primary"
+          ghost
+          @click="exportToExcel(studentPdfForms)"
+        >
           匯出 Excel
         </AButton>
       </div>
@@ -383,101 +406,118 @@ const extendedTranscriptColumns = computed(() => {
         :scroll="{ x: 'max-content' }"
         class="u-max-w-full"
       >
+        <template #expandedRowRender="{ record }">
+          <div
+            v-if="studentPdfForms[record.student_id]"
+            class="u-p-4 u-bg-gray-50 u-rounded-lg"
+          >
+            <AForm layout="vertical">
+              <div class="u-grid u-grid-cols-3 u-gap-4">
+                <AFormItem label="學生姓名">
+                  <AInput :value="record.student_name" disabled />
+                </AFormItem>
+                <AFormItem label="學號">
+                  <AInput
+                    v-model:value="studentPdfForms[record.student_id].studentId"
+                    placeholder="請輸入學號"
+                  />
+                </AFormItem>
+                <AFormItem label="系所">
+                  <AInput
+                    :value="studentPdfForms[record.student_id].major"
+                    disabled
+                  />
+                </AFormItem>
+              </div>
+
+              <div class="u-grid u-grid-cols-2 u-gap-4">
+                <AFormItem label="入學日期">
+                  <ADatePicker
+                    v-model:value="
+                      studentPdfForms[record.student_id].enrollmentDate
+                    "
+                    picker="month"
+                    format="YYYY.MM"
+                    class="u-w-full"
+                  />
+                </AFormItem>
+                <AFormItem label="發佈日期">
+                  <ADatePicker
+                    v-model:value="
+                      studentPdfForms[record.student_id].releaseDate
+                    "
+                    format="YYYY.MM.DD"
+                    class="u-w-full"
+                  />
+                </AFormItem>
+              </div>
+
+              <div class="u-grid u-grid-cols-2 u-gap-4">
+                <AFormItem label="年級">
+                  <AInput
+                    v-model:value="studentPdfForms[record.student_id].grade"
+                  />
+                </AFormItem>
+                <AFormItem label="轉入學分">
+                  <AInput
+                    v-model:value="
+                      studentPdfForms[record.student_id].transferCredits
+                    "
+                  />
+                </AFormItem>
+              </div>
+
+              <AFormItem label="實習備註">
+                <AInput
+                  v-model:value="
+                    studentPdfForms[record.student_id].practiceNote
+                  "
+                />
+              </AFormItem>
+              <AFormItem label="備註">
+                <AInput
+                  v-model:value="studentPdfForms[record.student_id].remarks"
+                />
+              </AFormItem>
+
+              <div class="u-grid u-grid-cols-2 u-gap-4">
+                <AFormItem label="請假時數">
+                  <AInput
+                    v-model:value="
+                      studentPdfForms[record.student_id].leaveHours
+                    "
+                  />
+                </AFormItem>
+                <AFormItem label="曠課時數">
+                  <AInput
+                    v-model:value="
+                      studentPdfForms[record.student_id].absentHours
+                    "
+                  />
+                </AFormItem>
+              </div>
+            </AForm>
+          </div>
+          <div v-else class="u-flex u-justify-center u-p-4">
+            <ASpin />
+          </div>
+        </template>
+
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'action'">
-            <AButton type="primary" size="small" @click="openPdfModal(record)">
-              建立個人成績單
+            <AButton
+              type="primary"
+              size="small"
+              :loading="pdfLoadingMap[record.student_id]"
+              :disabled="!studentPdfForms[record.student_id]"
+              @click="handlePreviewPdf(record)"
+            >
+              預覽
             </AButton>
           </template>
         </template>
       </ATable>
     </div>
-
-    <!-- PDF Generation Modal -->
-    <AModal
-      v-model:open="isPdfModalVisible"
-      title="建立個人成績單"
-      ok-text="預覽"
-      cancel-text="取消"
-      @ok="handleGeneratePdf"
-      :confirm-loading="pdfLoading"
-    >
-      <AForm layout="vertical">
-        <div class="u-grid u-grid-cols-2 u-gap-4">
-          <AFormItem label="學年度">
-            <ASelect v-model:value="pdfFormState.year">
-              <ASelectOption v-for="y in academicYears" :key="y" :value="y">{{
-                y
-              }}</ASelectOption>
-            </ASelect>
-          </AFormItem>
-          <AFormItem label="學期">
-            <ASelect v-model:value="pdfFormState.semester">
-              <ASelectOption :value="1">第一學期</ASelectOption>
-              <ASelectOption :value="2">第二學期</ASelectOption>
-            </ASelect>
-          </AFormItem>
-        </div>
-
-        <div class="u-grid u-grid-cols-3 u-gap-4">
-          <AFormItem label="學生姓名">
-            <AInput :value="currentStudent?.student_name" disabled />
-          </AFormItem>
-          <AFormItem label="學號">
-            <AInput
-              v-model:value="pdfFormState.studentId"
-              placeholder="請輸入學號"
-            />
-          </AFormItem>
-          <AFormItem label="系所">
-            <AInput :value="studentMajor" />
-          </AFormItem>
-        </div>
-
-        <div class="u-grid u-grid-cols-2 u-gap-4">
-          <AFormItem label="入學日期">
-            <ADatePicker
-              v-model:value="pdfFormState.enrollmentDate"
-              picker="month"
-              format="YYYY.MM"
-              class="u-w-full"
-            />
-          </AFormItem>
-          <AFormItem label="發佈日期">
-            <ADatePicker
-              v-model:value="pdfFormState.releaseDate"
-              format="YYYY.MM.DD"
-              class="u-w-full"
-            />
-          </AFormItem>
-        </div>
-
-        <div class="u-grid u-grid-cols-2 u-gap-4">
-          <AFormItem label="年級">
-            <AInput v-model:value="pdfFormState.grade" />
-          </AFormItem>
-          <AFormItem label="轉入學分">
-            <AInput v-model:value="pdfFormState.transferCredits" />
-          </AFormItem>
-        </div>
-
-        <AFormItem label="實習備註">
-          <AInput v-model:value="pdfFormState.practiceNote" />
-        </AFormItem>
-        <AFormItem label="備註">
-          <AInput v-model:value="pdfFormState.remarks" />
-        </AFormItem>
-
-        <div class="u-grid u-grid-cols-2 u-gap-4">
-          <AFormItem label="請假時數">
-            <AInput v-model:value="pdfFormState.leaveHours" />
-          </AFormItem>
-          <AFormItem label="曠課時數">
-            <AInput v-model:value="pdfFormState.absentHours" />
-          </AFormItem>
-        </div>
-      </AForm>
-    </AModal>
   </div>
 </template>
 
