@@ -119,11 +119,11 @@ export const useTranscriptPdf = () => {
         drawText(course.score, scoreX, yCoords, { color: COLORS.BLUE });
 
         // Note
-        const noteX = convertToPdfCoords(
-          TranscriptConfig.courseTable.columns.note.x_pdf2json,
-          0,
-        ).x;
-        drawText(course.note || "---", noteX, yCoords);
+        // const noteX = convertToPdfCoords(
+        //   TranscriptConfig.courseTable.columns.note.x_pdf2json,
+        //   0,
+        // ).x;
+        // drawText(course.note || "---", noteX, yCoords);
 
         currentY_pdf2json += TranscriptConfig.courseTable.rowHeight_pdf2json;
       });

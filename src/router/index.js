@@ -184,6 +184,17 @@ const routes = [
       roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
     },
   },
+  // TODO(temp): 成績單 PDF 座標微調用，測完刪
+  // {
+  //   path: "/dev/transcript-pdf",
+  //   name: "DevTranscriptPdf",
+  //   component: () => import("@/components/TestPdf.vue"),
+  //   meta: {
+  //     title: "成績單 PDF 座標測試",
+  //     layout: DefaultLayout,
+  //     roles: [UserRole.Creator, UserRole.Admin, UserRole.Manager],
+  //   },
+  // },
   {
     path: "/admin/users",
     name: RouterName.UserManagement,
@@ -331,12 +342,15 @@ router.beforeEach(async (to, from, next) => {
 
   const notificationStore = useNotificationStore();
 
-  notificationStore.resetNotifiedRouterNames()
+  notificationStore.resetNotifiedRouterNames();
 
   if (
-    [UserRole.Creator, UserRole.Admin, UserRole.Manager, UserRole.Teacher].includes(
-      userStore.userProfile.userRole,
-    )
+    [
+      UserRole.Creator,
+      UserRole.Admin,
+      UserRole.Manager,
+      UserRole.Teacher,
+    ].includes(userStore.userProfile.userRole)
   ) {
     await notificationStore.fetchPendingNotification();
   }

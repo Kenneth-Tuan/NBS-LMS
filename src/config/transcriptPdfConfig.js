@@ -38,49 +38,49 @@ export const TranscriptConfig = {
   // Single Value Fields
   fields: {
     title: {
-      ...toPdfCoords(12.2, 10),
-      size: 20,
+      ...toPdfCoords(12, 9.5),
+      size: 18,
       isBold: false,
       align: "center",
     },
-    studentName: { ...toPdfCoords(18.8, 12.25), size: 14, color: COLORS.BLUE },
-    studentId: { ...toPdfCoords(18.8, 13.55), size: 14 },
-    major: { ...toPdfCoords(18.8, 14.85), size: 14, color: COLORS.BLUE },
-    enrollmentDate: { ...toPdfCoords(18.8, 16.2), size: 14 },
-    grade: { ...toPdfCoords(18.8, 17.55), size: 14 },
-    releaseDate: { ...toPdfCoords(18.8, 18.8), size: 14 },
-    transferCredits: { ...toPdfCoords(18.8, 20.15), size: 14 },
+    studentName: { ...toPdfCoords(18.8, 11.75), size: 14, color: COLORS.BLUE },
+    studentId: { ...toPdfCoords(18.8, 13.05), size: 14 },
+    major: { ...toPdfCoords(18.8, 14.35), size: 14, color: COLORS.BLUE },
+    enrollmentDate: { ...toPdfCoords(18.8, 15.7), size: 14 },
+    grade: { ...toPdfCoords(18.8, 16.75), size: 14 },
+    releaseDate: { ...toPdfCoords(18.8, 18.05), size: 14 },
+    transferCredits: { ...toPdfCoords(18.8, 19.35), size: 14 },
 
-    semesterLabel: {
-      ...toPdfCoords(4.0, 23.75),
-      size: 14,
-      color: COLORS.BLUE,
-    },
+    // semesterLabel: {
+    //   ...toPdfCoords(4.0, 23.75),
+    //   size: 14,
+    //   color: COLORS.BLUE,
+    // },
 
     // Bottom section
     totalCredits: {
-      ...toPdfCoords(29.816, 41.2),
+      ...toPdfCoords(29.816, 39.7),
       size: 14,
       color: COLORS.BLUE,
     },
 
     // This is the "Practice" note/field (e.g. 免實習)
-    practiceNote: { ...toPdfCoords(18.65, 40.15), size: 14 },
+    practiceNote: { ...toPdfCoords(23.65, 38.15), size: 14 },
 
     // New Fields
-    remarks: { ...toPdfCoords(6.55, 42.4), size: 14 }, // Placed to the right of "備註:" (x=3.85)
-    leaveHours: { ...toPdfCoords(10.641, 44.248 + 1.1), size: 14 }, // Aligning with the values "---" row
-    absentHours: { ...toPdfCoords(25.429, 44.248 + 1.1), size: 14 },
+    remarks: { ...toPdfCoords(6.55, 41.2), size: 14 }, // Placed to the right of "備註:" (x=3.85)
+    leaveHours: { ...toPdfCoords(10.641, 42.5 + 1.1), size: 14 }, // Aligning with the values "---" row
+    absentHours: { ...toPdfCoords(25.429, 42.5 + 1.1), size: 14 },
   },
   // Course Table Configuration
   courseTable: {
-    startY_pdf2json: 26.15,
-    rowHeight_pdf2json: 1.35,
+    startY_pdf2json: 24.3,
+    rowHeight_pdf2json: 1.28,
     columns: {
       name: { x_pdf2json: 4.05 },
-      credits: { x_pdf2json: 19.719, align: "center" },
-      score: { x_pdf2json: 23.777, align: "center", color: COLORS.BLUE },
-      note: { x_pdf2json: 29.396, align: "center" },
+      credits: { x_pdf2json: 24.719, align: "center" },
+      score: { x_pdf2json: 29.777, align: "center", color: COLORS.BLUE },
+      // note: { x_pdf2json: 29.396, align: "center" },
     },
   },
   styles: {

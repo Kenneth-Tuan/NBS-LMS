@@ -174,11 +174,27 @@ const useCreateTranscript = () => {
     // Columns: 學生姓名, 學號, 入學日期, 系所, Course 1, Course 2...
     const courses = selectedCourses.value.map((id) => {
       const c = allCourses.value.find((course) => course.course_id === id);
-      return { id, name: c ? c.name : id };
+      return {
+        id,
+        name: c ? c.name : id,
+        credit: c ? Number(c.credit) || 0 : 0,
+      };
     });
 
     const data = selectedCoursesTranscript.value.map((student) => {
       const form = studentPdfForms[student.student_id] || {};
+
+      let totalCredits = 0;
+      courses.forEach((course) => {
+        if (student.course_status && student.course_status[course.id] === false) {
+          return;
+        }
+        const score = student[course.id];
+        if (score > 0) {
+          totalCredits += course.credit;
+        }
+      });
+
       const row = {
         學生姓名: student.student_name,
         學號: form.studentId || "",
@@ -203,6 +219,7 @@ const useCreateTranscript = () => {
           form.leaveHours && form.leaveHours !== "-" ? form.leaveHours : "",
         曠課時數:
           form.absentHours && form.absentHours !== "-" ? form.absentHours : "",
+        所得總學分: totalCredits,
       };
       courses.forEach((course) => {
         const score = student[course.id];
