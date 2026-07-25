@@ -10,7 +10,11 @@ import {
 } from "ant-design-vue";
 import dayjs from "dayjs";
 
-import useCreateTranscript from "@/composables/useCreateTranscript";
+import useCreateTranscript, {
+  buildTranscriptSummary,
+  evaluateCourse,
+  getPassScore,
+} from "@/composables/useCreateTranscript";
 
 import {
   Form as AForm,
@@ -108,18 +112,20 @@ const transcriptColumns = computed(() => {
       dataIndex: courseId,
       key: courseId,
       width: 150,
-      customRender: ({ text, record }) => {
-        // Check if student enrolled in this course
-        if (record.course_status && record.course_status[courseId] === false) {
-          return "未修課";
-        }
+      customRender: ({ record }) => {
+        const { enrolled, hasScore, score } = evaluateCourse(
+          record,
+          {
+            id: courseId,
+            name: courseName,
+            credit: Number(course?.credit) || 0,
+          },
+          getPassScore(studentPdfForms.value[record.student_id]?.department),
+        );
 
-        // text is the score.
-        // Display requirement: "如果學生沒有修這門課或是總分不是大於0的話就顯示 N/A" -> now handled by above + below.
-        if (record.course_status[courseId] === true && record[courseId] <= 0) {
-          return "-";
-        }
-        return text;
+        if (!enrolled) return "未修課";
+        if (!hasScore) return "-";
+        return score;
       },
     };
   });
@@ -180,6 +186,7 @@ const pdfLoadingMap = ref({});   // { [studentId]: boolean }
 
 const createDefaultPdfForm = () => ({
   studentId: "",
+  department: "", // 科別代碼，供及格門檻查詢；空值時套用預設門檻
   enrollmentDate: null,
   grade: "",
   releaseDate: dayjs(),
@@ -202,6 +209,7 @@ const initAllStudentPdfForms = (rows) => {
       if (user.student_id) form.studentId = user.student_id;
       if (user.admission_time) form.enrollmentDate = dayjs(user.admission_time);
       if (user.departments && user.departments.length > 0) {
+        form.department = user.departments[0];
         form.major =
           DEPARTMENTS_LABEL_MAP[user.departments[0]] || user.departments[0];
       }
@@ -236,31 +244,33 @@ const handlePreviewPdf = async (record) => {
     const title = `${year}學年度${semesterStr}成績單`;
     const semesterLabel = `${year}學年度${semesterStr} ${semesterEng}`;
 
-    const courses = [];
-    let calculatedTotalCredits = 0;
+    // 只納入找得到定義的課程，維持既有行為
+    const courseList = selectedCourses.value
+      .map((courseId) => {
+        const courseDef = filteredCourses.value.find(
+          (c) => c.course_id === courseId,
+        );
+        return courseDef
+          ? {
+              id: courseId,
+              name: courseDef.name,
+              credit: Number(courseDef.credit) || 0,
+            }
+          : null;
+      })
+      .filter(Boolean);
 
-    selectedCourses.value.forEach((courseId) => {
-      const courseDef = filteredCourses.value.find(
-        (c) => c.course_id === courseId,
-      );
-      const score = record[courseId];
+    const summary = buildTranscriptSummary(record, courseList, form);
 
-      if (record.course_status && record.course_status[courseId] === false) {
-        return;
-      }
-
-      if (courseDef) {
-        if (score > 0) {
-          calculatedTotalCredits += Number(courseDef.credit) || 0;
-        }
-        courses.push({
-          name: courseDef.name,
-          credits: String(courseDef.credit || 0),
-          score: score && score > 0 ? String(score) : "---",
-          note: "",
-        });
-      }
-    });
+    // 未修課的課程不列入 PDF；學分欄顯示實得學分，未及格與無成績皆為 0
+    const courses = summary.courses
+      .filter((course) => course.enrolled)
+      .map((course) => ({
+        name: course.name,
+        credits: String(course.earnedCredit),
+        score: course.hasScore ? String(course.score) : "---",
+        note: "",
+      }));
 
     const pdfData = {
       title,
@@ -273,7 +283,7 @@ const handlePreviewPdf = async (record) => {
       grade: form.grade,
       releaseDate: releaseDate ? dayjs(releaseDate).format("YYYY.MM.DD") : "",
       transferCredits: form.transferCredits,
-      totalCredits: String(calculatedTotalCredits),
+      totalCredits: String(summary.totalCredits),
       semesterLabel,
       practiceNote: form.practiceNote,
       remarks: form.remarks,

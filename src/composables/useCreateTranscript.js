@@ -5,6 +5,82 @@ import { message } from "ant-design-vue";
 
 import courseApi from "../apis/course";
 import scoreApi from "../apis/score";
+import {
+  DEPARTMENT_PASS_SCORE_MAP,
+  DEFAULT_PASS_SCORE,
+} from "../constant/common.constant";
+
+/**
+ * 取得學生所屬科別的及格門檻。
+ * @param {string} [department] 科別代碼（非中文標籤）
+ * @returns {number} 查無科別時回傳預設門檻
+ */
+export const getPassScore = (department) =>
+  DEPARTMENT_PASS_SCORE_MAP[department] ?? DEFAULT_PASS_SCORE;
+
+/**
+ * 解析使用者自由輸入的轉入學分。
+ * 轉入學分是自由文字輸入，可能為 ""、"-" 或非數字字串，
+ * 未經檢查直接相加會讓總學分變成 NaN 並印上成績單。
+ * @param {*} value
+ * @returns {number} 無法解析為有限數值時回傳 0
+ */
+export const parseTransferCredits = (value) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+/**
+ * 評估一位學生在單門課程的修課狀態、及格與否與實得學分。
+ * 這是成績單所有顯示與計算的唯一判斷來源。
+ * @param {Object} student selectedCoursesTranscript 中的一列
+ * @param {{ id: string, name?: string, credit?: number }} course 正規化的課程
+ * @param {number} passScore 及格門檻
+ */
+export const evaluateCourse = (student, course, passScore) => {
+  const { id, name = "", credit = 0 } = course;
+
+  // 僅在明確標記為 false 時視為未修課，維持既有語意
+  const enrolled = student?.course_status?.[id] !== false;
+  const score = student?.[id];
+  const hasScore = score > 0;
+  const passed = enrolled && hasScore && score >= passScore;
+
+  return {
+    id,
+    name,
+    credit,
+    score,
+    enrolled,
+    hasScore,
+    passed,
+    earnedCredit: passed ? credit : 0,
+  };
+};
+
+/**
+ * 彙總一位學生所有選取課程的評估結果與總學分，供 PDF 與 Excel 共用。
+ * 回傳的 courses 包含未修課的課程（enrolled 為 false），由呼叫端自行過濾。
+ * @param {Object} student
+ * @param {Array<{ id: string, name?: string, credit?: number }>} courseList
+ * @param {{ department?: string, transferCredits?: * }} form
+ */
+export const buildTranscriptSummary = (student, courseList = [], form = {}) => {
+  const passScore = getPassScore(form.department);
+  const courses = courseList.map((course) =>
+    evaluateCourse(student, course, passScore),
+  );
+  const earnedCredits = courses.reduce((sum, c) => sum + c.earnedCredit, 0);
+  const transferCredits = parseTransferCredits(form.transferCredits);
+
+  return {
+    passScore,
+    courses,
+    earnedCredits,
+    transferCredits,
+    totalCredits: earnedCredits + transferCredits,
+  };
+};
 
 const useCreateTranscript = () => {
   const allCourses = ref([]);
@@ -162,8 +238,9 @@ const useCreateTranscript = () => {
   };
 
   /**
-   * @param {Record<string, { studentId?: string, enrollmentDate?: any, major?: string }>} [studentPdfForms]
-   *   key = student_id，value 為各生 expanded form 內容
+   * @param {Record<string, { studentId?: string, enrollmentDate?: any, major?: string, department?: string, transferCredits?: * }>} [studentPdfForms]
+   *   key = student_id，value 為各生 expanded form 內容。
+   *   department 為科別代碼（決定及格門檻），major 為對應的中文顯示標籤。
    */
   const exportToExcel = (studentPdfForms = {}) => {
     if (selectedCoursesTranscript.value.length === 0) {
@@ -184,16 +261,7 @@ const useCreateTranscript = () => {
     const data = selectedCoursesTranscript.value.map((student) => {
       const form = studentPdfForms[student.student_id] || {};
 
-      let totalCredits = 0;
-      courses.forEach((course) => {
-        if (student.course_status && student.course_status[course.id] === false) {
-          return;
-        }
-        const score = student[course.id];
-        if (score > 0) {
-          totalCredits += course.credit;
-        }
-      });
+      const summary = buildTranscriptSummary(student, courses, form);
 
       const row = {
         學生姓名: student.student_name,
@@ -219,12 +287,11 @@ const useCreateTranscript = () => {
           form.leaveHours && form.leaveHours !== "-" ? form.leaveHours : "",
         曠課時數:
           form.absentHours && form.absentHours !== "-" ? form.absentHours : "",
-        所得總學分: totalCredits,
+        所得總學分: summary.totalCredits,
       };
-      courses.forEach((course) => {
-        const score = student[course.id];
-        row[course.name] =
-          score !== undefined && score !== null && score > 0 ? score : "-";
+      // 課程欄位維持既有規則：不過濾未修課，無成績一律顯示 "-"
+      summary.courses.forEach((course) => {
+        row[course.name] = course.hasScore ? course.score : "-";
       });
       return row;
     });
