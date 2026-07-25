@@ -65,7 +65,7 @@ export const TranscriptConfig = {
     },
 
     // This is the "Practice" note/field (e.g. 免實習)
-    practiceNote: { ...toPdfCoords(23.65, 38.15), size: 14 },
+    practiceNote: { ...toPdfCoords(29, 38.15), size: 14 },
 
     // New Fields
     remarks: { ...toPdfCoords(6.55, 41.2), size: 14 }, // Placed to the right of "備註:" (x=3.85)
