@@ -93,57 +93,41 @@ const computedColumns = computed(() => {
   return isAdmin.value ? [...baseColumns, operationColumn] : baseColumns;
 });
 
-// Load all announcements from API and filter by type
+// 並行取各 type 最新 10 筆
 const loadAllAnnouncements = async () => {
   try {
     isLoading.value = true;
-    const allAnnouncements = await announcementService.getAnnouncements();
+    const [newsItems, notices, announcements] = await Promise.all([
+      announcementService.getAnnouncementsByType("news"),
+      announcementService.getAnnouncementsByType("notice"),
+      announcementService.getAnnouncementsByType("announcement"),
+    ]);
 
-    // Filter and map news
-    const newsItems = allAnnouncements.filter((item) => item.type === "news");
-    newsDataSource.value = newsItems
-      .map((item) => ({
-        key: item.$id,
-        $id: item.$id,
-        date: item.announcementDateTime
-          ? dayjs(item.announcementDateTime).format("YYYY-MM-DD")
-          : "",
-        content: item.description || "",
-        publisher: item.department || "",
-        announcementDateTime: item.announcementDateTime,
-        type: "news",
-      }))
-      .sort((a, b) => {
-        return dayjs(b.announcementDateTime).diff(
-          dayjs(a.announcementDateTime),
-        );
-      });
+    newsDataSource.value = newsItems.map((item) => ({
+      key: item.$id,
+      $id: item.$id,
+      date: item.announcementDateTime
+        ? dayjs(item.announcementDateTime).format("YYYY-MM-DD")
+        : "",
+      content: item.description || "",
+      publisher: item.department || "",
+      announcementDateTime: item.announcementDateTime,
+      type: "news",
+    }));
 
-    // Filter and map announcements
-    const announcements = allAnnouncements.filter(
-      (item) => item.type === "announcement",
-    );
-    announcementDataSource.value = announcements
-      .map((item) => ({
-        key: item.$id,
-        $id: item.$id,
-        title: item.department || "未分類", // Use department as title for now
-        contents: item.description
-          ? item.description.split("\n").filter((line) => line.trim())
-          : [],
-        announcementDateTime: item.announcementDateTime,
-        department: item.department,
-        description: item.description,
-        type: "announcement",
-      }))
-      .sort((a, b) => {
-        return dayjs(b.announcementDateTime).diff(
-          dayjs(a.announcementDateTime),
-        );
-      });
+    announcementDataSource.value = announcements.map((item) => ({
+      key: item.$id,
+      $id: item.$id,
+      title: item.department || "未分類",
+      contents: item.description
+        ? item.description.split("\n").filter((line) => line.trim())
+        : [],
+      announcementDateTime: item.announcementDateTime,
+      department: item.department,
+      description: item.description,
+      type: "announcement",
+    }));
 
-    // Filter and map notices
-    const notices = allAnnouncements.filter((item) => item.type === "notice");
     noticeDataSource.value = notices.map((item) => ({
       key: item.$id,
       $id: item.$id,
