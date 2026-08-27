@@ -3,8 +3,64 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import * as xlsx from "xlsx";
 import courseApi from "@/apis/course";
+import { userService } from "@/services/user.service";
+import { UserRole, UserStatus } from "@/enums/appEnums";
+import { DEPARTMENTS_LABEL_MAP } from "@/constant/common.constant";
 
 dayjs.extend(isBetween);
+
+/**
+ * 將科別代碼陣列轉成中文標籤，多科以「、」分隔；查無則回傳 "-"
+ * @param {string[]|undefined} departments
+ * @returns {string}
+ */
+const formatDepartments = (departments) => {
+  if (!departments || departments.length === 0) return "-";
+  return departments
+    .map((dep) => DEPARTMENTS_LABEL_MAP[dep] || dep)
+    .join("、");
+};
+
+/**
+ * 分頁撈取全部在學學生，建立 email -> departments 對照
+ * @returns {Promise<Record<string, string[]>>}
+ */
+const fetchStudentDepartmentsByEmail = async () => {
+  const filter = {
+    role: UserRole.Student,
+    status: UserStatus.Active,
+  };
+  const pageSize = 30;
+
+  const initialResponse = await userService.getUserList(
+    { currentPage: 1, pageSize },
+    filter,
+  );
+
+  const users = [...(initialResponse.data?.data?.users || [])];
+  const totalPage = initialResponse.data?.total_page || 1;
+
+  if (totalPage > 1) {
+    const promises = [];
+    for (let i = 2; i <= totalPage; i++) {
+      promises.push(
+        userService.getUserList({ currentPage: i, pageSize }, filter),
+      );
+    }
+    const responses = await Promise.all(promises);
+    responses.forEach((res) => {
+      users.push(...(res.data?.data?.users || []));
+    });
+  }
+
+  const emailToDepartments = {};
+  for (const user of users) {
+    if (user.email) {
+      emailToDepartments[user.email] = user.departments || [];
+    }
+  }
+  return emailToDepartments;
+};
 
 /**
  * 產生學員註冊表 Excel 的 composable
@@ -86,6 +142,7 @@ export function useStudentRegistrationExcel(creditFee) {
               email: student.email,
               courses: new Set(),
               credit: 0,
+              departments: [],
             };
           }
           studentEnrollments[student.email].courses.add(course.course_id);
@@ -93,41 +150,31 @@ export function useStudentRegistrationExcel(creditFee) {
         }
       }
 
-      const studentList = Object.values(studentEnrollments);
-
-      // 4. 定義 Excel 的表頭列 (Headers)
-      const headers = [
-        "課程名稱",
-        ...studentList.map((s) => `${s.name} (${s.email})`),
-      ];
-
-      const rows = [];
-      // 5. 逐一加入各個課程修課狀況至列 (Rows)
-      for (const course of filteredCourses) {
-        const row = [`${course.name} (${course.credit} 學分)`];
-        for (const student of studentList) {
-          row.push(student.courses.has(course.course_id) ? "V" : "");
-        }
-        rows.push(row);
+      // 4. 用 user list 補科別（email lookup）
+      const emailToDepartments = await fetchStudentDepartmentsByEmail();
+      for (const student of Object.values(studentEnrollments)) {
+        student.departments = emailToDepartments[student.email] || [];
       }
 
-      // 6. 加入倒數第二列：計算每位學生的總學分
-      const totalCreditRow = ["總學分"];
-      for (const student of studentList) {
-        totalCreditRow.push(student.credit);
-      }
-      rows.push(totalCreditRow);
+      // 5. 依姓名排序後產出直式五欄
+      const studentList = Object.values(studentEnrollments).sort((a, b) =>
+        (a.name || "").localeCompare(b.name || "", "zh-Hant"),
+      );
 
-      // 7. 加入最後一列：配上 creditFee 計算每位同學的總學費
-      const totalFeeRow = ["總學費"];
-      for (const student of studentList) {
-        // 解除響應式傳入的 value 或者直接使用若本身就是數字
-        const currentFee = creditFee.value || 0;
-        totalFeeRow.push(student.credit * currentFee);
-      }
-      rows.push(totalFeeRow);
+      const currentFee = creditFee.value || 0;
+      const headers = ["姓名", "科別", "所選課", "總學分", "總學費"];
+      const rows = studentList.map((s) => [
+        s.name,
+        formatDepartments(s.departments),
+        filteredCourses
+          .filter((c) => s.courses.has(c.course_id))
+          .map((c) => c.name)
+          .join("、"),
+        s.credit,
+        s.credit * currentFee,
+      ]);
 
-      // 8. 產出 Excel 並自動下載
+      // 6. 產出 Excel 並自動下載
       const wsData = [headers, ...rows];
       const ws = xlsx.utils.aoa_to_sheet(wsData);
       const wb = xlsx.utils.book_new();
