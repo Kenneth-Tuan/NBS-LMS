@@ -12,6 +12,8 @@ import { useRoute } from "vue-router";
 import scoreApi from "@/apis/score";
 import { UserRole } from "@/enums/appEnums";
 import { useUserStore } from "@/stores/user";
+import { DEPARTMENTS_LABEL_MAP } from "@/constant/common.constant";
+import { getApiErrorMessage } from "@/utils/axios/utils";
 
 const route = useRoute();
 
@@ -43,6 +45,9 @@ const addItemForm = reactive({
 const scoreItems = ref([]);
 const scoreSheet = ref([]);
 const myScores = ref([]);
+const isMyScoreAudit = ref(false);
+
+const META_COLUMN_KEYS = ["student_name", "departments", "is_audit"];
 
 const gradebookColumns = computed(() => {
   const baseColumns = [
@@ -52,6 +57,19 @@ const gradebookColumns = computed(() => {
       key: "student_name",
       fixed: "left",
       width: 120,
+    },
+    {
+      title: "科別",
+      dataIndex: "departments",
+      key: "departments",
+      width: 140,
+    },
+    {
+      title: "旁聽",
+      dataIndex: "is_audit",
+      key: "is_audit",
+      width: 80,
+      align: "center",
     },
   ];
 
@@ -126,6 +144,8 @@ const gradebookDataSource = computed(() => {
       const formattedRecord = {
         student_id: studentRecord.student_id,
         student_name: studentRecord.student_name,
+        departments: studentRecord.departments || [],
+        is_audit: studentRecord.is_audit === true,
       };
 
       // 根據 ordering 排序的 scoreItems 來建立成績欄位
@@ -137,8 +157,9 @@ const gradebookDataSource = computed(() => {
           (score) => score.score_item_id === itemId
         );
 
-        // 將成績值設定到對應的欄位
-        formattedRecord[itemId] = scoreData?.score || null;
+        // 將成績值設定到對應的欄位（旁聽生 scores 為 null）
+        formattedRecord[itemId] =
+          scoreData?.score === undefined ? null : scoreData.score;
       });
 
       return formattedRecord;
@@ -146,6 +167,9 @@ const gradebookDataSource = computed(() => {
   }
 
   if (isStudent.value) {
+    if (isMyScoreAudit.value) {
+      return [];
+    }
     const myScoresObject = myScores.value.reduce((acc, score) => {
       acc[score.score_item_id] = score.score;
       return acc;
@@ -313,7 +337,7 @@ async function submitScore(student_id, score_item_id, score) {
     }
   } catch (error) {
     console.error("submitScore error", error);
-    message.error("成績更新失敗，請稍後重試");
+    message.error(getApiErrorMessage(error, "成績更新失敗，請稍後重試"));
   }
 }
 
@@ -330,10 +354,11 @@ async function getMyScore() {
   try {
     const {
       data: {
-        data: { scores },
+        data: { scores, is_audit },
       },
     } = await scoreApi.getMyScore(course_id.value);
-    myScores.value = scores;
+    isMyScoreAudit.value = is_audit === true;
+    myScores.value = scores || [];
   } catch (error) {
     console.error("getMyScore error", error);
   }
@@ -370,6 +395,14 @@ onMounted(async () => {
     </a-button>
   </div>
 
+  <a-alert
+    v-if="isStudent && isMyScoreAudit"
+    type="info"
+    show-icon
+    message="本課程為旁聽，無成績"
+    class="u-mb-4"
+  />
+
   <!-- Column Selector Modal -->
   <a-modal v-model:open="showColumnSelector" title="添加評分項目" width="900px">
     <div class="u-max-w-full">
@@ -394,6 +427,7 @@ onMounted(async () => {
   </a-modal>
 
   <a-table
+    v-if="!(isStudent && isMyScoreAudit)"
     :columns="gradebookColumns"
     :data-source="gradebookDataSource"
     bordered
@@ -415,9 +449,34 @@ onMounted(async () => {
       </div>
     </template>
     <template #bodyCell="{ column, record, value }">
-      <template v-if="isTeacherOrCreator && column.key !== 'student_name'">
+      <template v-if="column.key === 'departments'">
+        <div
+          v-if="record.departments?.length"
+          class="u-flex u-flex-wrap u-gap-1"
+        >
+          <a-tag
+            v-for="department in record.departments"
+            :key="department"
+          >
+            {{ DEPARTMENTS_LABEL_MAP[department] || department }}
+          </a-tag>
+        </div>
+        <span v-else>-</span>
+      </template>
+      <template v-else-if="column.key === 'is_audit'">
+        <a-tag v-if="record.is_audit" color="orange">旁聽</a-tag>
+      </template>
+      <template
+        v-else-if="
+          isTeacherOrCreator && !META_COLUMN_KEYS.includes(column.key)
+        "
+      >
         <div class="grade-input-wrapper">
+          <template v-if="record.is_audit">
+            <span>—</span>
+          </template>
           <a-input-number
+            v-else
             :value="value"
             :min="0"
             :max="100"

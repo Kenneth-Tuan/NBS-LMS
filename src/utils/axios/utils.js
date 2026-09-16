@@ -32,3 +32,14 @@ export function responseErrorHandler(error) {
 
   return Promise.reject(error);
 }
+
+/**
+ * 抽出後端錯誤訊息（422/400 等），相容 message / msg 兩種欄位。
+ * @param {unknown} error
+ * @param {string} [fallback='操作失敗，請稍後重試']
+ * @returns {string}
+ */
+export function getApiErrorMessage(error, fallback = "操作失敗，請稍後重試") {
+  const data = error?.response?.data;
+  return data?.message || data?.msg || error?.message || fallback;
+}

@@ -113,7 +113,7 @@ const transcriptColumns = computed(() => {
       key: courseId,
       width: 150,
       customRender: ({ record }) => {
-        const { enrolled, hasScore, score } = evaluateCourse(
+        const { enrolled, hasScore, score, isAudit } = evaluateCourse(
           record,
           {
             id: courseId,
@@ -124,6 +124,7 @@ const transcriptColumns = computed(() => {
         );
 
         if (!enrolled) return "未修課";
+        if (isAudit) return "旁聽";
         if (!hasScore) return "-";
         return score;
       },
@@ -262,13 +263,17 @@ const handlePreviewPdf = async (record) => {
 
     const summary = buildTranscriptSummary(record, courseList, form);
 
-    // 未修課的課程不列入 PDF；學分欄顯示實得學分，未及格與無成績皆為 0
+    // 未修課的課程不列入 PDF；旁聽列仍列出，分數欄顯示「旁聽」、學分 0
     const courses = summary.courses
       .filter((course) => course.enrolled)
       .map((course) => ({
         name: course.name,
         credits: String(course.earnedCredit),
-        score: course.hasScore ? String(course.score) : "---",
+        score: course.isAudit
+          ? "旁聽"
+          : course.hasScore
+            ? String(course.score)
+            : "---",
         note: "",
       }));
 

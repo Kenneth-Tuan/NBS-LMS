@@ -42,6 +42,23 @@ export const evaluateCourse = (student, course, passScore) => {
 
   // 僅在明確標記為 false 時視為未修課，維持既有語意
   const enrolled = student?.course_status?.[id] !== false;
+  const isAudit = student?.audit_status?.[id] === true;
+
+  // 旁聽：列出、無成績、實得學分 0（舊分被後端藏成 null，不可拿來及格）
+  if (isAudit) {
+    return {
+      id,
+      name,
+      credit,
+      score: null,
+      enrolled: true,
+      hasScore: false,
+      passed: false,
+      earnedCredit: 0,
+      isAudit: true,
+    };
+  }
+
   const score = student?.[id];
   const hasScore = score > 0;
   const passed = enrolled && hasScore && score >= passScore;
@@ -55,6 +72,7 @@ export const evaluateCourse = (student, course, passScore) => {
     hasScore,
     passed,
     earnedCredit: passed ? credit : 0,
+    isAudit: false,
   };
 };
 
@@ -188,11 +206,13 @@ const useCreateTranscript = () => {
                 student_name: row.student_name,
                 scores: {}, // courseId -> score
                 enrolled_courses: new Set(), // Track which courses this student is in
+                audit_status: {}, // courseId -> bool
               });
             }
 
             const studentData = studentMap.get(studentId);
             studentData.enrolled_courses.add(courseId);
+            studentData.audit_status[courseId] = row.is_audit === true;
 
             // Only try to get score if we found the "Total" item
             if (totalItem) {
@@ -225,6 +245,7 @@ const useCreateTranscript = () => {
             student_id: studentId,
             student_name: data.student_name,
             course_status,
+            audit_status: data.audit_status,
             ...data.scores,
           };
         },
@@ -289,9 +310,13 @@ const useCreateTranscript = () => {
           form.absentHours && form.absentHours !== "-" ? form.absentHours : "",
         所得總學分: summary.totalCredits,
       };
-      // 課程欄位維持既有規則：不過濾未修課，無成績一律顯示 "-"
+      // 課程欄位維持既有規則：不過濾未修課；旁聽顯示「旁聽」；無成績一律顯示 "-"
       summary.courses.forEach((course) => {
-        row[course.name] = course.hasScore ? course.score : "-";
+        if (course.isAudit) {
+          row[course.name] = "旁聽";
+        } else {
+          row[course.name] = course.hasScore ? course.score : "-";
+        }
       });
       return row;
     });

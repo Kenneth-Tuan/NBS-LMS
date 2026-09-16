@@ -238,7 +238,17 @@ onMounted(async () => {
       class="u-w-full u-overflow-x-auto"
     >
       <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'actions'">
+        <template v-if="column.key === 'course_name'">
+          <span>{{ record.course_name || record.name }}</span>
+          <ATag
+            v-if="isStudent && record.is_audit"
+            color="orange"
+            class="u-ml-2"
+          >
+            旁聽
+          </ATag>
+        </template>
+        <template v-else-if="column.key === 'actions'">
           <ASpace>
             <AButton
               type="primary"

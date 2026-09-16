@@ -119,6 +119,32 @@ export default {
     return baseApiHelper.post(`/enrollment/drop-course`, params);
   },
 
+  /**
+   * 標記／取消單一學生的旁聽狀態（admin / manager / creator）
+   * @param {string} course_id
+   * @param {string} student_id
+   * @param {boolean} is_audit
+   */
+  patchEnrollmentAudit(course_id, student_id, is_audit) {
+    return baseApiHelper.patch(
+      `/enrollment/audit?course_id=${course_id}&student_id=${student_id}`,
+      { is_audit },
+    );
+  },
+
+  /**
+   * 批次標記／取消旁聽（admin / manager / creator）
+   * @param {string} course_id
+   * @param {string[]} student_ids
+   * @param {boolean} is_audit
+   */
+  patchEnrollmentAuditBatch(course_id, student_ids, is_audit) {
+    return baseApiHelper.patch(
+      `/enrollment/audit/batch?course_id=${course_id}`,
+      { student_ids, is_audit },
+    );
+  },
+
   myCourseSchedule() {
     return baseApiHelper.get(`/enrollment/my-schedule`);
   },

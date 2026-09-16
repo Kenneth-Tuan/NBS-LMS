@@ -12,6 +12,7 @@ import {
 import { assignmentService, courseService } from "@/services/course.service";
 import { useFileDownload } from "@/composables/useFileDownload";
 import { useFileUpload } from "../../../composables/useFileUpload";
+import { getApiErrorMessage } from "@/utils/axios/utils";
 
 // Props
 const props = defineProps({
@@ -61,6 +62,7 @@ const AssignmentStatus = {
   GRADED: "GRADED",
   CLOSED: "CLOSED",
   NOT_SUBMITTED: "NOT_SUBMITTED",
+  AUDIT_EXEMPT: "AUDIT_EXEMPT",
 };
 
 // Local state for assignments
@@ -68,6 +70,7 @@ const localAssignments = ref([]);
 const localGrades = reactive({ ...props.grades });
 const localCurrentUserSubmissions = ref([]);
 const loading = ref(false);
+const isCourseAudit = ref(false);
 
 // Watch for prop changes
 watch(
@@ -132,6 +135,8 @@ const getStatusText = (status) => {
       return "已關閉";
     case AssignmentStatus.NOT_SUBMITTED:
       return "未繳交";
+    case AssignmentStatus.AUDIT_EXEMPT:
+      return "無需繳交";
     default:
       return "未知";
   }
@@ -149,6 +154,8 @@ const getStatusColor = (status) => {
       return "red";
     case AssignmentStatus.NOT_SUBMITTED:
       return "orange";
+    case AssignmentStatus.AUDIT_EXEMPT:
+      return "default";
     default:
       return "default";
   }
@@ -182,6 +189,7 @@ const fetchAssignments = async () => {
         props.currentCourseId
       );
       assignments = response.assignments || [];
+      isCourseAudit.value = response.is_audit === true;
 
       // 轉換資料格式並設定繳交狀態
       localAssignments.value = assignments.map((assignment) => ({
@@ -198,9 +206,11 @@ const fetchAssignments = async () => {
       // 更新學生的繳交狀態
       localCurrentUserSubmissions.value = assignments.map((assignment) => ({
         assignmentId: assignment.assignment_id,
-        status: assignment.is_submitted && assignment.submitted_files.length > 0
-          ? AssignmentStatus.SUBMITTED
-          : AssignmentStatus.NOT_SUBMITTED,
+        status: isCourseAudit.value
+          ? AssignmentStatus.AUDIT_EXEMPT
+          : assignment.is_submitted && assignment.submitted_files?.length > 0
+            ? AssignmentStatus.SUBMITTED
+            : AssignmentStatus.NOT_SUBMITTED,
         files: assignment.submitted_files || [],
         grade: null,
       }));
@@ -354,7 +364,7 @@ const handleStudentMockUpload = async (assignment, file) => {
     await fetchAssignments();
   } catch (error) {
     console.error("Failed to submit assignment:", error);
-    message.error("作業繳交失敗");
+    message.error(getApiErrorMessage(error, "作業繳交失敗"));
   } finally {
     loading.value = false;
   }
@@ -389,7 +399,7 @@ const deleteSubmittedFile = async (assignment, fileToDelete) => {
       await fetchAssignments();
     } catch (error) {
       console.error("Failed to delete file:", error);
-      message.error("檔案刪除失敗");
+      message.error(getApiErrorMessage(error, "檔案刪除失敗"));
     } finally {
       loading.value = false;
     }
@@ -430,6 +440,14 @@ onMounted(() => {
       </a-button>
     </div>
 
+    <a-alert
+      v-if="isStudent && isCourseAudit"
+      type="info"
+      show-icon
+      message="此課程為旁聽，無需繳交作業"
+      class="u-mb-4"
+    />
+
     <!-- Assignment List -->
     <a-spin :spinning="loading">
       <a-list
@@ -465,7 +483,10 @@ onMounted(() => {
                 v-if="isStudent && getStudentSubmissionForAssignment(item.id)"
                 class="u-flex u-items-center u-gap-4"
               >
-                <div class="u-flex u-flex-col u-items-end u-gap-1">
+                <div
+                  v-if="!isCourseAudit"
+                  class="u-flex u-flex-col u-items-end u-gap-1"
+                >
                   <template
                     v-if="
                       getStudentSubmissionForAssignment(item.id).files?.length >
@@ -650,8 +671,11 @@ onMounted(() => {
       >
         <template #bodyCell="{ column, record }">
           <template v-if="column.key === 'submitted_files'">
+            <span v-if="record.is_audit">無需繳交</span>
             <div
-              v-if="record.submitted_files && record.submitted_files.length > 0"
+              v-else-if="
+                record.submitted_files && record.submitted_files.length > 0
+              "
             >
               <a-tag
                 v-for="file in record.submitted_files"
@@ -666,7 +690,11 @@ onMounted(() => {
             <span v-else>--</span>
           </template>
           <template v-if="column.key === 'time'">
-            <span>{{ dayjs(record.time).format("YYYY-MM-DD HH:mm:ss") }}</span>
+            <span v-if="record.is_audit">—</span>
+            <span v-else-if="record.time">{{
+              dayjs(record.time).format("YYYY-MM-DD HH:mm:ss")
+            }}</span>
+            <span v-else>—</span>
           </template>
         </template>
       </a-table>
