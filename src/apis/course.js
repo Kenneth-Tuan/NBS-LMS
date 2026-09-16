@@ -18,36 +18,63 @@ export default {
     return baseApiHelper.post("/course-management/create-one", params);
   },
 
+  /**
+   * 上傳檔案（v3：sign → GCS PUT → confirm 後才拿可存檔網址）
+   * @param {string} fileName
+   * @param {string} contentType
+   * @param {{ originFileObj?: Blob|File }|Blob|File} file
+   * @returns {Promise<string>} confirm 後的 url（可寫入 DB）
+   */
   async uploadFile(fileName, contentType, file) {
     const miscStore = useMiscStore();
     const { globalLoading } = storeToRefs(miscStore);
 
     globalLoading.value = true;
     try {
-      // return fileApiHelper.post("/upload", file);
-      const step1_res = await baseApiHelper.post("/upload/v2/sign", {
-        fileName: fileName,
-        contentType: contentType,
+      const {
+        data: { data: signData },
+      } = await baseApiHelper.post("/upload/v3/sign", {
+        file_name: fileName,
+        content_type: contentType,
       });
 
-      const {
-        data: {
-          data: { downloadUrl, uploadUrl },
-        },
-      } = step1_res;
+      // 後端文件是 snake_case；若實際回 camelCase 也相容
+      const objectName = signData?.object_name ?? signData?.objectName;
+      const uploadUrl = signData?.upload_url ?? signData?.uploadUrl;
 
-      const binaryData = new Blob([file.originFileObj], { type: contentType });
+      if (!uploadUrl || !objectName) {
+        throw new Error(
+          "取得上傳網址失敗（缺少 upload_url / object_name），請確認 /upload/v3/sign 回應",
+        );
+      }
 
-      await axios.put(uploadUrl, binaryData, {
+      const rawFile = file?.originFileObj ?? file;
+      if (!(rawFile instanceof Blob)) {
+        throw new Error("找不到可上傳的檔案內容，請重新選擇檔案");
+      }
+
+      // PUT 目標是 storage.googleapis.com，不是 API domain
+      await axios.put(uploadUrl, rawFile, {
         headers: {
           "Content-Type": contentType,
         },
       });
 
-      return downloadUrl;
+      const {
+        data: { data: confirmData },
+      } = await baseApiHelper.post("/upload/v3/confirm", {
+        object_name: objectName,
+      });
+
+      const url = confirmData?.url;
+      if (!url) {
+        throw new Error("上傳確認失敗，未取得檔案網址");
+      }
+
+      return url;
     } catch (error) {
       console.error("Upload error:", error);
-      return null;
+      throw error;
     } finally {
       globalLoading.value = false;
     }

@@ -1,6 +1,7 @@
 import { message, Upload } from "ant-design-vue";
 
 import courseApi from "@/apis/course";
+import { getApiErrorMessage } from "@/utils/axios/utils";
 
 /**
  * Generic file upload composable
@@ -45,27 +46,19 @@ export function useFileUpload(options = {}) {
       throw new Error("一次最多只能上傳 10 個檔案");
     }
 
-    try {
-      const fileUrls = await Promise.all(
-        fileList
-          .map(async (fileObj) => {
-            const { name, type } = fileObj;
+    const results = await Promise.all(
+      fileList.map(async (fileObj) => {
+        const { name, type } = fileObj;
+        return courseApi.uploadFile(name, type, fileObj);
+      }),
+    );
 
-            try {
-              const fileUrl = await courseApi.uploadFile(name, type, fileObj);
-              return fileUrl;
-            } catch (error) {
-              console.error(error);
-              return null;
-            }
-          })
-          .filter(Boolean)
-      );
-
-      return fileUrls;
-    } catch (error) {
-      console.error(error);
+    const fileUrls = results.filter(Boolean);
+    if (fileUrls.length === 0) {
+      throw new Error("檔案上傳失敗，請重新上傳");
     }
+
+    return fileUrls;
   };
 
   const uploadSingle = async (file) => {
@@ -80,6 +73,8 @@ export function useFileUpload(options = {}) {
       return file;
     } catch (error) {
       console.error(error);
+      message.error(getApiErrorMessage(error, "檔案上傳失敗，請重新上傳"));
+      throw error;
     }
   };
 
@@ -97,10 +92,11 @@ export function useFileUpload(options = {}) {
     try {
       const files = Array.isArray(fileList) ? fileList : [];
       return Promise.all(
-        files.map((f) => (f?.isUploaded ? f : uploadSingle(f)))
+        files.map((f) => (f?.isUploaded ? f : uploadSingle(f))),
       );
     } catch (error) {
       console.error(error);
+      throw error;
     }
   };
 
